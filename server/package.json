@@ -1,0 +1,16 @@
+{
+  "name": "glosmart-team-backend",
+  "version": "1.0.0",
+  "description": "Backend for glosmart team project",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "dotenv": "^16.4.7",
+    "cors": "^2.8.5"
+  }
+}
