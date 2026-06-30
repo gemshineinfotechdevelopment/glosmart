@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fredoka:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: 'Outfit', sans-serif;
+  --font-fredoka: 'Fredoka', sans-serif;
   
   /* Brand color palette */
   --color-brand-navy: #081f37;
