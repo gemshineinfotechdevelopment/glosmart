@@ -1,3 +1,11 @@
+import React from 'react'
+import { BrowserRouter as Router } from 'react-router-dom'
+import Gallery from './pages/Gallery'
+
+function App() {
+  return (
+    <Router>
+      <Gallery />
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -35,7 +43,7 @@ function App(): React.JSX.Element {
     <Router>
       <AppContent />
     </Router>
-  );
+  )
 }
 
-export default App;
+export default App
