@@ -9,20 +9,20 @@ const Footer: React.FC = () => {
         
         {/* Column 1: Brand Info */}
         <div className="flex flex-col gap-5">
-          <Link to="/" className="text-2xl font-bold tracking-tight text-white">
-            Glo<span className="text-[#0ea5e9]">Smart</span>
+          <Link to="/" className="text-2xl font-bold tracking-tight text-[#00668A]">
+            GloSmart
           </Link>
           <p className="text-sm text-slate-400 leading-relaxed max-w-xs">
             Empowering young minds to explore their creative potential and paint their dreams.
           </p>
           <div className="flex gap-4 mt-2">
-            <a href="#" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#0ea5e9] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
+            <a href="#" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#00668A] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
               <FiInstagram size={18} />
             </a>
-            <a href="#" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#0ea5e9] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
+            <a href="#" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#00668A] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
               <FiTwitter size={18} />
             </a>
-            <a href="#" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#0ea5e9] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
+            <a href="#" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#00668A] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
               <FiYoutube size={18} />
             </a>
           </div>
@@ -30,7 +30,7 @@ const Footer: React.FC = () => {
 
         {/* Column 2: Quick Links */}
         <div>
-          <h4 className="text-white font-semibold text-lg mb-5 relative pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-[#0ea5e9]">
+          <h4 className="text-white font-semibold text-lg mb-5 relative pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-[#00668A]">
             Quick Links
           </h4>
           <ul className="flex flex-col gap-3 text-sm">
@@ -44,7 +44,7 @@ const Footer: React.FC = () => {
 
         {/* Column 3: Courses */}
         <div>
-          <h4 className="text-white font-semibold text-lg mb-5 relative pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-[#0ea5e9]">
+          <h4 className="text-white font-semibold text-lg mb-5 relative pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-[#00668A]">
             Our Courses
           </h4>
           <ul className="flex flex-col gap-3 text-sm">
@@ -56,19 +56,19 @@ const Footer: React.FC = () => {
 
         {/* Column 4: Contact */}
         <div className="flex flex-col gap-4">
-          <h4 className="text-white font-semibold text-lg mb-5 relative pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-[#0ea5e9]">
+          <h4 className="text-white font-semibold text-lg mb-5 relative pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-[#00668A]">
             Contact Us
           </h4>
           <div className="flex items-center gap-3 text-sm">
-            <FiPhone className="text-[#0ea5e9] shrink-0" size={16} />
+            <FiPhone className="text-[#00668A] shrink-0" size={16} />
             <span>+1 234 567 890</span>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <FiMail className="text-[#0ea5e9] shrink-0" size={16} />
+            <FiMail className="text-[#00668A] shrink-0" size={16} />
             <span>hello@glosmartacademy.com</span>
           </div>
           <div className="flex items-start gap-3 text-sm">
-            <FiMapPin className="text-[#0ea5e9] shrink-0 mt-0.5" size={16} />
+            <FiMapPin className="text-[#00668A] shrink-0 mt-0.5" size={16} />
             <span className="leading-relaxed">123 Art Avenue, Creative District, New York, NY 10001</span>
           </div>
         </div>
