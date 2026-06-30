@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 // SVG Icons defined as components for cleanliness
 const PhoneIcon = () => (
@@ -142,45 +143,45 @@ export const Contact: React.FC = () => {
               : 'bg-white rounded-full px-6 py-2.5 shadow-xl shadow-slate-100/40 border border-white/80 backdrop-blur-sm'
           }`}
         >
-          <a href="#" className="font-fredoka text-2xl font-bold text-[#004b73] no-underline flex items-center">
+          <Link to="/" className="font-fredoka text-2xl font-bold text-[#004b73] no-underline flex items-center">
             Glo<span className="text-[#0077b6]">Smart</span>
-          </a>
+          </Link>
           <nav>
             <ul className="flex gap-8 list-none m-0 p-0">
               <li>
-                <a href="#about" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
+                <Link to="/" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
                   ABOUT
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#contact" className="text-xs font-bold text-[#5b21b6] tracking-wider transition-colors duration-300 active">
+                <Link to="/contact" className="text-xs font-bold text-[#5b21b6] tracking-wider transition-colors duration-300 active">
                   CONTACT
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#gallery" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
+                <Link to="/gallery" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
                   GALLERY
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#courses" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
+                <Link to="/courses" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
                   COURSES
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#faqs" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
+                <Link to="/faqs" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
                   FAQS
-                </a>
+                </Link>
               </li>
             </ul>
           </nav>
           <div className="flex items-center gap-5">
-            <a href="#login" className="text-sm font-bold text-[#00668f] hover:opacity-80 transition-opacity no-underline">
+            <Link to="/login" className="text-sm font-bold text-[#00668f] hover:opacity-80 transition-opacity no-underline">
               Login
-            </a>
-            <a href="#join" className="bg-[#00668f] text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md shadow-sky-100/50 hover:bg-[#005172] transition-colors no-underline">
+            </Link>
+            <Link to="/join" className="bg-[#00668f] text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md shadow-sky-100/50 hover:bg-[#005172] transition-colors no-underline">
               Join Academy
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -353,9 +354,9 @@ export const Contact: React.FC = () => {
       <footer className="bg-[#1b2559] text-white rounded-t-[50px] px-10 pt-16 pb-8 relative z-10">
         <div className="max-w-[1100px] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[1.2fr_0.8fr_1fr_1fr] gap-10 mb-12">
           <div className="flex flex-col gap-5">
-            <a href="#" className="font-fredoka text-3xl font-bold text-white no-underline">
+            <Link to="/" className="font-fredoka text-3xl font-bold text-white no-underline">
               Glo<span className="text-[#38bdf8]">Smart</span>
-            </a>
+            </Link>
             <p className="text-[14px] leading-relaxed text-slate-400 max-w-[240px]">
               Nurturing creativity, one brushstroke at a time.
             </p>
@@ -372,20 +373,20 @@ export const Contact: React.FC = () => {
           <div className="flex flex-col">
             <h4 className="font-fredoka text-[16px] font-semibold text-white mb-6">Quick Links</h4>
             <ul className="list-none p-0 m-0 flex flex-col gap-3.5">
-              <li><a href="#home" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Home</a></li>
-              <li><a href="#about" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">About</a></li>
-              <li><a href="#contact" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Contact</a></li>
-              <li><a href="#gallery" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Gallery</a></li>
-              <li><a href="#faqs" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">FAQs</a></li>
+              <li><Link to="/" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Home</Link></li>
+              <li><Link to="/" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">About</Link></li>
+              <li><Link to="/contact" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Contact</Link></li>
+              <li><Link to="/gallery" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Gallery</Link></li>
+              <li><Link to="/faqs" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">FAQs</Link></li>
             </ul>
           </div>
 
           <div className="flex flex-col">
             <h4 className="font-fredoka text-[16px] font-semibold text-white mb-6">Our Courses</h4>
             <ul className="list-none p-0 m-0 flex flex-col gap-3.5">
-              <li><a href="#pre-junior" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Pre-Junior Batch (4 – 8 Years)</a></li>
-              <li><a href="#junior" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Junior Batch (9 – 14 Years)</a></li>
-              <li><a href="#senior" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Senior Batch (15+ Years)</a></li>
+              <li><Link to="/courses" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Pre-Junior Batch (4 – 8 Years)</Link></li>
+              <li><Link to="/courses" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Junior Batch (9 – 14 Years)</Link></li>
+              <li><Link to="/courses" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Senior Batch (15+ Years)</Link></li>
             </ul>
           </div>
 
