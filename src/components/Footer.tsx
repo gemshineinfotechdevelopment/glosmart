@@ -4,7 +4,7 @@ import { FiPhone, FiMail, FiMapPin, FiInstagram, FiTwitter, FiYoutube } from 're
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-[#1e233d] text-slate-300 rounded-t-[2.5rem] md:rounded-t-[4rem] pt-16 pb-8 px-6 md:px-16 mt-20">
+    <footer className="bg-[#1e233d] text-slate-300 rounded-t-[2.5rem] md:rounded-t-[4rem] pt-16 pb-8 px-6 md:px-16 mt-20 w-full overflow-hidden">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 pb-12 border-b border-slate-700/50">
         
         {/* Column 1: Brand Info */}
