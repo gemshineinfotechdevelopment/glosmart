@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
 
 // SVG Icons defined as components for cleanliness
 const PhoneIcon = () => (
@@ -31,16 +30,6 @@ const PlusIcon = () => (
 const MinusIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
     <line x1="5" y1="12" x2="19" y2="12"></line>
-  </svg>
-);
-
-const ShareIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="18" cy="5" r="3"></circle>
-    <circle cx="6" cy="12" r="3"></circle>
-    <circle cx="18" cy="19" r="3"></circle>
-    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
   </svg>
 );
 
@@ -82,6 +71,16 @@ export const Contact: React.FC = () => {
   // Accordion State — first FAQ open by default, matching the design
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  // Scroll State
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -119,7 +118,63 @@ export const Contact: React.FC = () => {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <Navbar />
+      {/* Header/Navbar */}
+      <header
+        className={`flex justify-center items-center px-5 sticky top-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? 'py-3 bg-[#faf7f0]/85 backdrop-blur-md shadow-sm border-b border-[#1e295d]/5'
+            : 'py-6'
+        }`}
+      >
+        <div
+          className={`flex justify-between items-center w-full max-w-[1080px] transition-all duration-300 ${
+            isScrolled
+              ? 'bg-transparent shadow-none border-transparent px-3 py-1'
+              : 'bg-white rounded-full px-6 py-2.5 shadow-xl shadow-slate-100/40 border border-white/80 backdrop-blur-sm'
+          }`}
+        >
+          <Link to="/" className="font-fredoka text-2xl font-bold text-[#004b73] no-underline flex items-center">
+            Glo<span className="text-[#0077b6]">Smart</span>
+          </Link>
+          <nav>
+            <ul className="flex gap-8 list-none m-0 p-0">
+              <li>
+                <Link to="/" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
+                  ABOUT
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-xs font-bold text-[#5b21b6] tracking-wider transition-colors duration-300 active">
+                  CONTACT
+                </Link>
+              </li>
+              <li>
+                <Link to="/gallery" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
+                  GALLERY
+                </Link>
+              </li>
+              <li>
+                <Link to="/courses" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
+                  COURSES
+                </Link>
+              </li>
+              <li>
+                <Link to="/faqs" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
+                  FAQS
+                </Link>
+              </li>
+            </ul>
+          </nav>
+          <div className="flex items-center gap-5">
+            <Link to="/login" className="text-sm font-bold text-[#00668f] hover:opacity-80 transition-opacity no-underline">
+              Login
+            </Link>
+            <Link to="/join" className="bg-[#00668f] text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md shadow-sky-100/50 hover:bg-[#005172] transition-colors no-underline">
+              Join Academy
+            </Link>
+          </div>
+        </div>
+      </header>
 
       {/* Main Container */}
       <main className="flex-grow w-full max-w-[1100px] mx-auto px-5 pt-28 pb-20 relative z-10 box-border">
@@ -285,73 +340,7 @@ export const Contact: React.FC = () => {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-[#1b2559] text-white rounded-t-[50px] px-10 pt-16 pb-8 relative z-10">
-        <div className="max-w-[1100px] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[1.2fr_0.8fr_1fr_1fr] gap-10 mb-12">
-          <div className="flex flex-col gap-5">
-            <Link to="/" className="font-fredoka text-3xl font-bold text-white no-underline">
-              Glo<span className="text-[#38bdf8]">Smart</span>
-            </Link>
-            <p className="text-[14px] leading-relaxed text-slate-400 max-w-[240px]">
-              Nurturing creativity, one brushstroke at a time.
-            </p>
-            <div className="flex gap-3">
-              <a href="#" className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 text-white no-underline transition-all hover:bg-white/10 hover:border-white/40">
-                <ShareIcon />
-              </a>
-              <a href="mailto:glosmart@gmail.com" className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 text-white no-underline transition-all hover:bg-white/10 hover:border-white/40">
-                <MailIcon />
-              </a>
-            </div>
-          </div>
-
-          <div className="flex flex-col">
-            <h4 className="font-fredoka text-[16px] font-semibold text-white mb-6">Quick Links</h4>
-            <ul className="list-none p-0 m-0 flex flex-col gap-3.5">
-              <li><Link to="/" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Home</Link></li>
-              <li><Link to="/" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">About</Link></li>
-              <li><Link to="/contact" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Contact</Link></li>
-              <li><Link to="/gallery" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Gallery</Link></li>
-              <li><Link to="/faqs" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">FAQs</Link></li>
-            </ul>
-          </div>
-
-          <div className="flex flex-col">
-            <h4 className="font-fredoka text-[16px] font-semibold text-white mb-6">Our Courses</h4>
-            <ul className="list-none p-0 m-0 flex flex-col gap-3.5">
-              <li><Link to="/courses" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Pre-Junior Batch (4 – 8 Years)</Link></li>
-              <li><Link to="/courses" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Junior Batch (9 – 14 Years)</Link></li>
-              <li><Link to="/courses" className="text-[13px] text-slate-400 no-underline transition-colors hover:text-white">Senior Batch (15+ Years)</Link></li>
-            </ul>
-          </div>
-
-          <div className="flex flex-col">
-            <h4 className="font-fredoka text-[16px] font-semibold text-white mb-6">Contact</h4>
-            <ul className="list-none p-0 m-0 flex flex-col gap-3.5">
-              <li className="flex flex-col gap-1">
-                <span className="text-[13px] text-slate-400">+91 98765 43210</span>
-              </li>
-              <li className="flex flex-col gap-1">
-                <span className="text-[13px] text-slate-400">glosmart@gmail.com</span>
-              </li>
-              <li className="flex flex-col gap-1">
-                <span className="text-[13px] text-slate-400">24, K.K Nagar, Sivakasi - 626123</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="max-w-[1100px] mx-auto border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center text-[12px] text-slate-500 gap-4">
-          <p>© 2024 Luminous Academy. Built for the dreamers and creators.</p>
-          <div className="flex gap-6 items-center">
-            <span>Designed with ❤️ for Kids</span>
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#84cc16]"></div>
-              <span>Learning Platform Online</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* Footer has been moved to a global component in App.tsx */}
     </div>
   );
 };

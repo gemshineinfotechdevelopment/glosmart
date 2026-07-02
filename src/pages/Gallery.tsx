@@ -256,64 +256,7 @@ export default function Gallery() {
         </div>
       </section>
 
-      <footer className="bg-[#161e38] text-white py-16 px-8 md:px-16 rounded-t-[60px] md:rounded-t-[100px] relative z-10">
-        <div className="flex flex-wrap justify-between gap-10 max-w-6xl mx-auto mb-16">
-          <div className="max-w-xs">
-            <h2 className="text-3xl font-bold mb-4 text-white">Glosmart</h2>
-            <p className="text-slate-400 leading-relaxed mb-6 text-sm">
-              Nurturing creativity, one brushstroke at a time.
-            </p>
-            <div className="flex gap-4">
-              <button className="w-11 h-11 rounded-full bg-transparent border border-white/15 text-white flex items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/30 transition-all" aria-label="Share">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-              </button>
-              <button className="w-11 h-11 rounded-full bg-transparent border border-white/15 text-white flex items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/30 transition-all" aria-label="Email">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-              </button>
-            </div>
-          </div>
-          
-          <div className="flex flex-wrap gap-12 md:gap-20">
-            <div>
-              <h3 className="text-base font-bold mb-5 text-white tracking-wider">Quick Links</h3>
-              <ul className="list-none p-0 m-0 text-sm flex flex-col gap-3">
-                <li className="text-slate-400 cursor-pointer hover:text-white transition-colors">Home</li>
-                <li className="text-slate-400 cursor-pointer hover:text-white transition-colors">About</li>
-                <li className="text-slate-400 cursor-pointer hover:text-white transition-colors">Contact</li>
-                <li className="text-slate-400 cursor-pointer hover:text-white transition-colors">Gallery</li>
-                <li className="text-slate-400 cursor-pointer hover:text-white transition-colors">FAQs</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-base font-bold mb-5 text-white tracking-wider">Our Courses</h3>
-              <ul className="list-none p-0 m-0 text-sm flex flex-col gap-3">
-                <li className="text-slate-400 cursor-pointer hover:text-white transition-colors">Pre-Junior Batch (4-8 Years)</li>
-                <li className="text-slate-400 cursor-pointer hover:text-white transition-colors">Junior Batch (9-14 Years)</li>
-                <li className="text-slate-400 cursor-pointer hover:text-white transition-colors">Senior Batch (15+ Years)</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-base font-bold mb-5 text-white tracking-wider">Contact</h3>
-              <ul className="list-none p-0 m-0 text-sm flex flex-col gap-3">
-                <li className="text-slate-400">+91 98765 43210</li>
-                <li className="text-slate-400">glosmart@gmail.com</li>
-                <li className="text-slate-400">2A, K.K. Nagar, Sivakasi - 626123</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        
-        <div className="max-w-6xl mx-auto pt-8 border-t border-white/10 flex flex-wrap justify-between items-center text-slate-400 text-xs md:text-sm gap-5">
-          <p>© 2024 Luminous Academy. Built for the dreamers and creators.</p>
-          <div className="flex items-center gap-6">
-            <span>Designed with a ❤️ for Kids</span>
-            <span className="flex items-center">
-              <span className="inline-block w-2 h-2 bg-[#8dc63f] rounded-full mr-2"></span> 
-              Learning Platform Online
-            </span>
-          </div>
-        </div>
-      </footer>
+      {/* Footer has been moved to a global component in App.tsx */}
     </div>
   );
 }
