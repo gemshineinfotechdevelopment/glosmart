@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { 
-  FiPlay, FiAward, FiBookOpen, FiUsers, 
+  FiPlay, 
   FiSmile, FiTrendingUp, FiImage, FiShield, 
-  FiStar, FiCheck, FiChevronDown, FiEdit3 
+  FiStar, FiCheck, FiChevronDown 
 } from 'react-icons/fi';
-import { FaPalette, FaRocket, FaTrophy, FaPaintBrush } from 'react-icons/fa';
+import { FaPalette, FaRocket, FaPaintBrush } from 'react-icons/fa';
 
 import bgImage from '../assets/background-home.jpeg';
 

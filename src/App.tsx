@@ -44,7 +44,7 @@ function App(): React.JSX.Element {
     <Router>
       <AppContent />
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;
