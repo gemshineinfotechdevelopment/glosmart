@@ -1,17 +1,10 @@
-import React from 'react'
-import { BrowserRouter as Router } from 'react-router-dom'
-import Gallery from './pages/Gallery'
-
-function App() {
-  return (
-    <Router>
-      <Gallery />
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Gallery from './pages/Gallery';
 
 function AppContent(): React.JSX.Element {
   const location = useLocation();
@@ -27,6 +20,7 @@ function AppContent(): React.JSX.Element {
         <Routes>
           <Route path="/" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/gallery" element={<Gallery />} />
           {/* Fallback route back to About page */}
           <Route path="*" element={<About />} />
         </Routes>
@@ -43,7 +37,7 @@ function App(): React.JSX.Element {
     <Router>
       <AppContent />
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

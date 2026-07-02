@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 // SVG Icons defined as components for cleanliness
 const PhoneIcon = () => (
@@ -81,16 +82,6 @@ export const Contact: React.FC = () => {
   // Accordion State — first FAQ open by default, matching the design
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  // Scroll State
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -128,66 +119,10 @@ export const Contact: React.FC = () => {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* Header/Navbar */}
-      <header
-        className={`flex justify-center items-center px-5 sticky top-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? 'py-3 bg-[#faf7f0]/85 backdrop-blur-md shadow-sm border-b border-[#1e295d]/5'
-            : 'py-6'
-        }`}
-      >
-        <div
-          className={`flex justify-between items-center w-full max-w-[1080px] transition-all duration-300 ${
-            isScrolled
-              ? 'bg-transparent shadow-none border-transparent px-3 py-1'
-              : 'bg-white rounded-full px-6 py-2.5 shadow-xl shadow-slate-100/40 border border-white/80 backdrop-blur-sm'
-          }`}
-        >
-          <Link to="/" className="font-fredoka text-2xl font-bold text-[#004b73] no-underline flex items-center">
-            Glo<span className="text-[#0077b6]">Smart</span>
-          </Link>
-          <nav>
-            <ul className="flex gap-8 list-none m-0 p-0">
-              <li>
-                <Link to="/" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
-                  ABOUT
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="text-xs font-bold text-[#5b21b6] tracking-wider transition-colors duration-300 active">
-                  CONTACT
-                </Link>
-              </li>
-              <li>
-                <Link to="/gallery" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
-                  GALLERY
-                </Link>
-              </li>
-              <li>
-                <Link to="/courses" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
-                  COURSES
-                </Link>
-              </li>
-              <li>
-                <Link to="/faqs" className="text-xs font-bold text-[#616c96] tracking-wider transition-colors duration-300 hover:text-[#5b21b6]">
-                  FAQS
-                </Link>
-              </li>
-            </ul>
-          </nav>
-          <div className="flex items-center gap-5">
-            <Link to="/login" className="text-sm font-bold text-[#00668f] hover:opacity-80 transition-opacity no-underline">
-              Login
-            </Link>
-            <Link to="/join" className="bg-[#00668f] text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md shadow-sky-100/50 hover:bg-[#005172] transition-colors no-underline">
-              Join Academy
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Container */}
-      <main className="flex-grow w-full max-w-[1100px] mx-auto px-5 pt-10 pb-20 relative z-10 box-border">
+      <main className="flex-grow w-full max-w-[1100px] mx-auto px-5 pt-28 pb-20 relative z-10 box-border">
         {/* Hero Section */}
         <section className="text-center mb-16">
           <h1 className="font-fredoka text-4xl md:text-5xl text-[#1b2559] font-bold mb-4 tracking-tight">
