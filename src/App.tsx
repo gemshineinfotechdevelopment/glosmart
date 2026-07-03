@@ -8,6 +8,7 @@ import Gallery from './pages/Gallery';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import AdminDashboard from './pages/admin/Dashboard';
+import Course from './pages/Course';
 import AdminCoursePage from './pages/admin/AdminCoursePage';
 
 function AppContent(): React.JSX.Element {
@@ -16,7 +17,7 @@ function AppContent(): React.JSX.Element {
   const isAdminPage = location.pathname.startsWith('/admin');
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fcfbfe]">
+    <div className="flex flex-col min-h-screen bg-[#fcfbfe] w-full overflow-x-hidden">
       {/* Floating sticky Navbar */}
       {!isAdminPage && <Navbar />}
 
@@ -27,6 +28,7 @@ function AppContent(): React.JSX.Element {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/courses" element={<Course />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/courses" element={<AdminCoursePage />} />
