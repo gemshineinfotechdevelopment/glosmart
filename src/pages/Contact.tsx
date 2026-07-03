@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import bgImage from '../assets/background-home.jpeg';
 
 // SVG Icons defined as components for cleanliness
 const PhoneIcon = () => (
@@ -101,11 +102,10 @@ export const Contact: React.FC = () => {
     <div
       className="font-sans text-[#1e295d] bg-[#faf7f0] min-h-screen relative flex flex-col"
       style={{
-        backgroundImage: "url('/src/assets/contact-bg.png')",
-        backgroundAttachment: 'fixed',
-        backgroundSize: '100% 100%',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: '100% auto',
+        backgroundRepeat: 'repeat-y',
+        backgroundPosition: 'top center',
       }}
     >
 
