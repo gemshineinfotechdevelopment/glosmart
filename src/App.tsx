@@ -8,8 +8,6 @@ import Gallery from './pages/Gallery';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import AdminDashboard from './pages/admin/Dashboard';
-import Course from './pages/Course';
-import AdminCoursePage from './pages/admin/AdminCoursePage';
 
 function AppContent(): React.JSX.Element {
   const location = useLocation();
@@ -31,7 +29,6 @@ function AppContent(): React.JSX.Element {
           <Route path="/courses" element={<Course />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/courses" element={<AdminCoursePage />} />
           {/* Fallback route back to About page */}
           <Route path="*" element={<About />} />
         </Routes>
@@ -48,7 +45,7 @@ function App(): React.JSX.Element {
     <Router>
       <AppContent />
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;
