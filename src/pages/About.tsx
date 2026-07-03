@@ -72,9 +72,11 @@ const About: React.FC = () => {
 
   return (
     <main className="w-full max-w-7xl mx-auto px-6 md:px-12 pt-32 pb-16 flex flex-col gap-24">
-      
+     
+
       {/* 1. Hero Section */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+   
+    <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         
         {/* Left Content Column */}
         <div className="lg:col-span-7 flex flex-col gap-6 text-left">
