@@ -8,6 +8,8 @@ import Gallery from './pages/Gallery';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import AdminDashboard from './pages/admin/Dashboard';
+import Course from './pages/Course';
+import AdminCoursePage from './pages/admin/AdminCoursePage';
 
 function AppContent(): React.JSX.Element {
   const location = useLocation();
