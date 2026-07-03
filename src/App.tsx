@@ -15,7 +15,7 @@ function AppContent(): React.JSX.Element {
   const isAdminPage = location.pathname.startsWith('/admin');
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fcfbfe]">
+    <div className="flex flex-col min-h-screen bg-[#fcfbfe] w-full overflow-x-hidden">
       {/* Floating sticky Navbar */}
       {!isAdminPage && <Navbar />}
 
@@ -26,6 +26,7 @@ function AppContent(): React.JSX.Element {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/courses" element={<Course />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<AdminDashboard />} />
           {/* Fallback route back to About page */}
