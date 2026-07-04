@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import bgImage from '../assets/background-home.jpeg';
 
 // SVG Icons defined as components for cleanliness
 const PhoneIcon = () => (
@@ -70,6 +71,8 @@ export const Contact: React.FC = () => {
   // Accordion State — first FAQ open by default, matching the design
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+
+
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
@@ -99,17 +102,16 @@ export const Contact: React.FC = () => {
     <div
       className="font-sans text-[#1e295d] bg-[#faf7f0] min-h-screen relative flex flex-col"
       style={{
-        backgroundImage: "url('/src/assets/contact-bg.png')",
-        backgroundAttachment: 'fixed',
-        backgroundSize: '100% 100%',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: '100% auto',
+        backgroundRepeat: 'repeat-y',
+        backgroundPosition: 'top center',
       }}
     >
-      {/* Header/Navbar has been moved to a global component in App.tsx */}
+
 
       {/* Main Container */}
-      <main className="flex-grow w-full max-w-[1100px] mx-auto px-5 pt-10 pb-20 relative z-10 box-border">
+      <main className="flex-grow w-full max-w-[1100px] mx-auto px-5 pt-28 pb-20 relative z-10 box-border">
         {/* Hero Section */}
         <section className="text-center mb-16">
           <h1 className="font-fredoka text-4xl md:text-5xl text-[#1b2559] font-bold mb-4 tracking-tight">
