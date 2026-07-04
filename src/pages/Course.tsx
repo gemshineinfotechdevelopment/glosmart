@@ -37,11 +37,10 @@ export default function Course() {
     <div 
       className="min-h-screen font-['Outfit',sans-serif] overflow-hidden"
       style={{ 
-        backgroundImage: `url(${courseBg})`, 
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${courseBg})`, 
         backgroundSize: 'cover', 
         backgroundPosition: 'top center', 
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
+        backgroundRepeat: 'no-repeat'
       }}
     >
       {/* Hero Section */}
