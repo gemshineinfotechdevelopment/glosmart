@@ -7,7 +7,9 @@ import Contact from './pages/Contact';
 import Gallery from './pages/Gallery';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import Course from './pages/Course';
 import AdminDashboard from './pages/admin/Dashboard';
+
 
 function AppContent(): React.JSX.Element {
   const location = useLocation();
