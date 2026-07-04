@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
 
 const FEATURED_ARTISTS = [
   {
@@ -56,8 +55,6 @@ export default function Gallery() {
 
   return (
     <div className="bg-[#fff9f2] bg-[url('/images/painting_bg.png')] bg-cover bg-fixed text-slate-800 min-h-screen relative overflow-x-hidden font-sans pt-28">
-      <Navbar />
-
       {/* Decorative Background Elements */}
       <div className="absolute top-[-100px] right-[-100px] w-[600px] h-[600px] rounded-full filter blur-[80px] opacity-40 pointer-events-none z-0 bg-gradient-to-r from-[#ffa3bc] to-transparent"></div>
 

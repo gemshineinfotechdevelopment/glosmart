@@ -1,14 +1,15 @@
 import React from 'react';
-import { 
-  FiGrid, FiUsers, FiBookOpen, FiUserCheck, 
-  FiDollarSign, FiCalendar, FiImage, FiBell, 
-  FiSettings, FiLogOut, FiCalendar as FiCal 
+import {
+  FiGrid, FiUsers, FiBookOpen, FiUserCheck,
+  FiDollarSign, FiCalendar, FiImage, FiBell,
+  FiSettings, FiLogOut, FiCalendar as FiCal
 } from 'react-icons/fi';
+
 
 const Dashboard: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
-      
+
       {/* Sidebar */}
       <aside className="w-[280px] bg-[#fdfcff] border-r border-slate-100 flex flex-col h-screen sticky top-0 hidden lg:flex shadow-[4px_0_24px_rgba(0,0,0,0.01)]">
         <div className="p-8 flex items-center gap-3 mb-4">
@@ -63,7 +64,7 @@ const Dashboard: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto">
-        
+
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
           <div>
@@ -82,7 +83,7 @@ const Dashboard: React.FC = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-          
+
           {/* Card 1 */}
           <div className="bg-white p-6 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
             <div className="flex justify-between items-start mb-6">
@@ -154,7 +155,7 @@ const Dashboard: React.FC = () => {
 
         {/* Middle Section: Chart & Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 mb-8">
-          
+
           {/* Chart Card */}
           <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col h-[400px]">
             <div className="flex justify-between items-start mb-8">
@@ -166,7 +167,7 @@ const Dashboard: React.FC = () => {
                 Last 6 Months
               </button>
             </div>
-            
+
             {/* CSS/SVG Area Chart Mockup */}
             <div className="flex-1 relative w-full mt-4">
               {/* Horizontal Grid lines */}
@@ -176,7 +177,7 @@ const Dashboard: React.FC = () => {
                 <div className="w-full h-px bg-slate-100"></div>
                 <div className="w-full h-px bg-slate-100"></div>
               </div>
-              
+
               {/* SVG Curve */}
               <div className="absolute inset-0 z-10 top-0 bottom-0 left-0 right-0 h-full w-full">
                 <svg viewBox="0 0 800 200" preserveAspectRatio="none" className="w-full h-full overflow-visible">
@@ -206,7 +207,7 @@ const Dashboard: React.FC = () => {
           {/* Activity Card */}
           <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
             <h3 className="text-xl font-bold text-[#1c1c28] mb-6">Recent Activities</h3>
-            
+
             <div className="flex flex-col gap-6 flex-1 relative">
               {/* Timeline Line */}
               <div className="absolute left-6 top-6 bottom-6 w-px bg-slate-100 z-0"></div>
@@ -256,7 +257,7 @@ const Dashboard: React.FC = () => {
 
         {/* Bottom Section: Revenue & Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
-          
+
           {/* Revenue Bar Chart */}
           <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col h-[350px]">
             <div className="flex justify-between items-center mb-8">
@@ -272,7 +273,7 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* CSS Bar Chart */}
             <div className="flex-1 flex items-end justify-around pb-6 mt-4 relative">
               {/* Bars Week 1 */}
@@ -309,7 +310,7 @@ const Dashboard: React.FC = () => {
           {/* Quick Actions */}
           <div className="flex flex-col gap-4">
             <h3 className="text-xl font-bold text-[#1c1c28] mb-2">Quick Actions</h3>
-            
+
             <button className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center gap-5 hover:border-purple-200 hover:shadow-md transition-all text-left group">
               <div className="w-12 h-12 rounded-xl bg-purple-100 text-[#6247df] flex items-center justify-center group-hover:scale-110 transition-transform">
                 <FiUsers size={20} />
@@ -339,7 +340,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-xs text-slate-500 mt-1">Manage pending payments</p>
               </div>
             </button>
-            
+
           </div>
         </div>
 
