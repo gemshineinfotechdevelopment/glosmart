@@ -7,21 +7,24 @@ import Contact from './pages/Contact';
 import Gallery from './pages/Gallery';
 import Home from './pages/Home';
 import Login from './pages/Login';
-import AdminDashboard from './pages/admin/Dashboard';
+import Signup from './pages/Signup';
 import Course from './pages/Course';
 import Faqs from './pages/Faqs';
+import AdminDashboard from './pages/admin/Dashboard';
 import AdminCoursePage from './pages/admin/AdminCoursePage';
 import FeesPayments from './pages/admin/FeesPayments';
 
 function AppContent(): React.JSX.Element {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
+  const isSignupPage = location.pathname === '/signup';
   const isAdminPage = location.pathname.startsWith('/admin');
+  const isGalleryPage = location.pathname === '/gallery';
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbfe] w-full overflow-x-hidden">
       {/* Floating sticky Navbar */}
-      {!isAdminPage && <Navbar />}
+      {!isAdminPage && !isGalleryPage && <Navbar />}
 
       {/* Main Content Area */}
       <div className={isAdminPage ? "" : "flex-grow"}>
@@ -33,6 +36,7 @@ function AppContent(): React.JSX.Element {
           <Route path="/courses" element={<Course />} />
           <Route path="/faqs" element={<Faqs />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/courses" element={<AdminCoursePage />} />
           <Route path="/admin/fees" element={<FeesPayments />} />
@@ -43,10 +47,11 @@ function AppContent(): React.JSX.Element {
       </div>
 
       {/* Footer */}
-      {!isLoginPage && !isAdminPage && <Footer />}
+      {!isLoginPage && !isSignupPage && !isAdminPage && !isGalleryPage && <Footer />}
     </div>
   );
 }
+
 
 function App(): React.JSX.Element {
   return (
@@ -57,3 +62,4 @@ function App(): React.JSX.Element {
 }
 
 export default App;
+
