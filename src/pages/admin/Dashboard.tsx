@@ -5,6 +5,7 @@ import {
 } from 'react-icons/fi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
+
 const Dashboard: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
