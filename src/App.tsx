@@ -15,12 +15,12 @@ function AppContent(): React.JSX.Element {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
   const isAdminPage = location.pathname.startsWith('/admin');
-  const isContactPage = location.pathname === '/contact';
+  const isGalleryPage = location.pathname === '/gallery';
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbfe] w-full overflow-x-hidden">
       {/* Floating sticky Navbar */}
-      {!isAdminPage && !isContactPage && <Navbar />}
+      {!isAdminPage && !isGalleryPage && <Navbar />}
 
       {/* Main Content Area */}
       <div className={isAdminPage ? "" : "flex-grow"}>
@@ -39,7 +39,7 @@ function AppContent(): React.JSX.Element {
       </div>
 
       {/* Footer */}
-      {!isLoginPage && !isAdminPage && !isContactPage && <Footer />}
+      {!isLoginPage && !isAdminPage && !isGalleryPage && <Footer />}
     </div>
   );
 }
