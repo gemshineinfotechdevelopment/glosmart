@@ -11,6 +11,7 @@ import AdminDashboard from './pages/admin/Dashboard';
 import Course from './pages/Course';
 import Faqs from './pages/Faqs';
 import AdminCoursePage from './pages/admin/AdminCoursePage';
+import AdminCreateCoursePage from './pages/admin/AdminCreateCoursePage';
 import FeesPayments from './pages/admin/FeesPayments';
 
 function AppContent(): React.JSX.Element {
@@ -35,6 +36,7 @@ function AppContent(): React.JSX.Element {
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/courses" element={<AdminCoursePage />} />
+          <Route path="/admin/courses/new" element={<AdminCreateCoursePage />} />
           <Route path="/admin/fees" element={<FeesPayments />} />
 
           {/* Fallback route back to About page */}
