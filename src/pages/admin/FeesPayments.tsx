@@ -104,9 +104,9 @@ export const FeesPayments: React.FC = () => {
           <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
             <FiUsers size={18} /> Stùdents
           </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
+          <Link to="/admin/courses" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
             <FiBookOpen size={18} /> Courses
-          </a>
+          </Link>
           <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
             <FiUserCheck size={18} /> Teachers
           </a>

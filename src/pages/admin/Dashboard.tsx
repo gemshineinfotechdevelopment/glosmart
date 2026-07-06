@@ -4,7 +4,7 @@ import {
   FiDollarSign, FiCalendar, FiImage, FiBell,
   FiSettings, FiLogOut, FiCalendar as FiCal
 } from 'react-icons/fi';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+import { Link } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
   return (
@@ -23,21 +23,21 @@ const Dashboard: React.FC = () => {
         </div>
 
         <nav className="flex-1 px-4 flex flex-col gap-2 overflow-y-auto">
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-[#6247df] text-white shadow-md shadow-purple-900/20 font-semibold transition-all">
+          <Link to="/admin" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-[#6247df] text-white shadow-md shadow-purple-900/20 font-semibold transition-all">
             <FiGrid size={20} /> Dashboard
-          </a>
+          </Link>
           <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
             <FiUsers size={20} /> Students
           </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
+          <Link to="/admin/courses" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
             <FiBookOpen size={20} /> Courses
-          </a>
+          </Link>
           <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
             <FiUserCheck size={20} /> Teachers
           </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
+          <Link to="/admin/fees" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
             <FiDollarSign size={20} /> Fees & Payments
-          </a>
+          </Link>
           <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
             <FiCalendar size={20} /> Academy Schedule
           </a>

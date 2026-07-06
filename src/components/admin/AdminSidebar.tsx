@@ -15,7 +15,7 @@ const AdminSidebar: React.FC = () => {
     { name: 'Students', path: '#', icon: <FiUsers size={20} /> },
     { name: 'Courses', path: '/admin/courses', icon: <FiBookOpen size={20} /> },
     { name: 'Teachers', path: '#', icon: <FiUserCheck size={20} /> },
-    { name: 'Fees & Payments', path: '#', icon: <FiDollarSign size={20} /> },
+    { name: 'Fees & Payments', path: '/admin/fees', icon: <FiDollarSign size={20} /> },
     { name: 'Academy Schedule', path: '#', icon: <FiCalendar size={20} /> },
     { name: 'Gallery', path: '#', icon: <FiImage size={20} /> },
     { name: 'Notifications', path: '#', icon: <FiBell size={20} /> },
