@@ -1,4 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import bgImage from '../assets/background-home.jpeg';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+
 
 const FEATURED_ARTISTS = [
   {
@@ -50,7 +54,18 @@ export default function Gallery() {
   const displayedArtworks = filteredArtworks.slice(0, visibleCount);
 
   return (
-    <div className="bg-[#fff9f2] bg-[url('/images/painting_bg.png')] bg-cover bg-fixed text-slate-800 min-h-screen relative overflow-x-hidden font-sans pt-28">
+    <>
+      <Navbar />
+      <div 
+        className="text-slate-800 min-h-screen relative overflow-x-hidden font-sans pt-28"
+        style={{
+          backgroundImage: `url(${bgImage})`,
+          backgroundSize: '100% auto',
+          backgroundRepeat: 'repeat-y',
+          backgroundPosition: 'top center'
+        }}
+      >
+
       {/* Decorative Background Elements */}
       <div className="absolute top-[-100px] right-[-100px] w-[600px] h-[600px] rounded-full filter blur-[80px] opacity-40 pointer-events-none z-0 bg-gradient-to-r from-[#ffa3bc] to-transparent"></div>
 
@@ -252,7 +267,8 @@ export default function Gallery() {
         </div>
       </section>
 
-      {/* Footer has been moved to a global component in App.tsx */}
-    </div>
+      </div>
+      <Footer />
+    </>
   );
 }
