@@ -1,9 +1,11 @@
 import React from 'react';
 import {
   FiUsers, FiBookOpen, FiUserCheck,
-  FiDollarSign, FiCalendar as FiCal,
+  FiCalendar as FiCal,
 } from 'react-icons/fi';
+import { MdCurrencyRupee } from 'react-icons/md';
 import AdminSidebar from '../../components/admin/AdminSidebar';
+
 
 const Dashboard: React.FC = () => {
   return (
@@ -56,7 +58,7 @@ const Dashboard: React.FC = () => {
           <div className="bg-white p-6 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
             <div className="flex justify-between items-start mb-6">
               <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center">
-                <FiDollarSign size={24} />
+                <MdCurrencyRupee size={24} />
               </div>
               <span className="text-slate-400 text-sm font-semibold">Monthly</span>
             </div>
@@ -177,7 +179,7 @@ const Dashboard: React.FC = () => {
               {/* Item 2 */}
               <div className="flex gap-4 relative z-10 items-start">
                 <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center shrink-0 border-4 border-white">
-                  <FiDollarSign size={18} />
+                  <MdCurrencyRupee size={18} />
                 </div>
                 <div className="pt-1">
                   <h4 className="font-bold text-[#1c1c28] text-sm">Fee Paid</h4>
@@ -283,7 +285,7 @@ const Dashboard: React.FC = () => {
 
             <button className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center gap-5 hover:border-orange-200 hover:shadow-md transition-all text-left group">
               <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <FiDollarSign size={20} />
+                <MdCurrencyRupee size={20} />
               </div>
               <div>
                 <h4 className="font-bold text-[#1c1c28]">Collect Fees</h4>

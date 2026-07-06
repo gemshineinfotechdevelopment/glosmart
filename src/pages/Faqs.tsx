@@ -12,9 +12,9 @@ import {
   FiChevronUp,
   FiSearch,
   FiBookOpen,
-  FiDollarSign,
   FiMonitor
 } from 'react-icons/fi';
+import { MdCurrencyRupee } from 'react-icons/md';
 
 interface FaqItem {
   question: string;
@@ -119,7 +119,7 @@ export const Faqs: React.FC = () => {
     {
       id: 'pricing',
       name: 'Pricing & Plans',
-      icon: <FiDollarSign className="w-5 h-5" />,
+      icon: <MdCurrencyRupee className="w-5 h-5" />,
       items: [
         {
           question: 'Is there a trial class?',

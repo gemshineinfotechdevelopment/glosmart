@@ -1,9 +1,10 @@
 import React from 'react';
 import { 
   FiGrid, FiUsers, FiBookOpen, FiUserCheck, 
-  FiDollarSign, FiCalendar, FiImage, FiBell, 
+  FiCalendar, FiImage, FiBell, 
   FiSettings, FiLogOut, FiPlus
 } from 'react-icons/fi';
+import { MdCurrencyRupee } from 'react-icons/md';
 import { Link, useLocation } from 'react-router-dom';
 
 const AdminSidebar: React.FC = () => {
@@ -12,10 +13,10 @@ const AdminSidebar: React.FC = () => {
 
   const links = [
     { name: 'Dashboard', path: '/admin', icon: <FiGrid size={20} /> },
-    { name: 'Stùdents', path: '#', icon: <FiUsers size={20} /> },
+    { name: 'Students', path: '/admin/students', icon: <FiUsers size={20} /> },
     { name: 'Courses', path: '/admin/courses', icon: <FiBookOpen size={20} /> },
     { name: 'Teachers', path: '#', icon: <FiUserCheck size={20} /> },
-    { name: 'Fees & Payments', path: '/admin/fees', icon: <FiDollarSign size={20} /> },
+    { name: 'Fees & Payments', path: '/admin/fees', icon: <MdCurrencyRupee size={20} /> },
     { name: 'Academy Schedule', path: '#', icon: <FiCalendar size={20} /> },
     { name: 'Gallery', path: '#', icon: <FiImage size={20} /> },
     { name: 'Notifications', path: '#', icon: <FiBell size={20} /> },
@@ -23,20 +24,24 @@ const AdminSidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-[280px] bg-[#fdfcff] border-r border-slate-100 flex flex-col h-screen sticky top-0 hidden lg:flex shadow-[4px_0_24px_rgba(0,0,0,0.01)] shrink-0">
-      <div className="p-8 flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl shadow-lg relative overflow-hidden">
-          <div className="absolute inset-1.5 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center text-white font-extrabold text-lg">
-            G
+    <>
+      {/* Spacer to preserve layout space for the fixed sidebar */}
+      <div className="w-[280px] hidden lg:block shrink-0"></div>
+
+      <aside className="w-[280px] bg-[#fdfcff] border-r border-slate-100 flex flex-col h-screen fixed left-0 top-0 z-40 hidden lg:flex shadow-[4px_0_24px_rgba(0,0,0,0.01)] shrink-0">
+        <div className="p-8 flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl shadow-lg relative overflow-hidden">
+            <div className="absolute inset-1.5 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center text-white font-extrabold text-lg">
+              G
+            </div>
+          </div>
+          <div>
+            <h1 className="font-bold text-[#6247df] text-xl leading-tight">GloSmart Art</h1>
+            <p className="text-xs text-slate-500 font-medium">Academy Admin</p>
           </div>
         </div>
-        <div>
-          <h1 className="font-bold text-[#6247df] text-xl leading-tight">GloSmart Art</h1>
-          <p className="text-xs text-slate-500 font-medium">Academy Admin</p>
-        </div>
-      </div>
 
-      <nav className="flex-1 px-4 flex flex-col gap-2 overflow-y-auto">
+        <nav className="flex-1 px-4 flex flex-col gap-2 overflow-y-hidden hover:overflow-y-auto">
         {links.map((link) => {
           const isActive = currentPath === link.path;
           return (
@@ -64,6 +69,7 @@ const AdminSidebar: React.FC = () => {
         </button>
       </div>
     </aside>
+    </>
   );
 };
 
