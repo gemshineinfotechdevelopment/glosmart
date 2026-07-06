@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import bgImage from '../assets/background-home.jpeg';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';

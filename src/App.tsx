@@ -10,8 +10,6 @@ import Login from './pages/Login';
 import Course from './pages/Course';
 import Faqs from './pages/Faqs';
 import AdminDashboard from './pages/admin/Dashboard';
-import Course from './pages/Course';
-import Faqs from './pages/Faqs';
 import AdminCoursePage from './pages/admin/AdminCoursePage';
 import FeesPayments from './pages/admin/FeesPayments';
 

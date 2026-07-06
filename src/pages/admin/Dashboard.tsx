@@ -3,6 +3,7 @@ import {
   FiUsers, FiBookOpen, FiUserCheck,
   FiDollarSign, FiCalendar as FiCal,
 } from 'react-icons/fi';
+import AdminSidebar from '../../components/admin/AdminSidebar';
 
 
 const Dashboard: React.FC = () => {
