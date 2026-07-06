@@ -47,10 +47,6 @@ export default function Gallery() {
   const [activeFilter, setActiveFilter] = useState('All Media');
   const [visibleCount, setVisibleCount] = useState(8);
 
-  useEffect(() => {
-    setVisibleCount(8);
-  }, [activeFilter]);
-
   const filteredArtworks = activeFilter === 'All Media'
     ? GRID_ARTWORKS
     : GRID_ARTWORKS.filter(art => art.type === activeFilter);
@@ -219,7 +215,10 @@ export default function Gallery() {
                       ? 'bg-[#00738e] text-white shadow-sm' 
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
-                  onClick={() => setActiveFilter(f)}
+                  onClick={() => {
+                    setActiveFilter(f);
+                    setVisibleCount(8);
+                  }}
                 >
                   {f}
                 </button>

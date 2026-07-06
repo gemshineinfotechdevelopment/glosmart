@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  FiGrid, FiUsers, FiBookOpen, FiUserCheck, 
-  FiDollarSign, FiCalendar, FiImage, FiBell, 
-  FiSettings, FiLogOut, FiDownload, FiPlus,
+import {
+  FiGrid, FiDownload, FiPlus,
   FiBriefcase, FiClock, FiCreditCard, FiFilter,
-  FiChevronLeft, FiChevronRight, FiEdit3, FiRefreshCw
+  FiChevronLeft, FiChevronRight, FiEdit3, FiRefreshCw,
 } from 'react-icons/fi';
+import AdminSidebar from '../../components/admin/AdminSidebar';
 
 interface PaymentRow {
   invoiceNo: string;
@@ -82,61 +80,7 @@ export const FeesPayments: React.FC = () => {
     <div className="flex min-h-screen bg-[#f8f9fd] font-sans text-slate-800">
       
       {/* Sidebar */}
-      <aside className="w-[280px] bg-[#fdfcff] border-r border-slate-100 flex flex-col h-screen sticky top-0 hidden lg:flex shadow-[4px_0_24px_rgba(0,0,0,0.01)] shrink-0">
-        {/* Brand Logo */}
-        <div className="p-8 flex items-center gap-3.5 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md relative overflow-hidden">
-            <div className="absolute inset-1.5 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center text-white font-extrabold text-lg">
-              G
-            </div>
-          </div>
-          <div>
-            <h1 className="font-bold text-[#6247df] text-lg leading-tight tracking-tight">GloSmart Art</h1>
-            <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Academy Admin</p>
-          </div>
-        </div>
-
-        {/* Navigation Menu */}
-        <nav className="flex-1 px-4 flex flex-col gap-1.5 overflow-y-auto">
-          <Link to="/admin" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
-            <FiGrid size={18} /> Dashboard
-          </Link>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
-            <FiUsers size={18} /> Stùdents
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
-            <FiBookOpen size={18} /> Courses
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
-            <FiUserCheck size={18} /> Teachers
-          </a>
-          <Link to="/admin/fees" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#6247df] text-white shadow-md shadow-purple-900/15 font-bold transition-all no-underline text-[14px]">
-            <FiDollarSign size={18} /> Fees & Payments
-          </Link>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
-            <FiCalendar size={18} /> Academy Schedule
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
-            <FiImage size={18} /> Gallery
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
-            <FiBell size={18} /> Notifications
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
-            <FiSettings size={18} /> Settings
-          </a>
-        </nav>
-
-        {/* Bottom CTA & Actions */}
-        <div className="p-6 mt-auto flex flex-col gap-3">
-          <button className="w-full bg-[#6247df] text-white py-3.5 rounded-xl font-bold shadow-md shadow-purple-900/15 hover:bg-[#5035c9] transition-all border-none cursor-pointer flex items-center justify-center gap-2 text-sm">
-            <FiPlus size={16} /> Create Coùrse
-          </button>
-          <button className="flex items-center gap-3 px-4 py-2 bg-transparent border-none text-slate-500 font-bold hover:text-[#6247df] transition-all cursor-pointer text-sm">
-            <FiLogOut size={18} /> Logoùt
-          </button>
-        </div>
-      </aside>
+      <AdminSidebar />
 
       {/* Main Content Area */}
       <main className="flex-1 p-6 md:p-8 overflow-y-auto flex flex-col gap-6 max-w-7xl mx-auto w-full box-border">

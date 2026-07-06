@@ -10,6 +10,10 @@ import Login from './pages/Login';
 import Course from './pages/Course';
 import Faqs from './pages/Faqs';
 import AdminDashboard from './pages/admin/Dashboard';
+import Course from './pages/Course';
+import Faqs from './pages/Faqs';
+import AdminCoursePage from './pages/admin/AdminCoursePage';
+import FeesPayments from './pages/admin/FeesPayments';
 
 function AppContent(): React.JSX.Element {
   const location = useLocation();
@@ -33,6 +37,9 @@ function AppContent(): React.JSX.Element {
           <Route path="/faqs" element={<Faqs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/courses" element={<AdminCoursePage />} />
+          <Route path="/admin/fees" element={<FeesPayments />} />
+
           {/* Fallback route back to About page */}
           <Route path="*" element={<About />} />
         </Routes>
