@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { 
-  FiGrid, FiUsers, FiBookOpen, FiUserCheck, 
-  FiDollarSign, FiCalendar, FiImage, FiBell, 
-  FiSettings, FiLogOut, FiDownload, FiPlus,
+  FiGrid, FiDownload, FiPlus,
   FiBriefcase, FiClock, FiCreditCard, FiFilter,
-  FiChevronLeft, FiChevronRight, FiEdit3, FiRefreshCw
+  FiChevronLeft, FiChevronRight, FiEdit3, FiRefreshCw,
+  FiUsers, FiBookOpen, FiUserCheck, FiDollarSign, FiCalendar, FiImage, FiBell, FiSettings, FiLogOut
 } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
 
 interface PaymentRow {
   invoiceNo: string;
@@ -104,9 +103,9 @@ export const FeesPayments: React.FC = () => {
           <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
             <FiUsers size={18} /> Stùdents
           </a>
-          <Link to="/admin/courses" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
+          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
             <FiBookOpen size={18} /> Courses
-          </Link>
+          </a>
           <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 hover:text-[#6247df] transition-all no-underline text-[14px]">
             <FiUserCheck size={18} /> Teachers
           </a>
