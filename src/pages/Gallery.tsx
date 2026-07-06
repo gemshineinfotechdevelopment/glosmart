@@ -1,11 +1,8 @@
 import { useState } from 'react';
-<<<<<<< HEAD
-=======
 import bgImage from '../assets/background-home.jpeg';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
->>>>>>> a71f0da557a88f1706d711c1d253c20e45c18e57
 
 const FEATURED_ARTISTS = [
   {
