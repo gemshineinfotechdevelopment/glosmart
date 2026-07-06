@@ -8,6 +8,10 @@ import Gallery from './pages/Gallery';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import AdminDashboard from './pages/admin/Dashboard';
+import FeesPayments from './pages/admin/FeesPayments';
+import Faqs from './pages/Faqs';
+import Course from './pages/Course';
+import AdminCoursePage from './pages/admin/AdminCoursePage';
 import Course from './pages/Course';
 import Faqs from './pages/Faqs';
 import AdminCoursePage from './pages/admin/AdminCoursePage';
@@ -36,6 +40,7 @@ function AppContent(): React.JSX.Element {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/courses" element={<AdminCoursePage />} />
           <Route path="/admin/fees" element={<FeesPayments />} />
+          <Route path="/faqs" element={<Faqs />} />
           {/* Fallback route back to About page */}
           <Route path="*" element={<About />} />
         </Routes>
