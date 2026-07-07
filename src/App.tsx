@@ -11,7 +11,7 @@ import Signup from './pages/Signup';
 import Course from './pages/Course';
 import Faqs from './pages/Faqs';
 import AdminDashboard from './pages/admin/Dashboard';
-import AdminCoursePage from './pages/admin/AdminCoursePage';
+import AdminCoursePage from './pages/admin/AdminCoursePage.tsx';
 import AdminCreateCoursePage from './pages/admin/AdminCreateCoursePage';
 import FeesPayments from './pages/admin/FeesPayments';
 import Students from './pages/admin/Students.tsx';

@@ -1,15 +1,9 @@
-import React, { useState } from 'react';
-import {
-  FiSearch, FiCalendar, FiUpload, FiUserPlus,
-  FiUsers, FiCreditCard, FiClock,
-  FiEye, FiEdit2, FiFileText, FiChevronLeft, FiChevronRight, FiChevronRight as FiBreadcrumbRight,
-  FiX, FiCheck, FiUser
 import React, { useState, useRef } from 'react';
 import {
   FiSearch, FiCalendar, FiUpload, FiUserPlus,
   FiUsers, FiCreditCard, FiClock,
   FiEye, FiEdit2, FiFileText, FiChevronLeft, FiChevronRight, 
-  FiChevronRight as FiBreadcrumbRight, FiX, FiSave, FiInfo, FiCheck
+  FiChevronRight as FiBreadcrumbRight, FiX, FiSave, FiCheck, FiUser
 } from 'react-icons/fi';
 import { MdCurrencyRupee } from 'react-icons/md';
 import { Link } from 'react-router-dom';
@@ -22,8 +16,6 @@ interface Student {
   phone: string;
   age: number;
   email: string;
-  avatar: string;
-  age: string;
   gender: string;
   joiningDate: string;
   feeStatus: 'PAID' | 'PARTIAL' | 'PENDING';
@@ -45,6 +37,7 @@ const STUDENTS_DATA: Student[] = [
     name: "Mia Thompson",
     avatar: "https://i.pravatar.cc/150?img=1",
     phone: "+1 (555) 234-8901",
+    email: "mia@example.com",
     age: 16,
     gender: "Female",
     joiningDate: "15 Mar 2024",
@@ -65,6 +58,7 @@ const STUDENTS_DATA: Student[] = [
     name: "Lucas Bennett",
     avatar: "https://i.pravatar.cc/150?img=3",
     phone: "+1 (555) 098-7654",
+    email: "lucas@example.com",
     age: 16,
     gender: "Male",
     joiningDate: "12 Apr 2024",
@@ -85,6 +79,7 @@ const STUDENTS_DATA: Student[] = [
     name: "Sophia Rivera",
     avatar: "https://i.pravatar.cc/150?img=5",
     phone: "+1 (555) 234-5678",
+    email: "sophia@example.com",
     age: 13,
     gender: "Female",
     joiningDate: "20 Feb 2024",
@@ -105,6 +100,7 @@ const STUDENTS_DATA: Student[] = [
     name: "Ethan Walker",
     avatar: "https://i.pravatar.cc/150?img=8",
     phone: "+1 (555) 345-6789",
+    email: "ethan@example.com",
     age: 17,
     gender: "Male",
     joiningDate: "05 May 2024",
@@ -132,68 +128,8 @@ const PaintPaletteIcon = () => (
 );
 
 const BatchDetails: React.FC = () => {
+  const [studentsList, setStudentsList] = useState<Student[]>(STUDENTS_DATA);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  remainingDays: string;
-  remainingPercent: number;
-}
-
-const initialStudents: Student[] = [
-  {
-    id: 1,
-    name: 'Mia Thompson',
-    email: '+1(555) 012-3456',
-    avatar: 'https://i.pravatar.cc/150?img=1',
-    age: '14',
-    gender: 'Female',
-    joiningDate: '15 Mar 2024',
-    feeStatus: 'PAID',
-    batchEnd: '28 Aug 2026',
-    remainingDays: '12 Days',
-    remainingPercent: 100
-  },
-  {
-    id: 2,
-    name: 'Lucas Bennett',
-    email: '+1(555) 098-7654',
-    avatar: 'https://i.pravatar.cc/150?img=3',
-    age: '16',
-    gender: 'Male',
-    joiningDate: '12 Apr 2024',
-    feeStatus: 'PARTIAL',
-    batchEnd: '28 Aug 2026',
-    remainingDays: '12 Days',
-    remainingPercent: 80
-  },
-  {
-    id: 3,
-    name: 'Sophia Rivera',
-    email: '+1(555) 234-5678',
-    avatar: 'https://i.pravatar.cc/150?img=5',
-    age: '13',
-    gender: 'Female',
-    joiningDate: '20 Feb 2024',
-    feeStatus: 'PENDING',
-    batchEnd: '28 Aug 2026',
-    remainingDays: '12 Days',
-    remainingPercent: 50
-  },
-  {
-    id: 4,
-    name: 'Ethan Walker',
-    email: '+1(555) 345-6789',
-    avatar: 'https://i.pravatar.cc/150?img=8',
-    age: '17',
-    gender: 'Male',
-    joiningDate: '05 May 2024',
-    feeStatus: 'PAID',
-    batchEnd: '28 Aug 2026',
-    remainingDays: '12 Days',
-    remainingPercent: 90
-  }
-];
-
-const BatchDetails: React.FC = () => {
-  const [studentsList, setStudentsList] = useState<Student[]>(initialStudents);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFeeFilter, setActiveFeeFilter] = useState<'All' | 'Paid' | 'Pending'>('All');
 
@@ -250,14 +186,22 @@ const BatchDetails: React.FC = () => {
       id: Date.now(),
       name: studentName,
       email: phone || '+1(555) 000-0000',
+      phone: phone || '+1(555) 000-0000',
       avatar: studentAvatar || 'https://i.pravatar.cc/150?img=12', // fallback avatar
-      age: age || '15',
+      age: parseInt(age) || 15,
       gender: gender === 'Select Gender' ? 'Male' : gender,
       joiningDate: formatDateString(joiningDate),
       feeStatus: 'PENDING', // auto-assigned as prospective / pending
       batchEnd: '28 Aug 2026',
-      remainingDays: '12 Days',
-      remainingPercent: 100
+      remainingDays: 12,
+      attendanceRate: 100,
+      attendanceTrend: '+0%',
+      batch: selectedBatch,
+      course: selectedCourse,
+      teacher: 'Assigned Later',
+      admissionDate: formatDateString(joiningDate),
+      schedule: selectedBatch,
+      address: residentialAddress || 'Not provided'
     };
 
     setStudentsList([newStudent, ...studentsList]);
@@ -466,7 +410,6 @@ const BatchDetails: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {STUDENTS_DATA.map((student) => (
                 {filteredStudents.map((student) => (
                   <tr key={student.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group">
                     <td className="py-4 px-6">
@@ -521,52 +464,6 @@ const BatchDetails: React.FC = () => {
                   </tr>
                 ))}
 
-                      <div className="font-bold text-[#1c1c28] text-sm">{student.name}</div>
-                      <div className="text-[11px] text-slate-400 font-medium mt-0.5">{student.email}</div>
-                    </td>
-                    <td className="py-4 px-4 text-sm font-medium text-slate-600">{student.age} / {student.gender}</td>
-                    <td className="py-4 px-4 text-sm font-medium text-slate-600">
-                      {student.joiningDate.split(' ')[0]} {student.joiningDate.split(' ')[1]}<br />
-                      {student.joiningDate.split(' ')[2] || ''}
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-md tracking-wider ${
-                        student.feeStatus === 'PAID'
-                          ? 'bg-[#e6f8f8] text-[#108c9f]'
-                          : student.feeStatus === 'PARTIAL'
-                            ? 'bg-[#fcf2ea] text-[#b67323]'
-                            : 'bg-[#fef1f1] text-[#ef4444]'
-                      }`}>
-                        {student.feeStatus}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-sm font-medium text-slate-600">
-                      {student.batchEnd.split(' ')[0]} {student.batchEnd.split(' ')[1]}<br />
-                      {student.batchEnd.split(' ')[2] || ''}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-10 bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                          <div className="bg-[#6247df] h-full rounded-full" style={{ width: `${student.remainingPercent}%` }}></div>
-                        </div>
-                        <span className="text-[10px] font-bold text-[#6247df] leading-tight">12<br />Days</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center justify-end gap-3 text-slate-400">
-                        <button className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"><FiEye size={18} /></button>
-                        <button className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"><FiEdit2 size={18} /></button>
-                        <button className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"><FiFileText size={18} /></button>
-                        <button 
-                          onClick={() => setStudentsList(studentsList.filter(s => s.id !== student.id))}
-                          className="hover:text-red-500 transition-colors bg-transparent border-none cursor-pointer"
-                        >
-                          <FiX size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
               </tbody>
             </table>
           </div>
