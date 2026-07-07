@@ -1,19 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import {
   FiSearch, FiPlus, FiDroplet, FiVideo, FiImage,
   FiInfo, FiUploadCloud, FiTrash2, FiPlusCircle, FiX, FiCheck
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  FiPlus, FiMoreVertical, FiClock, FiCalendar, FiUsers
 } from 'react-icons/fi';
-import { PiPalette, PiMonitor, PiPencilSimpleBold } from 'react-icons/pi';
+import { BiCube } from 'react-icons/bi';
+import { PiPencilSimpleBold } from 'react-icons/pi';
+import { BsPersonFill } from 'react-icons/bs';
 import AdminSidebar from '../../components/admin/AdminSidebar';
-import adminCourse1 from '../../assets/admin-course1.png';
-import adminCourse2 from '../../assets/admin-course2.png';
-import adminCourse3 from '../../assets/admin-course3.png';
-import adminCourse4 from '../../assets/admin-course4.png';
 
 // Categories array for the filter tabs
 const filterCategories = [
@@ -27,120 +21,89 @@ const filterCategories = [
 ];
 
 const initialCourses = [
-const filterTabs = [
-  "All Batches", "Active", "Upcoming", "Completed", "Morning", "Evening", "Weekend"
-];
-
-const batches = [
   {
     id: 1,
-    title: "Pencil Drawing \u2013 Batch A",
-    status: "ACTIVE",
-    statusColor: "bg-emerald-500",
-    batch: "BAT-101",
-    image: adminCourse1,
-    course: "Graphite Art",
-    courseIcon: <PiPencilSimpleBold className="w-4 h-4 text-indigo-500" />,
-    courseIconBg: "bg-indigo-50",
-    time: "10:00 - 12:00",
-    schedule: "Mon, Wed",
-    progressText: "70% \u2022 18 days left",
-    progressValue: "70%",
-    progressColor: "bg-emerald-500",
-    progressTextColor: "text-emerald-600",
+    title: "Pencil Drawing",
+    category: "Sketching & Charcoal",
+    categoryIcon: <PiPencilSimpleBold className="w-3.5 h-3.5 mr-1.5" />,
+    level: "Junior",
+    levelColor: "text-indigo-600 bg-white",
+    price: "$45/mo",
     instructor: "Mr. Julian",
     instructorAvatar: "https://i.pravatar.cc/150?img=11",
-    enrolled: 24,
-    capacity: 30,
-    type: "progress"
+    students: 24,
+    image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=1000&auto=format&fit=crop",
+    progress: "w-10 bg-amber-500",
   },
   {
     id: 2,
-    title: "Watercolor \u2013 Batch B",
-    status: "ACTIVE",
-    statusColor: "bg-orange-400",
-    batch: "BAT-102",
-    image: adminCourse2,
-    course: "Water Scapes",
-    courseIcon: <PiPalette className="w-4 h-4 text-orange-500" />,
-    courseIconBg: "bg-orange-50",
-    time: "14:00 - 16:00",
-    schedule: "Tue, Thu",
-    progressText: "45% \u2022 30 days left",
-    progressValue: "45%",
-    progressColor: "bg-orange-400",
-    progressTextColor: "text-orange-600",
+    title: "Digital Illustration",
+    category: "Digital Media",
+    categoryIcon: <PiPencilSimpleBold className="w-3.5 h-3.5 mr-1.5" />,
+    level: "Senior",
+    levelColor: "text-emerald-600 bg-white",
+    price: "$75/mo",
     instructor: "Ms. Clara",
     instructorAvatar: "https://i.pravatar.cc/150?img=5",
-    enrolled: 18,
-    capacity: 25,
-    type: "progress"
+    students: 18,
+    image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=1000&auto=format&fit=crop",
+    progress: "w-14 bg-emerald-500",
   },
   {
     id: 3,
-    title: "Digital Art \u2013 Batch C",
-    status: "UPCOMING",
-    statusColor: "bg-cyan-500",
-    batch: "BAT-103",
-    image: adminCourse3,
-    course: "Procreate 101",
-    courseIcon: <PiMonitor className="w-4 h-4 text-cyan-500" />,
-    courseIconBg: "bg-cyan-50",
-    time: "09:00 - 13:00",
-    schedule: "Weekends",
-    progressText: "Starts in 45 days",
-    progressValue: "15%",
-    progressColor: "bg-cyan-500",
-    progressTextColor: "text-cyan-600",
+    title: "Watercolor World",
+    category: "Watercolor",
+    categoryIcon: <FiDroplet className="w-3.5 h-3.5 mr-1.5" />,
+    level: "Junior",
+    levelColor: "text-indigo-600 bg-white",
+    price: "$50/mo",
     instructor: "Mr. Henderson",
     instructorAvatar: "https://i.pravatar.cc/150?img=12",
-    enrolled: 15,
-    capacity: 20,
-    type: "timeline"
+    students: 15,
+    image: "https://images.unsplash.com/photo-1578301978693-85fa9c026109?q=80&w=1000&auto=format&fit=crop",
+    progress: "w-8 bg-indigo-600",
   },
   {
     id: 4,
-    title: "Digital Art \u2013 Batch D",
-    status: "WEEKEND",
-    statusColor: "bg-emerald-400",
-    batch: "BAT-104",
-    image: adminCourse4,
-    course: "Watercolour World",
-    courseIcon: <PiMonitor className="w-4 h-4 text-emerald-500" />,
-    courseIconBg: "bg-emerald-50",
-    time: "12:00 - 13:00",
-    schedule: "Weekends",
-    progressText: "Starts in 45 days",
-    progressValue: "15%",
-    progressColor: "bg-emerald-500",
-    progressTextColor: "text-emerald-600",
-    instructor: "Mr. Henderson",
-    instructorAvatar: "https://i.pravatar.cc/150?img=12",
-    enrolled: 15,
-    capacity: 20,
-    type: "timeline"
+    title: "Modern Clay",
+    category: "Sculpting",
+    categoryIcon: <BiCube className="w-3.5 h-3.5 mr-1.5" />,
+    level: "Senior",
+    levelColor: "text-emerald-600 bg-white",
+    price: "$90/mo",
+    instructor: "Mr. David",
+    instructorAvatar: "https://i.pravatar.cc/150?img=13",
+    students: 10,
+    image: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1000&auto=format&fit=crop",
+    progress: "w-6 bg-amber-500",
   },
   {
     id: 5,
-    title: "Digital Art \u2013 Batch E",
-    status: "UPCOMING",
-    statusColor: "bg-cyan-500",
-    batch: "BAT-105",
-    image: adminCourse1,
-    course: "Oil Portraits",
-    courseIcon: <PiMonitor className="w-4 h-4 text-cyan-500" />,
-    courseIconBg: "bg-cyan-50",
-    time: "13:00 - 16:00",
-    schedule: "Weekends",
-    progressText: "Starts in 45 days",
-    progressValue: "15%",
-    progressColor: "bg-cyan-500",
-    progressTextColor: "text-cyan-600",
-    instructor: "Mr. Henderson",
-    instructorAvatar: "https://i.pravatar.cc/150?img=12",
-    enrolled: 15,
-    capacity: 20,
-    type: "timeline"
+    title: "Character Design",
+    category: "Animation",
+    categoryIcon: <FiVideo className="w-3.5 h-3.5 mr-1.5" />,
+    level: "Junior",
+    levelColor: "text-indigo-600 bg-white",
+    price: "$60/mo",
+    instructor: "Ms. Riley",
+    instructorAvatar: "https://i.pravatar.cc/150?img=9",
+    students: 32,
+    image: "https://images.unsplash.com/photo-1601296200639-8edb34ee97fe?q=80&w=1000&auto=format&fit=crop",
+    progress: "w-full bg-red-700",
+  },
+  {
+    id: 6,
+    title: "Oil Portraits",
+    category: "Oil Painting",
+    categoryIcon: <FiImage className="w-3.5 h-3.5 mr-1.5" />,
+    level: "Senior",
+    levelColor: "text-emerald-600 bg-white",
+    price: "$110/mo",
+    instructor: "Ms. Beatrice",
+    instructorAvatar: "https://i.pravatar.cc/150?img=10",
+    students: 12,
+    image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1000&auto=format&fit=crop",
+    progress: "w-16 bg-indigo-500",
   }
 ];
 
@@ -311,24 +274,6 @@ export default function AdminCoursePage() {
     const matchesCategory = activeCategory === "All Categories" || course.category.toLowerCase().includes(activeCategory.toLowerCase());
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || course.category.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
-  const [activeTab, setActiveTab] = useState("All Batches");
-  const navigate = useNavigate();
-
-  const filteredBatches = batches.filter(batch => {
-    if (activeTab === "All Batches") return true;
-    if (activeTab === "Active") return batch.status === "ACTIVE";
-    if (activeTab === "Upcoming") return batch.status === "UPCOMING";
-    if (activeTab === "Completed") return batch.status === "COMPLETED";
-    if (activeTab === "Weekend") return batch.status === "WEEKEND" || batch.schedule.toLowerCase().includes("weekend");
-    if (activeTab === "Morning") {
-      const startHour = parseInt(batch.time.split(':')[0]);
-      return startHour < 12;
-    }
-    if (activeTab === "Evening") {
-      const startHour = parseInt(batch.time.split(':')[0]);
-      return startHour >= 16;
-    }
-    return true;
   });
 
   return (
@@ -353,7 +298,7 @@ export default function AdminCoursePage() {
 
           <div className="flex items-center gap-6">
             {/* Notification Bell */}
-            <button className="relative p-1 text-slate-500 hover:text-slate-800 transition-colors">
+            <button className="relative p-1 text-slate-500 hover:text-slate-800 transition-colors bg-transparent border-none cursor-pointer">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
               </svg>
@@ -362,7 +307,7 @@ export default function AdminCoursePage() {
             </button>
 
             {/* Help Question Icon */}
-            <button className="p-1 text-slate-500 hover:text-slate-800 transition-colors">
+            <button className="p-1 text-slate-500 hover:text-slate-800 transition-colors bg-transparent border-none cursor-pointer">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
               </svg>
@@ -412,12 +357,6 @@ export default function AdminCoursePage() {
                   className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
                 >
                   Discard Draft
-                </button>
-                <button
-                  onClick={handleCreateCourse}
-                  className="px-5 py-2.5 bg-[#6247df] hover:bg-[#5035c9] text-white rounded-xl font-bold text-sm transition-colors shadow-md shadow-purple-900/10 cursor-pointer"
-                >
-                  Save & Publish
                 </button>
               </div>
             </div>
@@ -506,195 +445,66 @@ export default function AdminCoursePage() {
                       value={courseDescription}
                       onChange={(e) => setCourseDescription(e.target.value)}
                     />
-      <main className="flex-1 flex flex-col bg-[#FAFBFF]">
-        {/* Content Area */}
-        <div className="p-10 flex-1 overflow-auto">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-            <div className="max-w-2xl">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Batch Management</h2>
-              <p className="text-gray-500">
-                Streamline academy operations: track active batches, monitor teacher performance, and manage student enrollment schedules.
-              </p>
-            </div>
-            <button 
-              onClick={() => navigate('/admin/courses/new')}
-              className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3.5 rounded-xl text-sm font-semibold transition-all shadow-[0_4px_14px_rgba(79,70,229,0.39)] shrink-0"
-            >
-              <FiPlus className="w-5 h-5" />
-              Create New Batch
-            </button>
-          </div>
-
-          {/* Filter Tabs */}
-          <div className="flex flex-wrap items-center gap-3 mb-10">
-            {filterTabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${
-                  activeTab === tab
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                    : 'bg-white text-gray-600 border border-gray-200/60 hover:bg-gray-50'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          {/* Course Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            {filteredBatches.map((batch) => (
-              <div key={batch.id} className="bg-white rounded-[24px] p-5 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-col group hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300">
-                {/* Image Container */}
-                <div className="relative rounded-[16px] overflow-hidden mb-5 aspect-[4/2.5]">
-                  <img src={batch.image} alt={batch.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                  
-                  {/* Overlay Badges */}
-                  <div className="absolute top-3 left-3 flex items-center gap-2">
-                    <div className={`px-2.5 py-1 rounded text-[10px] font-bold text-white tracking-wide ${batch.statusColor}`}>
-                      {batch.status}
-                    </div>
-                    <div className="px-2.5 py-1 rounded bg-black/40 backdrop-blur-md text-[10px] font-bold text-white tracking-wide">
-                      {batch.batch}
-                    </div>
-                  </div>
-                  
-                  <button className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-white transition-colors">
-                    <FiMoreVertical className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Content */}
-                <div className="px-1 pb-1 flex-1 flex flex-col">
-                  <h3 className="font-bold text-xl text-gray-900 mb-5">{batch.title}</h3>
-                  
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${batch.courseIconBg}`}>
-                      {batch.courseIcon}
-                    </div>
-                    <div>
-                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1">Course</div>
-                      <div className="font-semibold text-sm text-gray-900 leading-none">{batch.course}</div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center shrink-0">
-                        <FiClock className="w-4 h-4 text-orange-500" />
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1">Time</div>
-                        <div className="font-semibold text-sm text-gray-900 leading-none">{batch.time}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                        <FiCalendar className="w-4 h-4 text-emerald-500" />
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1">Schedule</div>
-                        <div className="font-semibold text-sm text-gray-900 leading-none">{batch.schedule}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Progress / Timeline */}
-                  <div className="mb-6 mt-auto">
-                    <div className="flex justify-between items-end mb-2">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        {batch.type === 'progress' ? 'Progress' : 'Launch Timeline'}
-                      </span>
-                      <span className={`text-xs font-bold ${batch.progressTextColor}`}>
-                        {batch.progressText}
-                      </span>
-                    </div>
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${batch.progressColor}`} style={{ width: batch.progressValue }}></div>
-                    </div>
                   </div>
                 </div>
 
-                {/* Curriculum Structure Card */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-5">
+                {/* Course Curriculum Card */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-purple-50 text-[#6247df] flex items-center justify-center">
-                        <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25A2.25 2.25 0 0 1 13.5 8.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+                      <div className="w-8 h-8 rounded-full bg-violet-50 text-[#6247df] flex items-center justify-center">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z" />
                         </svg>
-                  {/* Divider */}
-                  <div className="w-full h-px bg-gray-100 mb-5"></div>
-
-                  {/* Instructor & Students */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <img src={batch.instructorAvatar} alt={batch.instructor} className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm" />
-                      <div>
-                        <div className="font-bold text-sm text-gray-900 leading-tight">{batch.instructor}</div>
-                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Instructor</div>
                       </div>
-                      <h3 className="font-bold text-lg text-slate-900">Curriculum Structure</h3>
+                      <h3 className="font-bold text-lg text-slate-900">Course Curriculum</h3>
                     </div>
-                    <button
-                      onClick={handleAddModule}
-                      className="text-sm font-bold text-[#6247df] bg-transparent border-none cursor-pointer hover:underline flex items-center gap-1.5"
-                    >
-                      <FiPlusCircle className="w-4.5 h-4.5" />
-                      Add Module
-                    </button>
+
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={handleAddLesson}
+                        className="px-3.5 py-2 bg-[#F3F4F6] text-slate-600 text-xs font-bold rounded-lg hover:bg-gray-200 transition-colors cursor-pointer border-none"
+                      >
+                        Add Lesson
+                      </button>
+                      <button 
+                        onClick={handleAddModule}
+                        className="px-3.5 py-2 bg-violet-50 text-[#6247df] text-xs font-bold rounded-lg hover:bg-violet-100 transition-colors cursor-pointer border-none"
+                      >
+                        Add Module
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Modules List */}
-                  <div className="space-y-3">
+                  {/* Modules Timeline */}
+                  <div className="relative border-l-2 border-slate-100 pl-6 ml-4 space-y-6">
                     {modules.map((mod) => (
-                      <div
-                        key={mod.id}
-                        className="bg-[#eef2ff]/35 border border-indigo-200/50 rounded-2xl p-4 flex items-center gap-4 transition-all"
-                      >
-                        {/* Drag Handle SVG */}
-                        <div className="text-indigo-400 cursor-grab flex-shrink-0">
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <circle cx="9" cy="8" r="1.5" />
-                            <circle cx="9" cy="12" r="1.5" />
-                            <circle cx="9" cy="16" r="1.5" />
-                            <circle cx="15" cy="8" r="1.5" />
-                            <circle cx="15" cy="12" r="1.5" />
-                            <circle cx="15" cy="16" r="1.5" />
-                          </svg>
-                        </div>
+                      <div key={mod.id} className="relative">
+                        {/* Timeline Node dot */}
+                        <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 border-white bg-[#6247df] shadow-sm"></div>
+                        
+                        <div className="bg-[#FAFBFF] border border-slate-200/50 rounded-2xl p-4 flex items-center justify-between group hover:border-[#6247df]/40 transition-colors">
+                          <div className="flex-1 min-w-0">
+                            <span className="block text-sm font-extrabold text-slate-800 truncate">{mod.title}</span>
+                            <span className="block text-xs text-slate-400 font-semibold mt-1">{mod.subtext}</span>
+                          </div>
 
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-sm text-slate-800 leading-normal">{mod.title}</h4>
-                          <span className="text-xs text-slate-400 font-medium block mt-0.5">{mod.subtext}</span>
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button className="p-1.5 text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer">
+                              <FiPlusCircle className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setModules(modules.filter(m => m.id !== mod.id));
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-red-500 bg-transparent border-none cursor-pointer"
+                            >
+                              <FiTrash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
-
-                        {/* Action buttons on module */}
-                        <button 
-                          onClick={() => setModules(modules.filter(m => m.id !== mod.id))}
-                          className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors border-none bg-transparent cursor-pointer"
-                        >
-                          <FiTrash2 className="w-4 h-4" />
-                        </button>
-                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-                      <FiUsers className="w-4 h-4 text-gray-400" />
-                      <div className="text-xs font-bold text-gray-700">
-                        {batch.enrolled} / {batch.capacity}
                       </div>
                     ))}
-                  </div>
-
-                  {/* Add Lesson Dashed box */}
-                  <div className="border-2 border-dashed border-indigo-200/60 rounded-2xl p-6 flex flex-col items-center justify-center text-center bg-indigo-50/10">
-                    <p className="text-sm font-semibold text-slate-500 mb-3">Add more modules to complete the journey</p>
-                    <button
-                      onClick={handleAddLesson}
-                      className="px-5 py-2 bg-indigo-100/50 hover:bg-indigo-100 text-[#6247df] rounded-xl font-bold text-xs transition-colors cursor-pointer border-none"
-                    >
-                      Add Lesson
-                    </button>
                   </div>
                 </div>
               </div>
@@ -702,128 +512,112 @@ export default function AdminCoursePage() {
               {/* Right Column (1/3 width) */}
               <div className="space-y-8">
                 
-                {/* Course Cover Card */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-4">
-                  <h3 className="font-bold text-base text-slate-900">Course Cover</h3>
+                {/* Course Media Card */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-5">
+                  <span className="block text-xs font-extrabold text-slate-400 uppercase tracking-widest">COURSE MEDIA</span>
                   
-                  {/* File Input hidden */}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    className="hidden"
-                    onChange={handleImageChange}
-                  />
+                  {/* Upload Image container */}
+                  <div className="relative border-2 border-dashed border-slate-200 rounded-2xl aspect-video overflow-hidden bg-[#FAFBFF] flex flex-col items-center justify-center p-4 hover:border-[#6247df]/40 transition-colors select-none">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
 
-                  {/* Dashed cover block */}
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-indigo-200 bg-indigo-50/20 hover:bg-indigo-50/40 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all min-h-[160px] relative overflow-hidden group"
-                  >
                     {coverImage ? (
                       <>
-                        <img src={coverImage} className="absolute inset-0 w-full h-full object-cover" alt="Course Cover Preview" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold">
-                          Change Cover Image
+                        <img src={coverImage} alt="Cover Preview" className="absolute inset-0 w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-slate-950/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <button 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="bg-white text-slate-800 text-xs font-extrabold px-4 py-2 rounded-xl shadow-md cursor-pointer border-none"
+                          >
+                            Change Cover Image
+                          </button>
                         </div>
-                        {/* Delete preview button */}
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCoverImage(null);
-                          }}
-                          className="absolute top-2 right-2 w-7 h-7 bg-white text-slate-700 hover:text-red-500 rounded-full flex items-center justify-center shadow-md border-none cursor-pointer z-10 animate-fade-in"
-                        >
-                          <FiX className="w-4 h-4" />
-                        </button>
                       </>
                     ) : (
                       <>
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-[#6247df] flex items-center justify-center mb-3">
-                          <FiUploadCloud className="w-6 h-6" />
+                        <div 
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-10 h-10 rounded-full bg-violet-50 text-[#6247df] flex items-center justify-center shadow-sm mb-3 cursor-pointer hover:scale-105 transition-transform"
+                        >
+                          <FiUploadCloud className="w-5 h-5" />
                         </div>
-                        <span className="text-sm font-bold text-gray-700">Click or drag to upload</span>
-                        <span className="text-[10px] text-gray-400 mt-1">Recommended: 1280x720 (PNG, JPG)</span>
+                        <span className="text-xs font-bold text-slate-700">Upload Course Cover</span>
+                        <span className="text-[10px] text-slate-400 mt-1">JPEG, PNG up to 2MB (16:9 ratio)</span>
                       </>
                     )}
                   </div>
                 </div>
 
-                {/* Financials & Logistics Card */}
+                {/* Pricing & Settings Card */}
                 <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-5">
-                  <h3 className="font-bold text-base text-slate-900">Financials & Logistics</h3>
-
-                  {/* Price */}
+                  <span className="block text-xs font-extrabold text-slate-400 uppercase tracking-widest">PRICING & SETTINGS</span>
+                  
+                  {/* Base Monthly price */}
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-slate-600">Base Course Price</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Base Price / Month</label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm font-sans">$</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">$</span>
                       <input
                         type="text"
                         placeholder="0.00"
-                        className="w-full pl-8 pr-4 py-2.5 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm font-sans"
+                        className="w-full pl-8 pr-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm font-sans"
                         value={basePrice}
                         onChange={(e) => setBasePrice(e.target.value)}
                       />
                     </div>
                   </div>
 
-                  {/* Duration */}
+                  {/* Duration input */}
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-slate-600">Duration (Weeks)</label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {[4, 8, 12, 16].map((week) => (
-                        <button
-                          key={week}
-                          onClick={() => setDuration(week)}
-                          className={`py-2.5 px-3 rounded-xl text-sm font-bold transition-all cursor-pointer border-none ${
-                            duration === week
-                              ? 'bg-[#6247df] text-white shadow-md shadow-purple-900/20'
-                              : 'bg-indigo-50/50 text-[#6247df] hover:bg-indigo-50'
-                          }`}
-                        >
-                          {week}
-                        </button>
-                      ))}
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Course Duration (Weeks)</label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm font-sans"
+                      value={duration}
+                      onChange={(e) => setDuration(parseInt(e.target.value) || 8)}
+                    />
+                  </div>
+
+                  {/* Toggle controls */}
+                  <div className="space-y-4 pt-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="block text-xs font-bold text-slate-700">Open for Enrollment</span>
+                        <span className="text-[10px] text-slate-400">Allow students to sign up immediately</span>
+                      </div>
+                      <button 
+                        onClick={() => setEnrollmentActive(!enrollmentActive)}
+                        className={`w-10 h-6 rounded-full p-0.5 transition-colors border-none cursor-pointer flex items-center ${enrollmentActive ? 'bg-[#6247df]' : 'bg-slate-200'}`}
+                      >
+                        <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${enrollmentActive ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                      </button>
                     </div>
-                  </div>
 
-                  {/* Enrollment Active Toggle */}
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="text-sm font-semibold text-slate-600">Enrollment Active</span>
-                    <button
-                      onClick={() => setEnrollmentActive(!enrollmentActive)}
-                      className={`w-11 h-6 rounded-full p-0.5 transition-colors cursor-pointer border-none focus:outline-none flex ${
-                        enrollmentActive ? 'bg-[#6247df]' : 'bg-slate-200'
-                      }`}
-                    >
-                      <span className={`w-5 h-5 bg-white rounded-full transition-transform shadow-sm ${
-                        enrollmentActive ? 'translate-x-5' : 'translate-x-0'
-                      }`} />
-                    </button>
-                  </div>
-
-                  {/* Certificate Included Toggle */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-slate-600">Certificate Included</span>
-                    <button
-                      onClick={() => setCertificateIncluded(!certificateIncluded)}
-                      className={`w-11 h-6 rounded-full p-0.5 transition-colors cursor-pointer border-none focus:outline-none flex ${
-                        certificateIncluded ? 'bg-[#6247df]' : 'bg-slate-200'
-                      }`}
-                    >
-                      <span className={`w-5 h-5 bg-white rounded-full transition-transform shadow-sm ${
-                        certificateIncluded ? 'translate-x-5' : 'translate-x-0'
-                      }`} />
-                    </button>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="block text-xs font-bold text-slate-700">Include Certificate</span>
+                        <span className="text-[10px] text-slate-400">Award certificates upon completion</span>
+                      </div>
+                      <button 
+                        onClick={() => setCertificateIncluded(!certificateIncluded)}
+                        className={`w-10 h-6 rounded-full p-0.5 transition-colors border-none cursor-pointer flex items-center ${certificateIncluded ? 'bg-[#6247df]' : 'bg-slate-200'}`}
+                      >
+                        <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${certificateIncluded ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 {/* Assign Instructor Card */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-4">
-                  <h3 className="font-bold text-base text-slate-900">Assign Instructor</h3>
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-5">
+                  <span className="block text-xs font-extrabold text-slate-400 uppercase tracking-widest">ASSIGN INSTRUCTOR</span>
                   
-                  {/* Instructor Box */}
+                  {/* Instructor Selector */}
                   <div 
                     onClick={handleCycleInstructor}
                     className="flex items-center gap-3 p-3 bg-[#F9FAFB] border border-slate-200/50 rounded-2xl cursor-pointer hover:bg-slate-50 transition-all select-none"
@@ -1105,23 +899,9 @@ export default function AdminCoursePage() {
                 <p className="text-sm text-slate-500 max-w-[140px]">Click to design a new creative curriculum</p>
               </button>
             </div>
-            {/* New Batch Card */}
-            <button 
-              onClick={() => navigate('/admin/courses/new')}
-              className="bg-transparent border-2 border-dashed border-gray-200 rounded-[24px] p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors group h-full min-h-[400px]"
-            >
-              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <FiPlus className="w-6 h-6 text-gray-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">New Batch</h3>
-              <p className="text-sm text-gray-500 max-w-[180px] leading-relaxed">
-                Design a new creative curriculum and schedule for the next semester.
-              </p>
-            </button>
           </div>
         )}
       </main>
     </div>
   );
 }
-
