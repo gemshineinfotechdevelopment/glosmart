@@ -1,7 +1,7 @@
 import React from 'react';
-import { 
-  FiGrid, FiUsers, FiBookOpen, FiUserCheck, 
-  FiCalendar, FiBell, FiSettings, FiLogOut, FiPlus
+import {
+  FiGrid, FiUsers, FiBookOpen, FiUserCheck,
+  FiBell, FiSettings, FiLogOut, FiPlus
 } from 'react-icons/fi';
 import { MdCurrencyRupee } from 'react-icons/md';
 import { Link, useLocation } from 'react-router-dom';
@@ -16,7 +16,6 @@ const AdminSidebar: React.FC = () => {
     { name: 'Courses', path: '/admin/courses', icon: <FiBookOpen size={20} /> },
     { name: 'Teachers', path: '#', icon: <FiUserCheck size={20} /> },
     { name: 'Fees & Payments', path: '/admin/fees', icon: <MdCurrencyRupee size={20} /> },
-    { name: 'Academy Schedule', path: '#', icon: <FiCalendar size={20} /> },
     { name: 'Notifications', path: '#', icon: <FiBell size={20} /> },
     { name: 'Settings', path: '#', icon: <FiSettings size={20} /> },
   ];
@@ -44,11 +43,10 @@ const AdminSidebar: React.FC = () => {
               <Link
                 key={link.name}
                 to={link.path}
-                className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-semibold transition-all no-underline ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-semibold transition-all no-underline ${isActive
                     ? 'bg-[#6247df] text-white shadow-md shadow-purple-900/20'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-[#6247df]'
-                }`}
+                  }`}
               >
                 {link.icon} {link.name}
               </Link>
@@ -57,7 +55,7 @@ const AdminSidebar: React.FC = () => {
         </nav>
 
         <div className="p-6 mt-auto flex flex-col gap-4">
-          <Link 
+          <Link
             to="/admin/courses?mode=create"
             className="w-full bg-[#6247df] text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-purple-900/20 hover:bg-[#5035c9] transition-all border-none cursor-pointer flex items-center justify-center gap-2 text-sm no-underline"
           >

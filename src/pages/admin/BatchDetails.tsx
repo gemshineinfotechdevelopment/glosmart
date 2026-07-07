@@ -14,8 +14,8 @@ interface Student {
   name: string;
   avatar: string;
   phone: string;
-  email: string;
   age: number;
+  email: string;
   gender: string;
   joiningDate: string;
   feeStatus: 'PAID' | 'PARTIAL' | 'PENDING';
@@ -37,7 +37,7 @@ const STUDENTS_DATA: Student[] = [
     name: "Mia Thompson",
     avatar: "https://i.pravatar.cc/150?img=1",
     phone: "+1 (555) 234-8901",
-    email: "mia.t@example.com",
+    email: "mia@example.com",
     age: 16,
     gender: "Female",
     joiningDate: "15 Mar 2024",
@@ -58,7 +58,7 @@ const STUDENTS_DATA: Student[] = [
     name: "Lucas Bennett",
     avatar: "https://i.pravatar.cc/150?img=3",
     phone: "+1 (555) 098-7654",
-    email: "lucas.b@example.com",
+    email: "lucas@example.com",
     age: 16,
     gender: "Male",
     joiningDate: "12 Apr 2024",
@@ -79,7 +79,7 @@ const STUDENTS_DATA: Student[] = [
     name: "Sophia Rivera",
     avatar: "https://i.pravatar.cc/150?img=5",
     phone: "+1 (555) 234-5678",
-    email: "sophia.r@example.com",
+    email: "sophia@example.com",
     age: 13,
     gender: "Female",
     joiningDate: "20 Feb 2024",
@@ -100,7 +100,7 @@ const STUDENTS_DATA: Student[] = [
     name: "Ethan Walker",
     avatar: "https://i.pravatar.cc/150?img=8",
     phone: "+1 (555) 345-6789",
-    email: "ethan.w@example.com",
+    email: "ethan@example.com",
     age: 17,
     gender: "Male",
     joiningDate: "05 May 2024",
@@ -128,8 +128,8 @@ const PaintPaletteIcon = () => (
 );
 
 const BatchDetails: React.FC = () => {
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentsList, setStudentsList] = useState<Student[]>(STUDENTS_DATA);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFeeFilter, setActiveFeeFilter] = useState<'All' | 'Paid' | 'Pending'>('All');
 
@@ -185,23 +185,23 @@ const BatchDetails: React.FC = () => {
     const newStudent: Student = {
       id: Date.now(),
       name: studentName,
-      phone: phone || '+1 (555) 000-0000',
-      email: studentName.toLowerCase().replace(/\s+/g, '') + '@example.com',
+      email: phone || '+1(555) 000-0000',
+      phone: phone || '+1(555) 000-0000',
       avatar: studentAvatar || 'https://i.pravatar.cc/150?img=12', // fallback avatar
       age: parseInt(age) || 15,
-      gender: gender === 'Select Gender' ? 'Female' : gender,
+      gender: gender === 'Select Gender' ? 'Male' : gender,
       joiningDate: formatDateString(joiningDate),
       feeStatus: 'PENDING', // auto-assigned as prospective / pending
       batchEnd: '28 Aug 2026',
       remainingDays: 12,
       attendanceRate: 100,
-      attendanceTrend: '0%',
-      batch: 'Batch A',
+      attendanceTrend: '+0%',
+      batch: selectedBatch,
       course: selectedCourse,
-      teacher: 'Mrs. Aris',
+      teacher: 'Assigned Later',
       admissionDate: formatDateString(joiningDate),
       schedule: selectedBatch,
-      address: residentialAddress || 'Not specified'
+      address: residentialAddress || 'Not provided'
     };
 
     setStudentsList([newStudent, ...studentsList]);
@@ -225,8 +225,7 @@ const BatchDetails: React.FC = () => {
   // Filters students list based on search query and fee status tabs
   const filteredStudents = studentsList.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          student.phone.toLowerCase().includes(searchQuery.toLowerCase());
+                          student.email.toLowerCase().includes(searchQuery.toLowerCase());
     
     let matchesFee = true;
     if (activeFeeFilter === 'Paid') {
@@ -245,43 +244,38 @@ const BatchDetails: React.FC = () => {
       <AdminSidebar />
 
       {/* Main Content */}
-      <main className="flex-grow p-6 md:p-10 overflow-y-auto">
+      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
 
         {/* Top bar */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-          <h1 className="text-[28px] font-bold text-[#1c1c28]">Students</h1>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div className="relative w-full md:w-80">
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              type="text"
+              placeholder="Search students..."
+              className="w-full bg-slate-50 border-none rounded-full py-2.5 pl-11 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-100 placeholder:text-slate-400 font-sans"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
 
           <div className="flex items-center gap-6 w-full md:w-auto">
-            {/* Search */}
-            <div className="relative w-full md:w-72">
-              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input
-                type="text"
-                placeholder="Search Student..."
-                className="w-full bg-slate-50 border-none rounded-full py-2.5 pl-11 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-100 placeholder:text-slate-400"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+            <button className="text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-none cursor-pointer">
+              <FiCalendar size={20} />
+            </button>
 
-            <div className="flex items-center gap-6 w-full md:w-auto">
-              <button className="text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-none cursor-pointer">
-                <FiCalendar size={20} />
-              </button>
+            <div className="w-px h-8 bg-slate-200 hidden md:block"></div>
 
-              <div className="w-px h-8 bg-slate-200 hidden md:block"></div>
-
-              <div className="flex items-center gap-3">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-bold text-[#1c1c28] leading-tight">Admin User</p>
-                  <p className="text-[10px] font-bold text-slate-400 tracking-wider">DIRECTOR</p>
-                </div>
-                <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop"
-                  alt="Admin Profile"
-                  className="w-10 h-10 rounded-full object-cover border border-slate-100 shadow-sm"
-                />
+            <div className="flex items-center gap-3">
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-bold text-[#1c1c28] leading-tight">Admin User</p>
+                <p className="text-[10px] font-bold text-slate-400 tracking-wider">DIRECTOR</p>
               </div>
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop"
+                alt="Admin Profile"
+                className="w-10 h-10 rounded-full object-cover border border-slate-100 shadow-sm"
+              />
             </div>
           </div>
         </div>
@@ -411,7 +405,7 @@ const BatchDetails: React.FC = () => {
                   <th className="py-5 px-4 font-bold">Joining Date</th>
                   <th className="py-5 px-4 font-bold">Fee Status</th>
                   <th className="py-5 px-4 font-bold">Batch End</th>
-                  <th className="py-5 px-4 font-bold">Attendance</th>
+                  <th className="py-5 px-4 font-bold">Remaining</th>
                   <th className="py-5 px-6 font-bold text-right">Action</th>
                 </tr>
               </thead>
@@ -431,53 +425,45 @@ const BatchDetails: React.FC = () => {
                       <div className="text-[11px] text-slate-400 font-medium mt-0.5">{student.phone}</div>
                     </td>
                     <td className="py-4 px-4 text-sm font-medium text-slate-600">{student.age} / {student.gender}</td>
-                    <td className="py-4 px-4 text-sm font-medium text-slate-600">
-                      {student.joiningDate.split(' ')[0]} {student.joiningDate.split(' ')[1]}<br />
-                      {student.joiningDate.split(' ')[2] || ''}
-                    </td>
+                    <td className="py-4 px-4 text-sm font-medium text-slate-600">{student.joiningDate}</td>
                     <td className="py-4 px-4">
                       <span className={`text-[10px] font-black px-2.5 py-1 rounded-md tracking-wider ${
-                        student.feeStatus === 'PAID'
-                          ? 'bg-[#e6f8f8] text-[#108c9f]'
-                          : student.feeStatus === 'PARTIAL'
-                            ? 'bg-[#fcf2ea] text-[#b67323]'
-                            : 'bg-[#fef1f1] text-[#ef4444]'
+                        student.feeStatus === 'PAID' ? 'bg-[#e6f8f8] text-[#108c9f]' :
+                        student.feeStatus === 'PARTIAL' ? 'bg-[#fcf2ea] text-[#b67323]' :
+                        'bg-[#fef1f1] text-[#ef4444]'
                       }`}>
                         {student.feeStatus}
                       </span>
                     </td>
-                    <td className="py-4 px-4 text-sm font-medium text-slate-600">
-                      {student.batchEnd.split(' ')[0]} {student.batchEnd.split(' ')[1]}<br />
-                      {student.batchEnd.split(' ')[2] || ''}
-                    </td>
+                    <td className="py-4 px-4 text-sm font-medium text-slate-600">{student.batchEnd}</td>
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
                         <div className="w-10 bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                          <div className="bg-[#6247df] h-full rounded-full" style={{ width: `${student.attendanceRate}%` }}></div>
+                          <div 
+                            className="bg-[#6247df] h-full rounded-full" 
+                            style={{ width: `${student.attendanceRate}%` }}
+                          />
                         </div>
-                        <span className="text-[10px] font-bold text-[#6247df] leading-tight">{student.attendanceRate}%</span>
+                        <span className="text-[10px] font-bold text-[#6247df] leading-tight">
+                          {student.remainingDays}<br />Days
+                        </span>
                       </div>
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center justify-end gap-3 text-slate-400">
                         <button 
                           onClick={() => setSelectedStudent(student)}
-                          className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"
+                          className="hover:text-slate-700 transition-colors"
                         >
                           <FiEye size={18} />
                         </button>
-                        <button className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"><FiEdit2 size={18} /></button>
-                        <button className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"><FiFileText size={18} /></button>
-                        <button 
-                          onClick={() => setStudentsList(studentsList.filter(s => s.id !== student.id))}
-                          className="hover:text-red-500 transition-colors bg-transparent border-none cursor-pointer"
-                        >
-                          <FiX size={18} />
-                        </button>
+                        <button className="hover:text-slate-700 transition-colors"><FiEdit2 size={18} /></button>
+                        <button className="hover:text-slate-700 transition-colors"><FiFileText size={18} /></button>
                       </div>
                     </td>
                   </tr>
                 ))}
+
               </tbody>
             </table>
           </div>
@@ -520,13 +506,13 @@ const BatchDetails: React.FC = () => {
           />
           
           {/* Drawer Panel */}
-          <div className="relative w-full max-w-[460px] bg-white h-full shadow-2xl flex flex-col z-10 overflow-y-auto border-l border-slate-100">
+          <div className="relative w-full max-w-[460px] bg-white h-full shadow-2xl flex flex-col z-10 overflow-y-auto animate-fade-in border-l border-slate-100">
             {/* Purple Header */}
             <div className="bg-[#6247df] text-white p-8 relative shrink-0">
               {/* Close Button */}
               <button 
                 onClick={() => setSelectedStudent(null)}
-                className="absolute top-6 left-6 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors focus:outline-none cursor-pointer border-none"
+                className="absolute top-6 left-6 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors focus:outline-none"
               >
                 <FiX size={18} />
               </button>
@@ -656,17 +642,16 @@ const BatchDetails: React.FC = () => {
 
             {/* Bottom Actions */}
             <div className="p-6 border-t border-slate-100 flex gap-4 bg-slate-50 shrink-0">
-              <button className="flex-1 bg-white border-2 border-[#6247df] text-[#6247df] font-bold py-3 rounded-2xl text-sm hover:bg-purple-50 transition-colors shadow-sm focus:outline-none cursor-pointer">
+              <button className="flex-1 bg-white border-2 border-[#6247df] text-[#6247df] font-bold py-3 rounded-2xl text-sm hover:bg-purple-50 transition-colors shadow-sm focus:outline-none">
                 Edit Profile
               </button>
-              <button className="flex-1 bg-[#6247df] hover:bg-[#5035c9] text-white font-bold py-3.5 rounded-2xl text-sm transition-colors shadow-md shadow-purple-200 focus:outline-none cursor-pointer border-none">
+              <button className="flex-1 bg-[#6247df] hover:bg-[#5035c9] text-white font-bold py-3.5 rounded-2xl text-sm transition-colors shadow-md shadow-purple-200 focus:outline-none">
                 Generate Report
               </button>
             </div>
           </div>
         </div>
       )}
-
       {/* Modal - New Student Enrollment */}
       {showAddModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
