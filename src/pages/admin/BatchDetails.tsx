@@ -1,15 +1,9 @@
-import React, { useState } from 'react';
-import {
-  FiSearch, FiCalendar, FiUpload, FiUserPlus,
-  FiUsers, FiCreditCard, FiClock,
-  FiEye, FiEdit2, FiFileText, FiChevronLeft, FiChevronRight, FiChevronRight as FiBreadcrumbRight,
-  FiX, FiCheck, FiUser
 import React, { useState, useRef } from 'react';
 import {
   FiSearch, FiCalendar, FiUpload, FiUserPlus,
   FiUsers, FiCreditCard, FiClock,
   FiEye, FiEdit2, FiFileText, FiChevronLeft, FiChevronRight, 
-  FiChevronRight as FiBreadcrumbRight, FiX, FiSave, FiInfo, FiCheck
+  FiChevronRight as FiBreadcrumbRight, FiX, FiSave, FiCheck, FiUser
 } from 'react-icons/fi';
 import { MdCurrencyRupee } from 'react-icons/md';
 import { Link } from 'react-router-dom';
@@ -20,10 +14,8 @@ interface Student {
   name: string;
   avatar: string;
   phone: string;
-  age: number;
   email: string;
-  avatar: string;
-  age: string;
+  age: number;
   gender: string;
   joiningDate: string;
   feeStatus: 'PAID' | 'PARTIAL' | 'PENDING';
@@ -45,6 +37,7 @@ const STUDENTS_DATA: Student[] = [
     name: "Mia Thompson",
     avatar: "https://i.pravatar.cc/150?img=1",
     phone: "+1 (555) 234-8901",
+    email: "mia.thompson@example.com",
     age: 16,
     gender: "Female",
     joiningDate: "15 Mar 2024",
@@ -65,6 +58,7 @@ const STUDENTS_DATA: Student[] = [
     name: "Lucas Bennett",
     avatar: "https://i.pravatar.cc/150?img=3",
     phone: "+1 (555) 098-7654",
+    email: "lucas.bennett@example.com",
     age: 16,
     gender: "Male",
     joiningDate: "12 Apr 2024",
@@ -85,6 +79,7 @@ const STUDENTS_DATA: Student[] = [
     name: "Sophia Rivera",
     avatar: "https://i.pravatar.cc/150?img=5",
     phone: "+1 (555) 234-5678",
+    email: "sophia.rivera@example.com",
     age: 13,
     gender: "Female",
     joiningDate: "20 Feb 2024",
@@ -105,6 +100,7 @@ const STUDENTS_DATA: Student[] = [
     name: "Ethan Walker",
     avatar: "https://i.pravatar.cc/150?img=8",
     phone: "+1 (555) 345-6789",
+    email: "ethan.walker@example.com",
     age: 17,
     gender: "Male",
     joiningDate: "05 May 2024",
@@ -132,70 +128,41 @@ const PaintPaletteIcon = () => (
 );
 
 const BatchDetails: React.FC = () => {
+  const [studentsList, setStudentsList] = useState<Student[]>(STUDENTS_DATA);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  remainingDays: string;
-  remainingPercent: number;
-}
-
-const initialStudents: Student[] = [
-  {
-    id: 1,
-    name: 'Mia Thompson',
-    email: '+1(555) 012-3456',
-    avatar: 'https://i.pravatar.cc/150?img=1',
-    age: '14',
-    gender: 'Female',
-    joiningDate: '15 Mar 2024',
-    feeStatus: 'PAID',
-    batchEnd: '28 Aug 2026',
-    remainingDays: '12 Days',
-    remainingPercent: 100
-  },
-  {
-    id: 2,
-    name: 'Lucas Bennett',
-    email: '+1(555) 098-7654',
-    avatar: 'https://i.pravatar.cc/150?img=3',
-    age: '16',
-    gender: 'Male',
-    joiningDate: '12 Apr 2024',
-    feeStatus: 'PARTIAL',
-    batchEnd: '28 Aug 2026',
-    remainingDays: '12 Days',
-    remainingPercent: 80
-  },
-  {
-    id: 3,
-    name: 'Sophia Rivera',
-    email: '+1(555) 234-5678',
-    avatar: 'https://i.pravatar.cc/150?img=5',
-    age: '13',
-    gender: 'Female',
-    joiningDate: '20 Feb 2024',
-    feeStatus: 'PENDING',
-    batchEnd: '28 Aug 2026',
-    remainingDays: '12 Days',
-    remainingPercent: 50
-  },
-  {
-    id: 4,
-    name: 'Ethan Walker',
-    email: '+1(555) 345-6789',
-    avatar: 'https://i.pravatar.cc/150?img=8',
-    age: '17',
-    gender: 'Male',
-    joiningDate: '05 May 2024',
-    feeStatus: 'PAID',
-    batchEnd: '28 Aug 2026',
-    remainingDays: '12 Days',
-    remainingPercent: 90
-  }
-];
-
-const BatchDetails: React.FC = () => {
-  const [studentsList, setStudentsList] = useState<Student[]>(initialStudents);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFeeFilter, setActiveFeeFilter] = useState<'All' | 'Paid' | 'Pending'>('All');
+  const [editingStudentId, setEditingStudentId] = useState<number | null>(null);
+  const [showReportModal, setShowReportModal] = useState<Student | null>(null);
+
+  // Helper to convert date format back to HTML date input format "YYYY-MM-DD"
+  const parseDateToInputFormat = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parsedDate = Date.parse(dateStr);
+    if (isNaN(parsedDate)) return '';
+    const d = new Date(parsedDate);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleEditClick = (student: Student) => {
+    setStudentName(student.name);
+    setAge(String(student.age));
+    setGender(student.gender);
+    setPhone(student.phone);
+    setParentName('');
+    setResidentialAddress(student.address);
+    setSelectedCourse(student.course);
+    setSelectedBatch(student.schedule);
+    setJoiningDate(parseDateToInputFormat(student.joiningDate || student.admissionDate));
+    setStudentAvatar(student.avatar);
+    
+    setEditingStudentId(student.id);
+    setShowAddModal(true);
+    setSelectedStudent(null); // close side drawer if open
+  };
 
   // Modal display state
   const [showAddModal, setShowAddModal] = useState(false);
@@ -246,21 +213,52 @@ const BatchDetails: React.FC = () => {
       return;
     }
 
-    const newStudent: Student = {
-      id: Date.now(),
-      name: studentName,
-      email: phone || '+1(555) 000-0000',
-      avatar: studentAvatar || 'https://i.pravatar.cc/150?img=12', // fallback avatar
-      age: age || '15',
-      gender: gender === 'Select Gender' ? 'Male' : gender,
-      joiningDate: formatDateString(joiningDate),
-      feeStatus: 'PENDING', // auto-assigned as prospective / pending
-      batchEnd: '28 Aug 2026',
-      remainingDays: '12 Days',
-      remainingPercent: 100
-    };
+    if (editingStudentId !== null) {
+      // Edit Mode
+      setStudentsList(studentsList.map(student => {
+        if (student.id === editingStudentId) {
+          return {
+            ...student,
+            name: studentName,
+            phone: phone || student.phone,
+            age: parseInt(age) || student.age,
+            gender: gender === 'Select Gender' ? 'Male' : gender,
+            joiningDate: joiningDate ? formatDateString(joiningDate) : student.joiningDate,
+            course: selectedCourse,
+            schedule: selectedBatch,
+            address: residentialAddress || student.address,
+            avatar: studentAvatar || student.avatar
+          };
+        }
+        return student;
+      }));
+      setEditingStudentId(null);
+    } else {
+      // Add Mode
+      const newStudent: Student = {
+        id: Date.now(),
+        name: studentName,
+        phone: phone || '+1 (555) 000-0000',
+        email: `${studentName.toLowerCase().replace(/\s+/g, '')}@example.com`,
+        avatar: studentAvatar || 'https://i.pravatar.cc/150?img=12',
+        age: parseInt(age) || 15,
+        gender: gender === 'Select Gender' ? 'Male' : gender,
+        joiningDate: formatDateString(joiningDate),
+        feeStatus: 'PENDING',
+        batchEnd: '28 Aug 2026',
+        remainingDays: 12,
+        attendanceRate: 100,
+        attendanceTrend: '+0%',
+        batch: 'Batch A',
+        course: selectedCourse,
+        teacher: 'Mrs. Aris',
+        admissionDate: formatDateString(joiningDate),
+        schedule: selectedBatch,
+        address: residentialAddress || 'N/A'
+      };
+      setStudentsList([newStudent, ...studentsList]);
+    }
 
-    setStudentsList([newStudent, ...studentsList]);
     setShowAddModal(false);
     resetForm();
   };
@@ -276,12 +274,13 @@ const BatchDetails: React.FC = () => {
     setSelectedBatch('Morning (09:00 - 11:00)');
     setJoiningDate('');
     setStudentAvatar(null);
+    setEditingStudentId(null);
   };
 
   // Filters students list based on search query and fee status tabs
   const filteredStudents = studentsList.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          student.email.toLowerCase().includes(searchQuery.toLowerCase());
+                          student.phone.toLowerCase().includes(searchQuery.toLowerCase());
     
     let matchesFee = true;
     if (activeFeeFilter === 'Paid') {
@@ -466,7 +465,6 @@ const BatchDetails: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {STUDENTS_DATA.map((student) => (
                 {filteredStudents.map((student) => (
                   <tr key={student.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group">
                     <td className="py-4 px-6">
@@ -510,53 +508,22 @@ const BatchDetails: React.FC = () => {
                       <div className="flex items-center justify-end gap-3 text-slate-400">
                         <button 
                           onClick={() => setSelectedStudent(student)}
-                          className="hover:text-slate-700 transition-colors"
+                          className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"
                         >
                           <FiEye size={18} />
                         </button>
-                        <button className="hover:text-slate-700 transition-colors"><FiEdit2 size={18} /></button>
-                        <button className="hover:text-slate-700 transition-colors"><FiFileText size={18} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-
-                      <div className="font-bold text-[#1c1c28] text-sm">{student.name}</div>
-                      <div className="text-[11px] text-slate-400 font-medium mt-0.5">{student.email}</div>
-                    </td>
-                    <td className="py-4 px-4 text-sm font-medium text-slate-600">{student.age} / {student.gender}</td>
-                    <td className="py-4 px-4 text-sm font-medium text-slate-600">
-                      {student.joiningDate.split(' ')[0]} {student.joiningDate.split(' ')[1]}<br />
-                      {student.joiningDate.split(' ')[2] || ''}
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-md tracking-wider ${
-                        student.feeStatus === 'PAID'
-                          ? 'bg-[#e6f8f8] text-[#108c9f]'
-                          : student.feeStatus === 'PARTIAL'
-                            ? 'bg-[#fcf2ea] text-[#b67323]'
-                            : 'bg-[#fef1f1] text-[#ef4444]'
-                      }`}>
-                        {student.feeStatus}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-sm font-medium text-slate-600">
-                      {student.batchEnd.split(' ')[0]} {student.batchEnd.split(' ')[1]}<br />
-                      {student.batchEnd.split(' ')[2] || ''}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-10 bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                          <div className="bg-[#6247df] h-full rounded-full" style={{ width: `${student.remainingPercent}%` }}></div>
-                        </div>
-                        <span className="text-[10px] font-bold text-[#6247df] leading-tight">12<br />Days</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center justify-end gap-3 text-slate-400">
-                        <button className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"><FiEye size={18} /></button>
-                        <button className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"><FiEdit2 size={18} /></button>
-                        <button className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"><FiFileText size={18} /></button>
+                        <button 
+                          onClick={() => handleEditClick(student)}
+                          className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"
+                        >
+                          <FiEdit2 size={18} />
+                        </button>
+                        <button 
+                          onClick={() => setShowReportModal(student)}
+                          className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"
+                        >
+                          <FiFileText size={18} />
+                        </button>
                         <button 
                           onClick={() => setStudentsList(studentsList.filter(s => s.id !== student.id))}
                           className="hover:text-red-500 transition-colors bg-transparent border-none cursor-pointer"
@@ -745,10 +712,19 @@ const BatchDetails: React.FC = () => {
 
             {/* Bottom Actions */}
             <div className="p-6 border-t border-slate-100 flex gap-4 bg-slate-50 shrink-0">
-              <button className="flex-1 bg-white border-2 border-[#6247df] text-[#6247df] font-bold py-3 rounded-2xl text-sm hover:bg-purple-50 transition-colors shadow-sm focus:outline-none">
+              <button 
+                onClick={() => handleEditClick(selectedStudent)}
+                className="flex-1 bg-white border-2 border-[#6247df] text-[#6247df] font-bold py-3 rounded-2xl text-sm hover:bg-purple-50 transition-colors shadow-sm focus:outline-none cursor-pointer"
+              >
                 Edit Profile
               </button>
-              <button className="flex-1 bg-[#6247df] hover:bg-[#5035c9] text-white font-bold py-3.5 rounded-2xl text-sm transition-colors shadow-md shadow-purple-200 focus:outline-none">
+              <button 
+                onClick={() => {
+                  setShowReportModal(selectedStudent);
+                  setSelectedStudent(null);
+                }}
+                className="flex-1 bg-[#6247df] hover:bg-[#5035c9] text-white font-bold py-3.5 rounded-2xl text-sm transition-colors shadow-md shadow-purple-200 focus:outline-none cursor-pointer"
+              >
                 Generate Report
               </button>
             </div>
@@ -769,8 +745,12 @@ const BatchDetails: React.FC = () => {
                   <FiUserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-xl text-slate-900 leading-tight">New Student Enrollment</h3>
-                  <p className="text-slate-400 text-xs mt-1 font-medium">Complete the form below to register a new artist to the academy.</p>
+                  <h3 className="font-extrabold text-xl text-slate-900 leading-tight">
+                    {editingStudentId !== null ? 'Edit Student Profile' : 'New Student Enrollment'}
+                  </h3>
+                  <p className="text-slate-400 text-xs mt-1 font-medium">
+                    {editingStudentId !== null ? 'Modify the student\'s details below and save changes.' : 'Complete the form below to register a new artist to the academy.'}
+                  </p>
                 </div>
               </div>
               <button 
@@ -1027,10 +1007,148 @@ const BatchDetails: React.FC = () => {
                 type="submit"
                 className="px-6 py-2.5 bg-[#6247df] hover:bg-[#5035c9] text-white rounded-xl font-bold text-sm shadow-md shadow-purple-900/20 transition-all flex items-center gap-2 border-none cursor-pointer"
               >
-                <FiSave size={16} /> Save Student
+                <FiSave size={16} /> {editingStudentId !== null ? 'Save Changes' : 'Save Student'}
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Modal - Student Report Card */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white w-full max-w-2xl rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[92vh] animate-scale-up">
+            
+            {/* Header */}
+            <div className="p-8 border-b border-slate-100 flex items-start justify-between bg-gradient-to-r from-purple-900 to-[#6247df] text-white">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
+                  <FiFileText className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-xl leading-tight">Student Academic Report</h3>
+                  <p className="text-purple-100 text-xs mt-1 font-semibold">Generated on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowReportModal(null)}
+                className="p-1.5 text-purple-100 hover:text-white rounded-lg hover:bg-white/10 transition-colors border-none bg-transparent cursor-pointer"
+              >
+                <FiX className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Report Content */}
+            <div className="p-8 overflow-y-auto flex-1 space-y-6 print:p-0">
+              
+              {/* Profile Overview */}
+              <div className="flex items-center gap-5 p-5 border border-slate-100 rounded-3xl bg-slate-50/50">
+                <img 
+                  src={showReportModal.avatar} 
+                  alt={showReportModal.name} 
+                  className="w-16 h-16 rounded-2xl object-cover border border-white shadow-md bg-white shrink-0" 
+                />
+                <div>
+                  <h4 className="text-lg font-black text-slate-800">{showReportModal.name}</h4>
+                  <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">Student ID: #GLO-2026-{showReportModal.id.toString().slice(-4)}</p>
+                </div>
+              </div>
+
+              {/* Grid Details */}
+              <div className="grid grid-cols-2 gap-4 text-sm font-medium text-slate-600">
+                <div className="p-4 bg-slate-50 rounded-2xl">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Course Enrolled</span>
+                  <span className="font-extrabold text-slate-800">{showReportModal.course}</span>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Batch Schedule</span>
+                  <span className="font-extrabold text-slate-800">{showReportModal.schedule}</span>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Assigned Instructor</span>
+                  <span className="font-extrabold text-slate-800">{showReportModal.teacher}</span>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Joining Date</span>
+                  <span className="font-extrabold text-slate-800">{showReportModal.joiningDate}</span>
+                </div>
+              </div>
+
+              {/* Performance Stats */}
+              <div className="space-y-4">
+                <h5 className="text-xs font-bold text-slate-400 uppercase tracking-widest">— ACADEMIC PERFORMANCE</h5>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  
+                  {/* Attendance */}
+                  <div className="p-5 border border-slate-100 rounded-3xl text-center bg-white shadow-sm">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Attendance</span>
+                    <span className="text-2xl font-black text-[#6247df]">{showReportModal.attendanceRate}%</span>
+                    <span className={`text-[10px] font-bold block mt-1.5 ${
+                      showReportModal.attendanceRate >= 90 ? 'text-emerald-500' :
+                      showReportModal.attendanceRate >= 80 ? 'text-amber-500' : 'text-red-500'
+                    }`}>
+                      {showReportModal.attendanceRate >= 90 ? 'EXCELLENT' :
+                       showReportModal.attendanceRate >= 80 ? 'GOOD' : 'NEEDS IMPROVEMENT'}
+                    </span>
+                  </div>
+
+                  {/* Fee Status */}
+                  <div className="p-5 border border-slate-100 rounded-3xl text-center bg-white shadow-sm">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Fee Status</span>
+                    <span className={`text-xs font-black px-2.5 py-1 rounded-md tracking-wider inline-block mt-1 ${
+                      showReportModal.feeStatus === 'PAID' ? 'bg-[#e6f8f8] text-[#108c9f]' :
+                      showReportModal.feeStatus === 'PARTIAL' ? 'bg-[#fcf2ea] text-[#b67323]' :
+                      'bg-[#fef1f1] text-[#ef4444]'
+                    }`}>
+                      {showReportModal.feeStatus}
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-400 block mt-2">
+                      {showReportModal.feeStatus === 'PAID' ? 'No balance' :
+                       showReportModal.feeStatus === 'PARTIAL' ? '₹60.00 due' : '₹120.00 due'}
+                    </span>
+                  </div>
+
+                  {/* Days remaining */}
+                  <div className="p-5 border border-slate-100 rounded-3xl text-center bg-white shadow-sm">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Term Status</span>
+                    <span className="text-2xl font-black text-[#b67323]">{showReportModal.remainingDays} Days</span>
+                    <span className="text-[10px] font-semibold text-slate-400 block mt-2">Remaining in term</span>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Progress Summary/Remarks */}
+              <div className="bg-purple-50/50 border border-purple-100/60 rounded-3xl p-6">
+                <h5 className="text-xs font-bold text-[#6247df] uppercase tracking-wider mb-2">Instructor Remarks</h5>
+                <p className="text-slate-600 text-sm leading-relaxed font-sans">
+                  {showReportModal.name} displays exemplary creativity and fine technique in {showReportModal.course}. They have maintained an impressive attendance rate of {showReportModal.attendanceRate}%, demonstrating outstanding focus and commitment to developing their artistic skills.
+                </p>
+              </div>
+
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3 shrink-0 font-sans">
+              <button 
+                type="button"
+                onClick={() => setShowReportModal(null)}
+                className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 hover:text-slate-800 rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button 
+                type="button"
+                onClick={() => window.print()}
+                className="px-6 py-2.5 bg-[#6247df] hover:bg-[#5035c9] text-white rounded-xl font-bold text-sm shadow-md shadow-purple-900/20 transition-all flex items-center gap-2 border-none cursor-pointer"
+              >
+                <FiSave size={16} /> Print Report
+              </button>
+            </div>
+
+          </div>
         </div>
       )}
 
