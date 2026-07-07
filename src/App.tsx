@@ -14,8 +14,8 @@ import AdminDashboard from './pages/admin/Dashboard';
 import AdminCoursePage from './pages/admin/AdminCoursePage.tsx';
 import AdminCreateCoursePage from './pages/admin/AdminCreateCoursePage';
 import FeesPayments from './pages/admin/FeesPayments';
-import Students from './pages/admin/Students.tsx';
-import BatchDetails from './pages/admin/BatchDetails.tsx';
+import Students from './pages/admin/Students';
+import BatchDetails from './pages/admin/BatchDetails';
 
 function AppContent(): React.JSX.Element {
   const location = useLocation();
