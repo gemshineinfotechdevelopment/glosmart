@@ -6,104 +6,129 @@ import {
 } from 'react-icons/fi';
 import { BiCube } from 'react-icons/bi';
 import { PiPencilSimpleBold } from 'react-icons/pi';
-import { BsPersonFill } from 'react-icons/bs';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
 // Categories array for the filter tabs
 const filterCategories = [
-  { name: "All Categories", active: true },
-  { name: "Sketching" },
-  { name: "Watercolor" },
-  { name: "Digital Art" },
-  { name: "Oil Painting" },
-  { name: "Sculpting" },
-  { name: "Animation" }
+  { name: "All Batches", active: true },
+  { name: "Active" },
+  { name: "Upcoming" },
+  { name: "Completed" },
+  { name: "Morning" },
+  { name: "Evening" },
+  { name: "Weekend" }
 ];
 
-const initialCourses = [
+const initialBatches = [
   {
     id: 1,
-    title: "Pencil Drawing",
-    category: "Sketching & Charcoal",
-    categoryIcon: <PiPencilSimpleBold className="w-3.5 h-3.5 mr-1.5" />,
-    level: "Junior",
-    levelColor: "text-indigo-600 bg-white",
-    price: "$45/mo",
+    batchName: "Pencil Drawing – Batch A",
+    status: "ACTIVE",
+    statusColor: "bg-emerald-500",
+    batchCode: "BAT-101",
+    courseName: "Graphite Art",
+    courseIcon: <PiPencilSimpleBold className="w-5 h-5 text-[#5B43D6]" />,
+    courseIconBg: "bg-indigo-50",
+    time: "10:00 - 12:00",
+    schedule: "Mon, Wed",
+    progressLabel: "PROGRESS",
+    progressText: "70% • 18 days left",
+    progressColor: "text-emerald-500",
+    progressWidth: "w-[70%]",
+    progressBg: "bg-emerald-500",
     instructor: "Mr. Julian",
     instructorAvatar: "https://i.pravatar.cc/150?img=11",
     students: 24,
+    maxStudents: 30,
     image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=1000&auto=format&fit=crop",
-    progress: "w-10 bg-amber-500",
   },
   {
     id: 2,
-    title: "Digital Illustration",
-    category: "Digital Media",
-    categoryIcon: <PiPencilSimpleBold className="w-3.5 h-3.5 mr-1.5" />,
-    level: "Senior",
-    levelColor: "text-emerald-600 bg-white",
-    price: "$75/mo",
+    batchName: "Watercolor – Batch B",
+    status: "ACTIVE",
+    statusColor: "bg-orange-400",
+    batchCode: "BAT-102",
+    courseName: "Water Scapes",
+    courseIcon: <FiDroplet className="w-5 h-5 text-orange-500" />,
+    courseIconBg: "bg-orange-50",
+    time: "14:00 - 16:00",
+    schedule: "Tue, Thu",
+    progressLabel: "PROGRESS",
+    progressText: "45% • 30 days left",
+    progressColor: "text-orange-500",
+    progressWidth: "w-[45%]",
+    progressBg: "bg-orange-400",
     instructor: "Ms. Clara",
     instructorAvatar: "https://i.pravatar.cc/150?img=5",
     students: 18,
-    image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=1000&auto=format&fit=crop",
-    progress: "w-14 bg-emerald-500",
+    maxStudents: 25,
+    image: "https://images.unsplash.com/photo-1578301978693-85fa9c026109?q=80&w=1000&auto=format&fit=crop",
   },
   {
     id: 3,
-    title: "Watercolor World",
-    category: "Watercolor",
-    categoryIcon: <FiDroplet className="w-3.5 h-3.5 mr-1.5" />,
-    level: "Junior",
-    levelColor: "text-indigo-600 bg-white",
-    price: "$50/mo",
+    batchName: "Digital Art – Batch C",
+    status: "UPCOMING",
+    statusColor: "bg-teal-500",
+    batchCode: "BAT-103",
+    courseName: "Procreate 101",
+    courseIcon: <FiImage className="w-5 h-5 text-teal-600" />,
+    courseIconBg: "bg-teal-50",
+    time: "09:00 - 13:00",
+    schedule: "Weekends",
+    progressLabel: "LAUNCH TIMELINE",
+    progressText: "Starts in 45 days",
+    progressColor: "text-teal-600",
+    progressWidth: "w-[15%]",
+    progressBg: "bg-teal-500",
     instructor: "Mr. Henderson",
     instructorAvatar: "https://i.pravatar.cc/150?img=12",
     students: 15,
-    image: "https://images.unsplash.com/photo-1578301978693-85fa9c026109?q=80&w=1000&auto=format&fit=crop",
-    progress: "w-8 bg-indigo-600",
+    maxStudents: 20,
+    image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=1000&auto=format&fit=crop",
   },
   {
     id: 4,
-    title: "Modern Clay",
-    category: "Sculpting",
-    categoryIcon: <BiCube className="w-3.5 h-3.5 mr-1.5" />,
-    level: "Senior",
-    levelColor: "text-emerald-600 bg-white",
-    price: "$90/mo",
-    instructor: "Mr. David",
-    instructorAvatar: "https://i.pravatar.cc/150?img=13",
-    students: 10,
+    batchName: "Digital Art – Batch D",
+    status: "WEEKEND",
+    statusColor: "bg-green-400",
+    batchCode: "BAT-104",
+    courseName: "Watercolour World",
+    courseIcon: <FiImage className="w-5 h-5 text-teal-600" />,
+    courseIconBg: "bg-teal-50",
+    time: "12:00 - 13:00",
+    schedule: "Weekends",
+    progressLabel: "LAUNCH TIMELINE",
+    progressText: "Starts in 45 days",
+    progressColor: "text-teal-600",
+    progressWidth: "w-[15%]",
+    progressBg: "bg-teal-500",
+    instructor: "Mr. Henderson",
+    instructorAvatar: "https://i.pravatar.cc/150?img=12",
+    students: 15,
+    maxStudents: 20,
     image: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1000&auto=format&fit=crop",
-    progress: "w-6 bg-amber-500",
   },
   {
     id: 5,
-    title: "Character Design",
-    category: "Animation",
-    categoryIcon: <FiVideo className="w-3.5 h-3.5 mr-1.5" />,
-    level: "Junior",
-    levelColor: "text-indigo-600 bg-white",
-    price: "$60/mo",
-    instructor: "Ms. Riley",
-    instructorAvatar: "https://i.pravatar.cc/150?img=9",
-    students: 32,
-    image: "https://images.unsplash.com/photo-1601296200639-8edb34ee97fe?q=80&w=1000&auto=format&fit=crop",
-    progress: "w-full bg-red-700",
-  },
-  {
-    id: 6,
-    title: "Oil Portraits",
-    category: "Oil Painting",
-    categoryIcon: <FiImage className="w-3.5 h-3.5 mr-1.5" />,
-    level: "Senior",
-    levelColor: "text-emerald-600 bg-white",
-    price: "$110/mo",
-    instructor: "Ms. Beatrice",
-    instructorAvatar: "https://i.pravatar.cc/150?img=10",
-    students: 12,
+    batchName: "Digital Art – Batch E",
+    status: "UPCOMING",
+    statusColor: "bg-orange-600",
+    batchCode: "BAT-105",
+    courseName: "Oil Portraits",
+    courseIcon: <FiImage className="w-5 h-5 text-teal-600" />,
+    courseIconBg: "bg-teal-50",
+    time: "13:00 - 16:00",
+    schedule: "Weekends",
+    progressLabel: "LAUNCH TIMELINE",
+    progressText: "Starts in 45 days",
+    progressColor: "text-teal-600",
+    progressWidth: "w-[15%]",
+    progressBg: "bg-teal-500",
+    instructor: "Mr. Henderson",
+    instructorAvatar: "https://i.pravatar.cc/150?img=12",
+    students: 15,
+    maxStudents: 20,
     image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1000&auto=format&fit=crop",
-    progress: "w-16 bg-indigo-500",
   }
 ];
 
@@ -116,8 +141,8 @@ const instructorsList = [
 
 export default function AdminCoursePage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [coursesList, setCoursesList] = useState(initialCourses);
-  const [activeCategory, setActiveCategory] = useState("All Categories");
+  const [batchesList, setBatchesList] = useState(initialBatches);
+  const [activeCategory, setActiveCategory] = useState("All Batches");
   const [searchQuery, setSearchQuery] = useState("");
 
   const isCreating = searchParams.get('mode') === 'create';
@@ -201,20 +226,20 @@ export default function AdminCoursePage() {
     switch (catName) {
       case 'Sketching':
       case 'Sketching & Charcoal':
-        return <PiPencilSimpleBold className="w-3.5 h-3.5 mr-1.5" />;
+        return <PiPencilSimpleBold className="w-5 h-5 text-[#5B43D6]" />;
       case 'Watercolor':
-        return <FiDroplet className="w-3.5 h-3.5 mr-1.5" />;
+        return <FiDroplet className="w-5 h-5 text-orange-500" />;
       case 'Digital Art':
       case 'Digital Media':
-        return <PiPencilSimpleBold className="w-3.5 h-3.5 mr-1.5" />;
+        return <FiImage className="w-5 h-5 text-teal-600" />;
       case 'Oil Painting':
-        return <FiImage className="w-3.5 h-3.5 mr-1.5" />;
+        return <FiImage className="w-5 h-5 text-teal-600" />;
       case 'Sculpting':
-        return <BiCube className="w-3.5 h-3.5 mr-1.5" />;
+        return <BiCube className="w-5 h-5 text-[#5B43D6]" />;
       case 'Animation':
-        return <FiVideo className="w-3.5 h-3.5 mr-1.5" />;
+        return <FiVideo className="w-5 h-5 text-[#5B43D6]" />;
       default:
-        return <FiImage className="w-3.5 h-3.5 mr-1.5" />;
+        return <FiImage className="w-5 h-5 text-[#5B43D6]" />;
     }
   };
 
@@ -227,27 +252,32 @@ export default function AdminCoursePage() {
 
     const priceText = basePrice ? `$${parseFloat(basePrice).toFixed(2)}/mo` : "$0.00/mo";
 
-    const newCourse = {
+    const newBatch = {
       id: Date.now(),
-      title: courseTitle,
-      category: category === 'Select Category' ? 'General Art' : category,
-      categoryIcon: getCategoryIcon(category),
-      level: difficultyLevel,
-      levelColor: difficultyLevel === 'Senior' 
-        ? "text-emerald-600 bg-white" 
-        : difficultyLevel === 'Intermediate' 
-          ? "text-amber-600 bg-white" 
-          : "text-indigo-600 bg-white",
       price: priceText,
+      batchName: batchName || `${courseTitle} - New Batch`,
+      status: "UPCOMING",
+      statusColor: "bg-teal-500",
+      batchCode: `BAT-${Date.now().toString().slice(-3)}`,
+      courseName: courseTitle,
+      courseIcon: getCategoryIcon(category),
+      courseIconBg: "bg-teal-50",
+      time: "TBD",
+      schedule: "TBD",
+      progressLabel: "LAUNCH TIMELINE",
+      progressText: "Starts soon",
+      progressColor: "text-teal-600",
+      progressWidth: "w-0",
+      progressBg: "bg-teal-500",
       instructor: assignedInstructor.name,
       instructorAvatar: assignedInstructor.avatar,
       students: 0,
+      maxStudents: 30,
       image: coverImage || "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1000&auto=format&fit=crop",
-      progress: "w-0 bg-indigo-600"
     };
 
-    setCoursesList([newCourse, ...coursesList]);
-    setSearchParams({}); // Navigate back to courses list
+    setBatchesList([newBatch, ...batchesList]);
+    setSearchParams({}); // Navigate back to list
     resetForm();
   };
 
@@ -269,10 +299,10 @@ export default function AdminCoursePage() {
     ]);
   };
 
-  // Filter courses based on active category tabs and search input
-  const filteredCourses = coursesList.filter(course => {
-    const matchesCategory = activeCategory === "All Categories" || course.category.toLowerCase().includes(activeCategory.toLowerCase());
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || course.category.toLowerCase().includes(searchQuery.toLowerCase());
+  // Filter based on active category tabs and search input
+  const filteredBatches = batchesList.filter(batch => {
+    const matchesCategory = activeCategory === "All Batches" || batch.status.toLowerCase() === activeCategory.toLowerCase() || batch.schedule.toLowerCase().includes(activeCategory.toLowerCase());
+    const matchesSearch = batch.batchName.toLowerCase().includes(searchQuery.toLowerCase()) || batch.courseName.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -282,15 +312,15 @@ export default function AdminCoursePage() {
       <AdminSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col bg-slate-50/30 overflow-y-auto">
+      <main className="flex-1 flex flex-col bg-[#F8F9FA]/50 overflow-y-auto">
         {/* Top Header */}
         <header className="h-20 border-b border-gray-100 flex items-center justify-between px-8 bg-white shrink-0 sticky top-0 z-30">
-          <div className="relative w-80">
+          <div className="relative w-[320px]">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Search academy records..."
-              className="w-full pl-10 pr-4 py-2 bg-[#F3F4F6]/50 border-none rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 placeholder:text-gray-400"
+              placeholder="Search batches, teachers..."
+              className="w-full pl-10 pr-4 py-2.5 bg-[#F8F9FA] border-none rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#5B43D6]/20 placeholder:text-gray-400 font-medium"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -299,18 +329,18 @@ export default function AdminCoursePage() {
           <div className="flex items-center gap-6">
             {/* Notification Bell */}
             <button className="relative p-1 text-slate-500 hover:text-slate-800 transition-colors bg-transparent border-none cursor-pointer">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
               </svg>
               {/* Notification Badge */}
-              <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+              <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full border-[1.5px] border-white"></span>
             </button>
 
-            {/* Help Question Icon */}
-            <button className="p-1 text-slate-500 hover:text-slate-800 transition-colors bg-transparent border-none cursor-pointer">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-              </svg>
+            {/* Mail Icon */}
+            <button className="relative p-1 text-slate-500 hover:text-slate-800 transition-colors bg-transparent border-none cursor-pointer">
+               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+               </svg>
             </button>
 
             {/* Separator */}
@@ -319,13 +349,13 @@ export default function AdminCoursePage() {
             {/* User Profile */}
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <span className="block text-sm font-bold text-slate-900 leading-tight">Alex Thompson</span>
-                <span className="block text-[11px] text-slate-400 font-medium">Head Administrator</span>
+                <span className="block text-sm font-bold text-slate-900 leading-tight">Admin Alex</span>
+                <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Head Registrar</span>
               </div>
               <img
-                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop"
-                alt="Alex Thompson"
-                className="w-10 h-10 rounded-full object-cover border border-slate-100 shadow-sm"
+                src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&auto=format&fit=crop"
+                alt="Admin Alex"
+                className="w-10 h-10 rounded-full object-cover shadow-sm"
               />
             </div>
           </div>
@@ -340,13 +370,13 @@ export default function AdminCoursePage() {
               <div>
                 {/* Breadcrumbs */}
                 <div className="flex items-center gap-2 text-sm text-slate-500 mb-2 font-medium">
-                  <button onClick={() => setSearchParams({})} className="hover:text-[#6247df] transition-colors border-none bg-transparent p-0 cursor-pointer font-medium">
-                    Courses
+                  <button onClick={() => setSearchParams({})} className="hover:text-[#5B43D6] transition-colors border-none bg-transparent p-0 cursor-pointer font-medium">
+                    Batches
                   </button>
                   <span className="text-slate-300">›</span>
-                  <span className="text-[#6247df] font-semibold">Add New Course</span>
+                  <span className="text-[#5B43D6] font-semibold">Add New Batch</span>
                 </div>
-                <h2 className="text-3xl font-extrabold text-gray-900 mb-1 leading-tight">Create New Course</h2>
+                <h2 className="text-3xl font-extrabold text-gray-900 mb-1 leading-tight">Create New Batch</h2>
                 <p className="text-gray-500 text-sm">Design a new creative journey for your academy students.</p>
               </div>
 
@@ -370,7 +400,7 @@ export default function AdminCoursePage() {
                 {/* General Information Card */}
                 <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-5">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-violet-50 text-[#6247df] flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-violet-50 text-[#5B43D6] flex items-center justify-center">
                       <FiInfo className="w-4 h-4" />
                     </div>
                     <h3 className="font-bold text-lg text-slate-900">General Information</h3>
@@ -378,7 +408,7 @@ export default function AdminCoursePage() {
 
                   {/* Course Title */}
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-slate-600">Course Title</label>
+                    <label className="block text-sm font-semibold text-slate-600">Course Name</label>
                     <input
                       type="text"
                       placeholder="e.g. Advanced Watercolor Mastery"
@@ -452,7 +482,7 @@ export default function AdminCoursePage() {
                 <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-violet-50 text-[#6247df] flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-violet-50 text-[#5B43D6] flex items-center justify-center">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z" />
                         </svg>
@@ -469,7 +499,7 @@ export default function AdminCoursePage() {
                       </button>
                       <button 
                         onClick={handleAddModule}
-                        className="px-3.5 py-2 bg-violet-50 text-[#6247df] text-xs font-bold rounded-lg hover:bg-violet-100 transition-colors cursor-pointer border-none"
+                        className="px-3.5 py-2 bg-violet-50 text-[#5B43D6] text-xs font-bold rounded-lg hover:bg-violet-100 transition-colors cursor-pointer border-none"
                       >
                         Add Module
                       </button>
@@ -481,9 +511,9 @@ export default function AdminCoursePage() {
                     {modules.map((mod) => (
                       <div key={mod.id} className="relative">
                         {/* Timeline Node dot */}
-                        <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 border-white bg-[#6247df] shadow-sm"></div>
+                        <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 border-white bg-[#5B43D6] shadow-sm"></div>
                         
-                        <div className="bg-[#FAFBFF] border border-slate-200/50 rounded-2xl p-4 flex items-center justify-between group hover:border-[#6247df]/40 transition-colors">
+                        <div className="bg-[#FAFBFF] border border-slate-200/50 rounded-2xl p-4 flex items-center justify-between group hover:border-[#5B43D6]/40 transition-colors">
                           <div className="flex-1 min-w-0">
                             <span className="block text-sm font-extrabold text-slate-800 truncate">{mod.title}</span>
                             <span className="block text-xs text-slate-400 font-semibold mt-1">{mod.subtext}</span>
@@ -517,7 +547,7 @@ export default function AdminCoursePage() {
                   <span className="block text-xs font-extrabold text-slate-400 uppercase tracking-widest">COURSE MEDIA</span>
                   
                   {/* Upload Image container */}
-                  <div className="relative border-2 border-dashed border-slate-200 rounded-2xl aspect-video overflow-hidden bg-[#FAFBFF] flex flex-col items-center justify-center p-4 hover:border-[#6247df]/40 transition-colors select-none">
+                  <div className="relative border-2 border-dashed border-slate-200 rounded-2xl aspect-video overflow-hidden bg-[#FAFBFF] flex flex-col items-center justify-center p-4 hover:border-[#5B43D6]/40 transition-colors select-none">
                     <input
                       type="file"
                       accept="image/*"
@@ -542,7 +572,7 @@ export default function AdminCoursePage() {
                       <>
                         <div 
                           onClick={() => fileInputRef.current?.click()}
-                          className="w-10 h-10 rounded-full bg-violet-50 text-[#6247df] flex items-center justify-center shadow-sm mb-3 cursor-pointer hover:scale-105 transition-transform"
+                          className="w-10 h-10 rounded-full bg-violet-50 text-[#5B43D6] flex items-center justify-center shadow-sm mb-3 cursor-pointer hover:scale-105 transition-transform"
                         >
                           <FiUploadCloud className="w-5 h-5" />
                         </div>
@@ -592,7 +622,7 @@ export default function AdminCoursePage() {
                       </div>
                       <button 
                         onClick={() => setEnrollmentActive(!enrollmentActive)}
-                        className={`w-10 h-6 rounded-full p-0.5 transition-colors border-none cursor-pointer flex items-center ${enrollmentActive ? 'bg-[#6247df]' : 'bg-slate-200'}`}
+                        className={`w-10 h-6 rounded-full p-0.5 transition-colors border-none cursor-pointer flex items-center ${enrollmentActive ? 'bg-[#5B43D6]' : 'bg-slate-200'}`}
                       >
                         <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${enrollmentActive ? 'translate-x-4' : 'translate-x-0'}`}></div>
                       </button>
@@ -605,7 +635,7 @@ export default function AdminCoursePage() {
                       </div>
                       <button 
                         onClick={() => setCertificateIncluded(!certificateIncluded)}
-                        className={`w-10 h-6 rounded-full p-0.5 transition-colors border-none cursor-pointer flex items-center ${certificateIncluded ? 'bg-[#6247df]' : 'bg-slate-200'}`}
+                        className={`w-10 h-6 rounded-full p-0.5 transition-colors border-none cursor-pointer flex items-center ${certificateIncluded ? 'bg-[#5B43D6]' : 'bg-slate-200'}`}
                       >
                         <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${certificateIncluded ? 'translate-x-4' : 'translate-x-0'}`}></div>
                       </button>
@@ -654,7 +684,7 @@ export default function AdminCoursePage() {
                   <div className="w-8 h-8 rounded-full border-2 border-white bg-indigo-500 text-white flex items-center justify-center text-[10px] font-extrabold shadow-sm">
                     JD
                   </div>
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-[#6247df] text-white flex items-center justify-center text-[10px] font-extrabold shadow-sm">
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-[#5B43D6] text-white flex items-center justify-center text-[10px] font-extrabold shadow-sm">
                     MK
                   </div>
                 </div>
@@ -665,15 +695,15 @@ export default function AdminCoursePage() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowPreview(true)}
-                  className="px-6 py-3 bg-white border border-slate-200 text-[#6247df] font-bold rounded-xl text-sm shadow-sm hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="px-6 py-3 bg-white border border-slate-200 text-[#5B43D6] font-bold rounded-xl text-sm shadow-sm hover:bg-slate-50 transition-colors cursor-pointer"
                 >
-                  Preview Course
+                  Preview Batch
                 </button>
                 <button
                   onClick={handleCreateCourse}
-                  className="px-6 py-3 bg-[#6247df] hover:bg-[#5035c9] text-white font-bold rounded-xl text-sm shadow-md shadow-purple-900/20 transition-all cursor-pointer border-none"
+                  className="px-6 py-3 bg-[#5B43D6] hover:bg-[#4b36b0] text-white font-bold rounded-xl text-sm shadow-md shadow-purple-900/20 transition-all cursor-pointer border-none"
                 >
-                  Create Course
+                  Create Batch
                 </button>
               </div>
             </div>
@@ -684,7 +714,7 @@ export default function AdminCoursePage() {
                 <div className="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-scale-up">
                   {/* Modal Header */}
                   <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                    <h3 className="font-extrabold text-xl text-slate-900">Course Detail Preview</h3>
+                    <h3 className="font-extrabold text-xl text-slate-900">Batch Detail Preview</h3>
                     <button 
                       onClick={() => setShowPreview(false)}
                       className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors border-none bg-transparent cursor-pointer"
@@ -715,7 +745,7 @@ export default function AdminCoursePage() {
                     <div className="space-y-4">
                       {/* Badge Row */}
                       <div className="flex gap-2">
-                        <span className="bg-purple-100 text-[#6247df] px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                        <span className="bg-purple-100 text-[#5B43D6] px-3 py-1 rounded-full text-xs font-bold shadow-sm">
                           {category === 'Select Category' ? 'General Art' : category}
                         </span>
                         <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold shadow-sm">
@@ -786,7 +816,7 @@ export default function AdminCoursePage() {
                         setShowPreview(false);
                         handleCreateCourse();
                       }}
-                      className="px-5 py-2 bg-[#6247df] text-white font-bold rounded-xl text-sm shadow-md shadow-purple-900/10 hover:bg-[#5035c9] transition-colors cursor-pointer border-none"
+                      className="px-5 py-2 bg-[#5B43D6] text-white font-bold rounded-xl text-sm shadow-md shadow-purple-900/10 hover:bg-[#4b36b0] transition-colors cursor-pointer border-none"
                     >
                       Publish Now
                     </button>
@@ -799,17 +829,17 @@ export default function AdminCoursePage() {
           /* Course List View */
           <div className="p-8 flex-1">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Our Courses</h2>
-                <p className="text-gray-500 text-sm">Manage and curate the creative journey for our talented artists.</p>
+            <div className="flex items-start justify-between mb-8">
+              <div className="max-w-xl">
+                <h2 className="text-3xl font-bold text-gray-900 mb-3">Batch Management</h2>
+                <p className="text-slate-500 text-sm leading-relaxed">Streamline academy operations: track active batches, monitor teacher performance, and manage student enrollment schedules.</p>
               </div>
               <button 
                 onClick={() => setSearchParams({ mode: 'create' })}
-                className="flex items-center gap-2 bg-[#6247df] hover:bg-[#5035c9] text-white px-5 py-2.5 rounded-full text-sm font-medium transition-colors shadow-md shadow-purple-900/10 cursor-pointer border-none"
+                className="flex items-center gap-2 bg-[#5B43D6] hover:bg-[#4b36b0] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm cursor-pointer border-none whitespace-nowrap"
               >
-                <FiPlus className="w-4 h-4" />
-                Create Course
+                <FiPlusCircle className="w-4 h-4" />
+                Create New Batch
               </button>
             </div>
 
@@ -821,10 +851,10 @@ export default function AdminCoursePage() {
                   <button
                     key={cat.name}
                     onClick={() => setActiveCategory(cat.name)}
-                    className={`px-5 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border-none ${
+                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors cursor-pointer border-none ${
                       isActive
-                        ? 'bg-[#6247df] text-white shadow-md shadow-purple-900/15'
-                        : 'bg-gray-100/80 text-gray-600 hover:bg-gray-200/80'
+                        ? 'bg-[#5B43D6] text-white shadow-md'
+                        : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 shadow-sm'
                     }`}
                   >
                     {cat.name}
@@ -833,70 +863,111 @@ export default function AdminCoursePage() {
               })}
             </div>
 
-            {/* Course Grid */}
+            {/* Batch Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredCourses.map((course) => (
-                <div key={course.id} className="bg-white rounded-3xl p-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-gray-100/50 flex flex-col group hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-all">
+              {filteredBatches.map((batch) => (
+                <div key={batch.id} className="bg-white rounded-[24px] p-4 shadow-sm border border-slate-100 flex flex-col group hover:shadow-md transition-all">
                   {/* Image Container */}
-                  <div className="relative rounded-2xl overflow-hidden mb-4 aspect-[4/3] bg-slate-100">
-                    <img src={course.image} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="relative rounded-2xl overflow-hidden mb-5 aspect-[16/10] bg-slate-100">
+                    <img src={batch.image} alt={batch.batchName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
 
-                    {/* Level Badge */}
-                    <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold shadow-sm ${course.levelColor}`}>
-                      {course.level}
+                    {/* Badges */}
+                    <div className="absolute top-3 left-3 flex gap-2">
+                       <div className={`px-2.5 py-1 rounded text-[10px] font-bold text-white shadow-sm uppercase ${batch.statusColor}`}>
+                         {batch.status}
+                       </div>
+                       <div className="px-2.5 py-1 rounded text-[10px] font-bold text-white bg-slate-900/60 backdrop-blur-sm uppercase shadow-sm">
+                         {batch.batchCode}
+                       </div>
                     </div>
-
-                    {/* Price Badge */}
-                    <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full text-xs font-bold text-white bg-slate-900/60 backdrop-blur-sm">
-                      {course.price}
-                    </div>
+                    
+                    {/* Options Menu */}
+                    <button className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-600 shadow-sm border-none cursor-pointer hover:bg-white transition-colors">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                      </svg>
+                    </button>
                   </div>
 
                   {/* Content */}
-                  <div className="px-1.5 pb-2 flex-1 flex flex-col">
-                    <h3 className="font-extrabold text-base text-gray-900 mb-1 leading-snug">{course.title}</h3>
-                    <div className="flex items-center text-xs text-slate-400 mb-4 font-semibold uppercase tracking-wider">
-                      {course.categoryIcon}
-                      {course.category}
-                    </div>
-
-                    {/* Instructor & Students */}
-                    <div className="flex items-center justify-between mt-auto mb-4 border-t border-slate-100/60 pt-3">
-                      <div className="flex items-center gap-2">
-                        <img src={course.instructorAvatar} alt={course.instructor} className="w-7 h-7 rounded-full object-cover border border-gray-100" />
-                        <div className="text-[11px] font-bold text-gray-700 leading-tight">
-                          <span className="block text-gray-400 font-medium text-[9px] uppercase tracking-wider leading-none mb-0.5">Instructor</span>
-                          <span className="block">{course.instructor}</span>
-                        </div>
+                  <div className="px-1 flex-1 flex flex-col">
+                    <h3 className="font-bold text-[17px] text-gray-900 mb-4">{batch.batchName}</h3>
+                    
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${batch.courseIconBg}`}>
+                         {batch.courseIcon}
                       </div>
-
-                      <div className="flex items-center gap-1.5 text-gray-400">
-                        <BsPersonFill className="w-3.5 h-3.5" />
-                        <div className="text-[11px] font-bold text-gray-700 leading-tight">
-                          <span className="block text-gray-900 leading-none">{course.students}</span>
-                          <span className="text-[9px] text-gray-400 font-medium uppercase tracking-wider">Students</span>
-                        </div>
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Course</span>
+                        <span className="block text-sm font-semibold text-slate-800 truncate">{batch.courseName}</span>
                       </div>
                     </div>
 
-                    {/* Progress Bar */}
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1">
-                      <div className={`h-full rounded-full ${course.progress}`}></div>
+                    <div className="grid grid-cols-2 gap-4 mb-5">
+                      <div className="flex items-center gap-2 min-w-0">
+                         <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                         </div>
+                         <div className="min-w-0">
+                           <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Time</span>
+                           <span className="block text-[11px] sm:text-xs font-semibold text-slate-800 truncate">{batch.time}</span>
+                         </div>
+                      </div>
+                      <div className="flex items-center gap-2 min-w-0">
+                         <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
+                            </svg>
+                         </div>
+                         <div className="min-w-0">
+                           <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Schedule</span>
+                           <span className="block text-[11px] sm:text-xs font-semibold text-slate-800 truncate">{batch.schedule}</span>
+                         </div>
+                      </div>
+                    </div>
+
+                    <div className="mb-5 border-b border-slate-100/80 pb-5">
+                      <div className="flex justify-between items-center mb-2">
+                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{batch.progressLabel}</span>
+                         <span className={`text-xs font-bold ${batch.progressColor}`}>{batch.progressText}</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                         <div className={`h-full rounded-full ${batch.progressWidth} ${batch.progressBg}`}></div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-auto">
+                       <div className="flex items-center gap-2.5 min-w-0">
+                          <img src={batch.instructorAvatar} alt={batch.instructor} className="w-8 h-8 rounded-full object-cover border border-slate-100 shadow-sm shrink-0" />
+                          <div className="min-w-0">
+                             <span className="block text-sm font-bold text-slate-800 truncate">{batch.instructor}</span>
+                             <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Instructor</span>
+                          </div>
+                       </div>
+                       
+                       <div className="bg-slate-50 px-2 sm:px-3 py-1.5 rounded-lg flex items-center gap-1.5 shrink-0">
+                          <svg className="w-3.5 h-3.5 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" />
+                          </svg>
+                          <span className="text-[11px] sm:text-xs font-bold text-slate-700">{batch.students} / {batch.maxStudents}</span>
+                       </div>
                     </div>
                   </div>
                 </div>
               ))}
 
-              {/* New Course Card */}
+              {/* New Batch Card */}
               <button 
                 onClick={() => setSearchParams({ mode: 'create' })}
-                className="bg-white/50 border-2 border-dashed border-slate-200 rounded-3xl p-6 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-colors group h-full min-h-[320px] cursor-pointer"
+                className="bg-transparent border-2 border-dashed border-slate-200 rounded-[24px] p-6 flex flex-col items-center justify-center text-center hover:bg-slate-50 hover:border-slate-300 transition-colors group min-h-[440px] cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <FiPlus className="w-5 h-5 text-slate-500" />
+                <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                  <FiPlus className="w-6 h-6 text-slate-500" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-700 mb-2">New Course</h3>
-                <p className="text-sm text-slate-500 max-w-[140px]">Click to design a new creative curriculum</p>
+                <h3 className="text-lg font-bold text-slate-800 mb-2">New Batch</h3>
+                <p className="text-sm text-slate-500 max-w-[200px] leading-relaxed">Design a new creative curriculum and schedule for the next semester.</p>
               </button>
             </div>
           </div>
