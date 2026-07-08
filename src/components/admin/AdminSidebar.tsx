@@ -55,12 +55,7 @@ const AdminSidebar: React.FC = () => {
         </nav>
 
         <div className="p-6 mt-auto flex flex-col gap-4">
-          <Link
-            to="/admin/courses?mode=create"
-            className="w-full bg-[#6247df] text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-purple-900/20 hover:bg-[#5035c9] transition-all border-none cursor-pointer flex items-center justify-center gap-2 text-sm no-underline"
-          >
-            <FiPlus size={16} /> Create Course
-          </Link>
+
           <button className="flex items-center gap-3 px-4 py-2 text-slate-600 font-semibold hover:text-[#6247df] transition-all bg-transparent border-none cursor-pointer text-sm">
             <FiLogOut size={20} /> Logout
           </button>

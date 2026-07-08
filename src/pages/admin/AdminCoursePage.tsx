@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   FiSearch, FiPlus, FiDroplet, FiVideo, FiImage,
@@ -141,9 +141,25 @@ const instructorsList = [
 
 export default function AdminCoursePage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [batchesList, setBatchesList] = useState(initialBatches);
+  const [batchesList, setBatchesList] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState("All Batches");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/batches')
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          setBatchesList(data);
+        } else {
+          setBatchesList(initialBatches); // Fallback to initial data if DB is empty
+        }
+      })
+      .catch(err => {
+        console.error("Failed to load batches from API", err);
+        setBatchesList(initialBatches); // Fallback on error
+      });
+  }, []);
 
   const isCreating = searchParams.get('mode') === 'create';
 
@@ -253,14 +269,13 @@ export default function AdminCoursePage() {
     const priceText = basePrice ? `$${parseFloat(basePrice).toFixed(2)}/mo` : "$0.00/mo";
 
     const newBatch = {
-      id: Date.now(),
       price: priceText,
       batchName: batchName || `${courseTitle} - New Batch`,
       status: "UPCOMING",
       statusColor: "bg-teal-500",
       batchCode: `BAT-${Date.now().toString().slice(-3)}`,
       courseName: courseTitle,
-      courseIcon: getCategoryIcon(category),
+      category: category,
       courseIconBg: "bg-teal-50",
       time: "TBD",
       schedule: "TBD",
@@ -276,9 +291,24 @@ export default function AdminCoursePage() {
       image: coverImage || "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1000&auto=format&fit=crop",
     };
 
-    setBatchesList([newBatch, ...batchesList]);
-    setSearchParams({}); // Navigate back to list
-    resetForm();
+    fetch('http://localhost:5000/api/batches', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newBatch),
+    })
+      .then(res => res.json())
+      .then(data => {
+        setBatchesList([data, ...batchesList]);
+        setSearchParams({}); // Navigate back to list
+        resetForm();
+      })
+      .catch(err => {
+        console.error("Error creating batch:", err);
+        // Fallback to local state if API fails
+        setBatchesList([newBatch, ...batchesList]);
+        setSearchParams({});
+        resetForm();
+      });
   };
 
   const resetForm = () => {
@@ -895,7 +925,7 @@ export default function AdminCoursePage() {
                     
                     <div className="flex items-center gap-3 mb-4">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${batch.courseIconBg}`}>
-                         {batch.courseIcon}
+                         {batch.courseIcon || getCategoryIcon(batch.category)}
                       </div>
                       <div className="min-w-0">
                         <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Course</span>

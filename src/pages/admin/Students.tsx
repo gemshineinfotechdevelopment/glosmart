@@ -1,12 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FiSearch, FiCalendar, FiFilter, FiPlus, 
-  FiEdit2, FiArrowRight, FiVideo, FiPenTool, FiTablet 
+  FiEdit2, FiArrowRight, FiVideo,
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
 const Students: React.FC = () => {
+  const [batches, setBatches] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/batches')
+      .then(res => res.json())
+      .then(data => {
+        setBatches(data);
+      })
+      .catch(err => console.error("Failed to fetch batches", err));
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800">
       
@@ -87,125 +98,46 @@ const Students: React.FC = () => {
         {/* Batch Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           
-          {/* Card 1 */}
-          <div className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
-            <div className="flex justify-between items-start mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-orange-50 text-[#b67323] flex items-center justify-center">
-                <FiEdit2 size={20} />
-              </div>
-              <span className="bg-orange-100 text-[#d97706] text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span> 12 Days Left
-              </span>
-            </div>
-            
-            <h3 className="text-xl font-extrabold text-[#1c1c28] mb-1">Pencil Drawing – Batch A</h3>
-            <p className="text-slate-500 font-medium text-sm mb-6">Course: Pencil Drawing</p>
-            
-            <div className="flex items-center gap-3 mb-8">
-              <img src="https://i.pravatar.cc/150?img=5" alt="Instructor" className="w-10 h-10 rounded-full object-cover" />
-              <div>
-                <p className="text-sm font-bold text-[#1c1c28]">Mrs. Aris</p>
-                <p className="text-[11px] font-medium text-slate-500">Lead Instructor</p>
-              </div>
-            </div>
-            
-            <div className="mt-auto">
-              <div className="flex justify-between items-end mb-2">
-                <span className="text-xs font-bold text-slate-500">Enrollment: 18/25</span>
-                <span className="text-sm font-extrabold text-[#6247df]">72%</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6">
-                <div className="bg-[#6247df] w-[72%] h-full rounded-full"></div>
+          {batches.map((batch, index) => (
+            <div key={batch._id || index} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
+              <div className="flex justify-between items-start mb-6">
+                <div className={`w-12 h-12 rounded-2xl ${batch.statusColor || 'bg-orange-50 text-[#b67323]'} flex items-center justify-center`}>
+                  <FiEdit2 size={20} />
+                </div>
+                <span className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${batch.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-[#d97706]'}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${batch.status === 'ACTIVE' ? 'bg-green-600' : 'bg-[#d97706]'}`}></span> {batch.status || 'Upcoming'}
+                </span>
               </div>
               
-              <div className="flex justify-between items-center pt-5 border-t border-slate-100">
-                <span className="text-[11px] font-bold text-slate-400">Active Session</span>
-                <Link to="/admin/students/batch-a" className="text-[#6247df] text-sm font-bold flex items-center gap-1 hover:text-[#5035c9] no-underline">
-                  View Students <FiArrowRight size={16} />
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
-            <div className="flex justify-between items-start mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center">
-                <FiPenTool size={20} />
-              </div>
-              <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span> 45 Days Left
-              </span>
-            </div>
-            
-            <h3 className="text-xl font-extrabold text-[#1c1c28] mb-1">Oil Painting – Batch B</h3>
-            <p className="text-slate-500 font-medium text-sm mb-6">Course: Oil Painting</p>
-            
-            <div className="flex items-center gap-3 mb-8">
-              <img src="https://i.pravatar.cc/150?img=8" alt="Instructor" className="w-10 h-10 rounded-full object-cover" />
-              <div>
-                <p className="text-sm font-bold text-[#1c1c28]">Mr. David</p>
-                <p className="text-[11px] font-medium text-slate-500">Master Artist</p>
-              </div>
-            </div>
-            
-            <div className="mt-auto">
-              <div className="flex justify-between items-end mb-2">
-                <span className="text-xs font-bold text-slate-500">Enrollment: 15/20</span>
-                <span className="text-sm font-extrabold text-[#6247df]">75%</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6">
-                <div className="bg-[#6247df] w-[75%] h-full rounded-full"></div>
+              <h3 className="text-xl font-extrabold text-[#1c1c28] mb-1">{batch.batchName}</h3>
+              <p className="text-slate-500 font-medium text-sm mb-6">Course: {batch.courseName}</p>
+              
+              <div className="flex items-center gap-3 mb-8">
+                <img src={batch.instructorAvatar || "https://i.pravatar.cc/150?img=5"} alt="Instructor" className="w-10 h-10 rounded-full object-cover" />
+                <div>
+                  <p className="text-sm font-bold text-[#1c1c28]">{batch.instructor}</p>
+                  <p className="text-[11px] font-medium text-slate-500">Instructor</p>
+                </div>
               </div>
               
-              <div className="flex justify-between items-center pt-5 border-t border-slate-100">
-                <span className="text-[11px] font-bold text-slate-400 w-16 leading-tight">Mid-term<br/>Progress</span>
-                <Link to="/admin/students/batch-b" className="text-[#6247df] text-sm font-bold flex items-center gap-1 hover:text-[#5035c9] no-underline">
-                  View Students <FiArrowRight size={16} />
-                </Link>
+              <div className="mt-auto">
+                <div className="flex justify-between items-end mb-2">
+                  <span className="text-xs font-bold text-slate-500">Enrollment: {batch.students || 0}/{batch.maxStudents || 30}</span>
+                  <span className="text-sm font-extrabold text-[#6247df]">{batch.progressText || '0%'}</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6">
+                  <div className={`h-full rounded-full ${batch.progressBg || 'bg-[#6247df]'} ${batch.progressWidth || 'w-0'}`}></div>
+                </div>
+                
+                <div className="flex justify-between items-center pt-5 border-t border-slate-100">
+                  <span className="text-[11px] font-bold text-slate-400">{batch.progressLabel || 'Status'}</span>
+                  <Link to={`/admin/students/${batch.batchCode?.toLowerCase() || 'batch-a'}`} className="text-[#6247df] text-sm font-bold flex items-center gap-1 hover:text-[#5035c9] no-underline">
+                    View Students <FiArrowRight size={16} />
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
-            <div className="flex justify-between items-start mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center">
-                <FiTablet size={20} />
-              </div>
-              <span className="bg-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span> Completed
-              </span>
-            </div>
-            
-            <h3 className="text-xl font-extrabold text-[#1c1c28] mb-1">Digital Illustration – Batch C</h3>
-            <p className="text-slate-500 font-medium text-sm mb-6">Course: Digital Art</p>
-            
-            <div className="flex items-center gap-3 mb-8">
-              <img src="https://i.pravatar.cc/150?img=9" alt="Instructor" className="w-10 h-10 rounded-full object-cover" />
-              <div>
-                <p className="text-sm font-bold text-[#1c1c28]">Ms. Elena</p>
-                <p className="text-[11px] font-medium text-slate-500">Digital Artist</p>
-              </div>
-            </div>
-            
-            <div className="mt-auto">
-              <div className="flex justify-between items-end mb-2">
-                <span className="text-xs font-bold text-slate-500">Enrollment: 25/25</span>
-                <span className="text-sm font-extrabold text-[#6247df]">100%</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6">
-                <div className="bg-[#6247df] w-full h-full rounded-full"></div>
-              </div>
-              
-              <div className="flex justify-between items-center pt-5 border-t border-slate-100">
-                <span className="text-[11px] font-bold text-slate-400 w-24 leading-tight">Final Grading<br/>Pending</span>
-                <Link to="/admin/students/batch-c" className="text-[#6247df] text-sm font-bold flex items-center gap-1 hover:text-[#5035c9] no-underline">
-                  View Students <FiArrowRight size={16} />
-                </Link>
-              </div>
-            </div>
-          </div>
+          ))}
 
         </div>
 

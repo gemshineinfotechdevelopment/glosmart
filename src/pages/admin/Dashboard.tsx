@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FiUsers, FiBookOpen, FiUserCheck,
   FiCalendar as FiCal,
@@ -8,6 +8,19 @@ import AdminSidebar from '../../components/admin/AdminSidebar';
 
 
 const Dashboard: React.FC = () => {
+  const [stats, setStats] = useState<any>({});
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/dashboard/stats')
+      .then(res => res.json())
+      .then(data => {
+        setStats(data);
+      })
+      .catch(err => {
+        console.error("Failed to load dashboard stats", err);
+      });
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
 
@@ -45,12 +58,12 @@ const Dashboard: React.FC = () => {
               <span className="text-green-500 text-sm font-bold bg-green-50 px-2.5 py-1 rounded-lg">+5%↑</span>
             </div>
             <p className="text-slate-500 font-semibold text-sm mb-1">Total Students</p>
-            <h3 className="text-4xl font-black text-[#1c1c28] mb-4">150</h3>
+            <h3 className="text-4xl font-black text-[#1c1c28] mb-4">{stats.totalStudents || 150}</h3>
             <div className="mt-auto">
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-2">
                 <div className="bg-[#6247df] w-[70%] h-full rounded-full"></div>
               </div>
-              <p className="text-xs text-slate-500 font-medium">120 Active Students</p>
+              <p className="text-xs text-slate-500 font-medium">{stats.activeStudents || 120} Active Students</p>
             </div>
           </div>
 
@@ -63,10 +76,10 @@ const Dashboard: React.FC = () => {
               <span className="text-slate-400 text-sm font-semibold">Monthly</span>
             </div>
             <p className="text-slate-500 font-semibold text-sm mb-1">Monthly Revenue</p>
-            <h3 className="text-4xl font-black text-[#b67323] mb-4">₹4,500</h3>
+            <h3 className="text-4xl font-black text-[#b67323] mb-4">₹{stats.monthlyRevenue || '4,500'}</h3>
             <div className="mt-auto">
               <p className="text-xs text-slate-500 font-medium">
-                <span className="text-red-500 font-bold">-₹800</span> pending fees
+                <span className="text-red-500 font-bold">-₹{stats.pendingFees || '800'}</span> pending fees
               </p>
             </div>
           </div>
@@ -80,7 +93,7 @@ const Dashboard: React.FC = () => {
               <span className="text-slate-400 text-sm font-semibold">Active Now</span>
             </div>
             <p className="text-slate-500 font-semibold text-sm mb-1">Total Courses</p>
-            <h3 className="text-4xl font-black text-[#108c9f] mb-4">15</h3>
+            <h3 className="text-4xl font-black text-[#108c9f] mb-4">{stats.totalCourses || 15}</h3>
             <div className="mt-auto">
               <p className="text-xs text-slate-500 font-medium">8 Upcoming classes today</p>
             </div>
@@ -94,7 +107,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             <p className="text-slate-500 font-semibold text-sm mb-1">Teachers Count</p>
-            <h3 className="text-4xl font-black text-[#1c1c28] mb-4">10</h3>
+            <h3 className="text-4xl font-black text-[#1c1c28] mb-4">{stats.teachersCount || 10}</h3>
             <div className="mt-auto flex -space-x-3">
               <img src="https://i.pravatar.cc/150?img=1" className="w-8 h-8 rounded-full border-2 border-white" alt="Teacher" />
               <img src="https://i.pravatar.cc/150?img=2" className="w-8 h-8 rounded-full border-2 border-white" alt="Teacher" />

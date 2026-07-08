@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FiGrid, FiDownload, FiPlus,
   FiBriefcase, FiClock, FiCreditCard, FiFilter,
@@ -20,7 +20,8 @@ export const FeesPayments: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<'All' | 'Successful' | 'Failed'>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const payments: PaymentRow[] = [
+  const [payments, setPayments] = useState<PaymentRow[]>([]);
+  const [initialPayments] = useState<PaymentRow[]>([
     {
       invoiceNo: '#INV-9021',
       studentName: 'Ethan Thompson',
@@ -57,7 +58,23 @@ export const FeesPayments: React.FC = () => {
       mode: 'UPI',
       status: 'Successful'
     }
-  ];
+  ]);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/payments')
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          setPayments(data);
+        } else {
+          setPayments(initialPayments);
+        }
+      })
+      .catch(err => {
+        console.error("Failed to load payments from API", err);
+        setPayments(initialPayments);
+      });
+  }, [initialPayments]);
 
   const filteredPayments = payments.filter(payment => {
     // Filter by tab

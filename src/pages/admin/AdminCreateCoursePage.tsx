@@ -1,10 +1,58 @@
-import { FiCloud, FiInfo, 
-  FiPlus, FiList
-} from 'react-icons/fi';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FiCloud, FiInfo, FiPlus, FiList } from 'react-icons/fi';
 import { BsArrowLeftRight } from 'react-icons/bs';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
 export default function AdminCreateCoursePage() {
+  const navigate = useNavigate();
+  const [courseTitle, setCourseTitle] = useState('');
+  const [batchName, setBatchName] = useState('');
+  const [instructorName, setInstructorName] = useState('');
+  const [category, setCategory] = useState('');
+
+  const handleSaveAndPublish = async () => {
+    if (!courseTitle) {
+      alert("Please enter a course title");
+      return;
+    }
+    const newBatch = {
+      courseName: courseTitle,
+      batchName: batchName || `${courseTitle} - New Batch`,
+      instructor: instructorName || 'Unassigned',
+      category: category,
+      batchCode: `BAT-${Date.now().toString().slice(-3)}`,
+      status: "UPCOMING",
+      statusColor: "bg-teal-500",
+      courseIconBg: "bg-teal-50",
+      time: "10:00 AM",
+      schedule: "Mon, Wed",
+      progressLabel: "LAUNCH TIMELINE",
+      progressText: "Starts soon",
+      progressColor: "text-teal-600",
+      progressWidth: "w-0",
+      progressBg: "bg-teal-500",
+      students: 0,
+      maxStudents: 30,
+      image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1000&auto=format&fit=crop"
+    };
+
+    try {
+      const response = await fetch('http://localhost:5000/api/batches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newBatch),
+      });
+      if (response.ok) {
+        navigate('/admin/courses'); // adjust based on routing
+      } else {
+        alert("Failed to create course");
+      }
+    } catch (error) {
+      console.error("Error creating course", error);
+      alert("Error creating course");
+    }
+  };
   return (
     <div className="flex h-screen overflow-hidden bg-[#FDFDFD] font-sans text-slate-800">
       {/* Sidebar */}
@@ -26,10 +74,16 @@ export default function AdminCreateCoursePage() {
               </p>
             </div>
             <div className="flex items-center gap-4 shrink-0">
-              <button className="px-6 py-3 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors">
+              <button 
+                onClick={() => navigate(-1)}
+                className="px-6 py-3 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
                 Discard Draft
               </button>
-              <button className="px-6 py-3 rounded-xl text-sm font-semibold text-white bg-[#6247df] hover:bg-[#5035c9] transition-colors shadow-[0_4px_14px_rgba(98,71,223,0.39)]">
+              <button 
+                onClick={handleSaveAndPublish}
+                className="px-6 py-3 rounded-xl text-sm font-semibold text-white bg-[#6247df] hover:bg-[#5035c9] transition-colors shadow-[0_4px_14px_rgba(98,71,223,0.39)]"
+              >
                 Save & Publish
               </button>
             </div>
@@ -52,6 +106,8 @@ export default function AdminCreateCoursePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Course Title</label>
                     <input
                       type="text"
+                      value={courseTitle}
+                      onChange={(e) => setCourseTitle(e.target.value)}
                       placeholder="e.g. Advanced Watercolor Mastery"
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-[#6247df] transition-colors text-sm"
                     />
@@ -61,6 +117,8 @@ export default function AdminCreateCoursePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Batch Name</label>
                     <input
                       type="text"
+                      value={batchName}
+                      onChange={(e) => setBatchName(e.target.value)}
                       placeholder="e.g. Summer 2024 Art Intensive"
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-[#6247df] transition-colors text-sm"
                     />
@@ -70,7 +128,9 @@ export default function AdminCreateCoursePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Instructor Name</label>
                     <input
                       type="text"
-                      placeholder="e.g. Summer 2024 Art Intensive"
+                      value={instructorName}
+                      onChange={(e) => setInstructorName(e.target.value)}
+                      placeholder="e.g. Mrs. Aris"
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-[#6247df] transition-colors text-sm"
                     />
                   </div>
@@ -78,7 +138,11 @@ export default function AdminCreateCoursePage() {
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                      <select className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-[#6247df] transition-colors text-sm appearance-none bg-white">
+                      <select 
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-[#6247df] transition-colors text-sm appearance-none bg-white"
+                      >
                         <option>Select Category</option>
                         <option>Sketching</option>
                         <option>Watercolor</option>

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   FiSearch, FiCalendar, FiUpload, FiUserPlus,
   FiUsers, FiCreditCard, FiClock,
@@ -128,10 +128,26 @@ const PaintPaletteIcon = () => (
 );
 
 const BatchDetails: React.FC = () => {
-  const [studentsList, setStudentsList] = useState<Student[]>(STUDENTS_DATA);
+  const [studentsList, setStudentsList] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFeeFilter, setActiveFeeFilter] = useState<'All' | 'Paid' | 'Pending'>('All');
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/students')
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          setStudentsList(data);
+        } else {
+          setStudentsList(STUDENTS_DATA);
+        }
+      })
+      .catch(err => {
+        console.error("Failed to load students from API", err);
+        setStudentsList(STUDENTS_DATA);
+      });
+  }, []);
 
   // Modal display state
   const [showAddModal, setShowAddModal] = useState(false);
@@ -204,9 +220,23 @@ const BatchDetails: React.FC = () => {
       address: residentialAddress || 'Not provided'
     };
 
-    setStudentsList([newStudent, ...studentsList]);
-    setShowAddModal(false);
-    resetForm();
+    fetch('http://localhost:5000/api/students', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newStudent),
+    })
+      .then(res => res.json())
+      .then(data => {
+        setStudentsList([data, ...studentsList]);
+        setShowAddModal(false);
+        resetForm();
+      })
+      .catch(err => {
+        console.error("Error creating student:", err);
+        setStudentsList([newStudent, ...studentsList]);
+        setShowAddModal(false);
+        resetForm();
+      });
   };
 
   const resetForm = () => {
