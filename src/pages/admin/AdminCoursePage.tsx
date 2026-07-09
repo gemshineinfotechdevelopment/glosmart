@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   FiSearch, FiPlus, FiDroplet, FiVideo, FiImage,
-  FiInfo, FiUploadCloud, FiTrash2, FiPlusCircle, FiX, FiCheck
+  FiInfo, FiUploadCloud, FiTrash2, FiPlusCircle, FiX, FiCheck, FiCalendar, FiEdit2
 } from 'react-icons/fi';
 import { BiCube } from 'react-icons/bi';
 import { PiPencilSimpleBold } from 'react-icons/pi';
@@ -139,29 +139,90 @@ const instructorsList = [
   { name: 'Riley Chen', role: 'Animation Lead', avatar: 'https://i.pravatar.cc/150?img=9' }
 ];
 
+const getCategoryIcon = (category: string) => {
+  switch (category?.toLowerCase()) {
+    case 'sketching':
+      return <PiPencilSimpleBold className="w-5 h-5 text-emerald-600" />;
+    case 'watercolor':
+      return <FiDroplet className="w-5 h-5 text-blue-600" />;
+    case 'animation':
+      return <FiVideo className="w-5 h-5 text-purple-600" />;
+    case 'digital art':
+      return <FiUploadCloud className="w-5 h-5 text-indigo-600" />;
+    case 'sculpting':
+      return <BiCube className="w-5 h-5 text-rose-600" />;
+    case 'oil painting':
+      return <FiImage className="w-5 h-5 text-teal-600" />;
+    default:
+      return <FiImage className="w-5 h-5 text-slate-600" />;
+  }
+};
+
 export default function AdminCoursePage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [batchesList, setBatchesList] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState("All Batches");
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
+  // Dropdown menu state (tracks which card's menu is open)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  // Delete confirmation modal state
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Edit mode state
+  const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
+
+  const [customCategories, setCustomCategories] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('glosmart_custom_categories');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  const availableCategories = Array.from(new Set([
+    ...customCategories
+  ]));
+
+  const fetchBatches = () => {
     fetch('http://localhost:5000/api/batches')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('API Error');
+        return res.json();
+      })
       .then(data => {
-        if (data.length > 0) {
-          setBatchesList(data);
-        } else {
-          setBatchesList(initialBatches); // Fallback to initial data if DB is empty
-        }
+        setBatchesList(data);
       })
       .catch(err => {
         console.error("Failed to load batches from API", err);
-        setBatchesList(initialBatches); // Fallback on error
+        setBatchesList(initialBatches);
       });
+  };
+
+  useEffect(() => {
+    fetchBatches();
   }, []);
 
-  const isCreating = searchParams.get('mode') === 'create';
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    if (openMenuId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openMenuId]);
+
+  const mode = searchParams.get('mode');
+  const isCreating = mode === 'create' || mode === 'edit';
+  const isEditMode = mode === 'edit';
 
   // Form states for creation
   const [courseTitle, setCourseTitle] = useState('');
@@ -169,6 +230,10 @@ export default function AdminCoursePage() {
   const [category, setCategory] = useState('Select Category');
   const [difficultyLevel, setDifficultyLevel] = useState('Beginner');
   const [courseDescription, setCourseDescription] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [scheduleDays, setScheduleDays] = useState('Mon, Wed, Fri');
+  const [classTime, setClassTime] = useState('10:00 AM - 12:00 PM');
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [basePrice, setBasePrice] = useState('');
   const [duration, setDuration] = useState(8);
@@ -238,28 +303,33 @@ export default function AdminCoursePage() {
     setModules(updated);
   };
 
-  const getCategoryIcon = (catName: string) => {
-    switch (catName) {
-      case 'Sketching':
-      case 'Sketching & Charcoal':
-        return <PiPencilSimpleBold className="w-5 h-5 text-[#5B43D6]" />;
-      case 'Watercolor':
-        return <FiDroplet className="w-5 h-5 text-orange-500" />;
-      case 'Digital Art':
-      case 'Digital Media':
-        return <FiImage className="w-5 h-5 text-teal-600" />;
-      case 'Oil Painting':
-        return <FiImage className="w-5 h-5 text-teal-600" />;
-      case 'Sculpting':
-        return <BiCube className="w-5 h-5 text-[#5B43D6]" />;
-      case 'Animation':
-        return <FiVideo className="w-5 h-5 text-[#5B43D6]" />;
-      default:
-        return <FiImage className="w-5 h-5 text-[#5B43D6]" />;
+  // Pre-fill form when entering edit mode
+  useEffect(() => {
+    const batchId = searchParams.get('id');
+    if (isEditMode && batchId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditingBatchId(batchId);
+      fetch(`http://localhost:5000/api/batches/${batchId}`)
+        .then(res => res.json())
+        .then(data => {
+          setCourseTitle(data.courseName || '');
+          setBatchName(data.batchName || '');
+          setCategory(data.category || 'Select Category');
+          setStartDate(data.progressText || '');
+          setEndDate(''); // Add mapping here if backend supports end date later
+          setScheduleDays(data.schedule || 'Mon, Wed, Fri');
+          setClassTime(data.time || '10:00 AM - 12:00 PM');
+          setCoverImage(data.image || null);
+          setBasePrice(data.price ? data.price.replace(/[^0-9.]/g, '') : '');
+          // Try to match instructor
+          const matchedInst = instructorsList.find(i => i.name === data.instructor);
+          if (matchedInst) setAssignedInstructor(matchedInst);
+        })
+        .catch(err => console.error('Error loading batch for edit:', err));
     }
-  };
+  }, [isEditMode, searchParams]);
 
-  // Create course and append to state
+  // Create or Update course
   const handleCreateCourse = () => {
     if (!courseTitle.trim()) {
       alert("Please enter a course title.");
@@ -268,19 +338,20 @@ export default function AdminCoursePage() {
 
     const priceText = basePrice ? `$${parseFloat(basePrice).toFixed(2)}/mo` : "$0.00/mo";
 
-    const newBatch = {
+    const batchData = {
       price: priceText,
       batchName: batchName || `${courseTitle} - New Batch`,
       status: "UPCOMING",
       statusColor: "bg-teal-500",
+      // eslint-disable-next-line react-hooks/purity
       batchCode: `BAT-${Date.now().toString().slice(-3)}`,
       courseName: courseTitle,
       category: category,
       courseIconBg: "bg-teal-50",
-      time: "TBD",
-      schedule: "TBD",
+      time: classTime,
+      schedule: scheduleDays,
       progressLabel: "LAUNCH TIMELINE",
-      progressText: "Starts soon",
+      progressText: startDate || "Starts soon",
       progressColor: "text-teal-600",
       progressWidth: "w-0",
       progressBg: "bg-teal-500",
@@ -291,23 +362,73 @@ export default function AdminCoursePage() {
       image: coverImage || "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1000&auto=format&fit=crop",
     };
 
-    fetch('http://localhost:5000/api/batches', {
-      method: 'POST',
+    const url = isEditMode && editingBatchId
+      ? `http://localhost:5000/api/batches/${editingBatchId}`
+      : 'http://localhost:5000/api/batches';
+    const method = isEditMode ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newBatch),
+      body: JSON.stringify(batchData),
     })
       .then(res => res.json())
-      .then(data => {
-        setBatchesList([data, ...batchesList]);
-        setSearchParams({}); // Navigate back to list
+      .then(() => {
+        fetchBatches();
+        setSearchParams({});
         resetForm();
       })
       .catch(err => {
-        console.error("Error creating batch:", err);
-        // Fallback to local state if API fails
-        setBatchesList([newBatch, ...batchesList]);
+        console.error(`Error ${isEditMode ? 'updating' : 'creating'} batch:`, err);
         setSearchParams({});
         resetForm();
+      });
+  };
+
+  // Handle edit batch (navigate to edit form)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleEditBatch = (batch: any) => {
+    const batchId = batch._id || batch.id;
+    setOpenMenuId(null);
+    setSearchParams({ mode: 'edit', id: batchId });
+  };
+
+  // Handle delete batch (show confirmation modal)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleDeleteBatch = (batch: any) => {
+    setOpenMenuId(null);
+    setDeleteTarget(batch);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    const batchId = deleteTarget._id || deleteTarget.id;
+
+    fetch(`http://localhost:5000/api/batches/${batchId}`, {
+      method: 'DELETE',
+    })
+      .then(async res => {
+        if (!res.ok) {
+           const err = await res.json().catch(() => ({}));
+           throw new Error(err.message || 'Failed to delete');
+        }
+        return res.json();
+      })
+      .then(() => {
+        setBatchesList(prev => prev.filter(b => (b._id || b.id) !== batchId));
+        setShowDeleteModal(false);
+        setDeleteTarget(null);
+      })
+      .catch(err => {
+        console.error('Error deleting batch:', err);
+        // If it's a mock batch without a MongoDB _id, allow visual deletion anyway
+        if (!deleteTarget._id) {
+           setBatchesList(prev => prev.filter(b => (b._id || b.id) !== batchId));
+        }
+        setShowDeleteModal(false);
+        setDeleteTarget(null);
       });
   };
 
@@ -317,12 +438,17 @@ export default function AdminCoursePage() {
     setCategory('Select Category');
     setDifficultyLevel('Beginner');
     setCourseDescription('');
+    setStartDate('');
+    setEndDate('');
+    setScheduleDays('Mon, Wed, Fri');
+    setClassTime('10:00 AM - 12:00 PM');
     setCoverImage(null);
     setBasePrice('');
     setDuration(8);
     setEnrollmentActive(true);
     setCertificateIncluded(false);
     setAssignedInstructor(instructorsList[0]);
+    setEditingBatchId(null);
     setModules([
       { id: 1, title: 'Module 1: Introduction & Fundamentals', subtext: '3 Lessons • 45 mins total' },
       { id: 2, title: 'Module 2: Color Theory and Blending', subtext: '5 Lessons • 1h 20 mins total' }
@@ -471,12 +597,9 @@ export default function AdminCoursePage() {
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 1rem center', backgroundSize: '1.25em', backgroundRepeat: 'no-repeat' }}
                       >
                         <option disabled>Select Category</option>
-                        <option>Sketching</option>
-                        <option>Watercolor</option>
-                        <option>Digital Art</option>
-                        <option>Oil Painting</option>
-                        <option>Sculpting</option>
-                        <option>Animation</option>
+                        {availableCategories.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
                       </select>
                     </div>
 
@@ -505,6 +628,70 @@ export default function AdminCoursePage() {
                       value={courseDescription}
                       onChange={(e) => setCourseDescription(e.target.value)}
                     />
+                  </div>
+                </div>
+
+                {/* Course Schedule Card */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                      <FiCalendar className="w-4 h-4" />
+                    </div>
+                    <h3 className="font-bold text-lg text-slate-900">Batch Timing</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-600">Start Date</label>
+                      <input
+                        type="date"
+                        className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm font-sans text-slate-700"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-600">End Date</label>
+                      <input
+                        type="date"
+                        className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm font-sans text-slate-700"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-600">Days</label>
+                      <select
+                        className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm appearance-none cursor-pointer font-sans text-slate-700"
+                        value={scheduleDays}
+                        onChange={(e) => setScheduleDays(e.target.value)}
+                        style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 1rem center', backgroundSize: '1.25em', backgroundRepeat: 'no-repeat' }}
+                      >
+                        <option>Mon, Wed, Fri</option>
+                        <option>Tue, Thu</option>
+                        <option>Weekends</option>
+                        <option>Daily</option>
+                        <option>Self-Paced</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-600">Timing</label>
+                      <select
+                        className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm appearance-none cursor-pointer font-sans text-slate-700"
+                        value={classTime}
+                        onChange={(e) => setClassTime(e.target.value)}
+                        style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 1rem center', backgroundSize: '1.25em', backgroundRepeat: 'no-repeat' }}
+                      >
+                        <option>10:00 AM - 12:00 PM</option>
+                        <option>02:00 PM - 04:00 PM</option>
+                        <option>05:00 PM - 07:00 PM</option>
+                        <option>07:00 PM - 09:00 PM</option>
+                        <option>Flexible</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -864,13 +1051,25 @@ export default function AdminCoursePage() {
                 <h2 className="text-3xl font-bold text-gray-900 mb-3">Batch Management</h2>
                 <p className="text-slate-500 text-sm leading-relaxed">Streamline academy operations: track active batches, monitor teacher performance, and manage student enrollment schedules.</p>
               </div>
-              <button 
-                onClick={() => setSearchParams({ mode: 'create' })}
-                className="flex items-center gap-2 bg-[#5B43D6] hover:bg-[#4b36b0] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm cursor-pointer border-none whitespace-nowrap"
-              >
-                <FiPlusCircle className="w-4 h-4" />
-                Create New Batch
-              </button>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => {
+                    resetForm();
+                    setSearchParams({ mode: 'create' });
+                  }}
+                  className="flex items-center gap-2 bg-[#5B43D6] hover:bg-[#4b36b0] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm cursor-pointer border-none whitespace-nowrap"
+                >
+                  <FiPlusCircle className="w-4 h-4" />
+                  Create New Batch
+                </button>
+                <button 
+                  onClick={() => setShowAddCategoryModal(true)}
+                  className="flex items-center gap-2 bg-white border border-slate-200 text-[#5B43D6] hover:bg-slate-50 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+                >
+                  <FiPlusCircle className="w-4 h-4" />
+                  Create Category
+                </button>
+              </div>
             </div>
 
             {/* Categories tabs */}
@@ -912,11 +1111,39 @@ export default function AdminCoursePage() {
                     </div>
                     
                     {/* Options Menu */}
-                    <button className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-600 shadow-sm border-none cursor-pointer hover:bg-white transition-colors">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-                      </svg>
-                    </button>
+                    <div className="absolute top-3 right-3">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const idToUse = batch._id || batch.id;
+                          setOpenMenuId(openMenuId === idToUse ? null : idToUse);
+                        }}
+                        className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-600 shadow-sm border-none cursor-pointer hover:bg-white transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                        </svg>
+                      </button>
+
+                      {openMenuId === (batch._id || batch.id) && (
+                        <div className="absolute right-0 mt-2 w-36 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-10 font-sans">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleEditBatch(batch); }}
+                            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                          >
+                            <FiEdit2 className="w-4 h-4" />
+                            Edit
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDeleteBatch(batch); }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                          >
+                            <FiTrash2 className="w-4 h-4" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Content */}
@@ -990,7 +1217,10 @@ export default function AdminCoursePage() {
 
               {/* New Batch Card */}
               <button 
-                onClick={() => setSearchParams({ mode: 'create' })}
+                onClick={() => {
+                  resetForm();
+                  setSearchParams({ mode: 'create' });
+                }}
                 className="bg-transparent border-2 border-dashed border-slate-200 rounded-[24px] p-6 flex flex-col items-center justify-center text-center hover:bg-slate-50 hover:border-slate-300 transition-colors group min-h-[440px] cursor-pointer"
               >
                 <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
@@ -999,6 +1229,76 @@ export default function AdminCoursePage() {
                 <h3 className="text-lg font-bold text-slate-800 mb-2">New Batch</h3>
                 <p className="text-sm text-slate-500 max-w-[200px] leading-relaxed">Design a new creative curriculum and schedule for the next semester.</p>
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Add Category Modal */}
+        {showAddCategoryModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl p-6">
+              <h3 className="font-extrabold text-xl text-slate-900 mb-2">Create Category</h3>
+              <p className="text-sm text-slate-500 mb-5">Add a new category for your courses.</p>
+              <input
+                type="text"
+                placeholder="e.g. Graphic Design"
+                className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5B43D6] text-sm font-sans mb-6 text-slate-800"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                autoFocus
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowAddCategoryModal(false); setNewCategoryName(''); }}
+                  className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-sm hover:bg-slate-200 transition-colors cursor-pointer border-none"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (newCategoryName.trim()) {
+                      const updated = [...customCategories, newCategoryName.trim()];
+                      setCustomCategories(updated);
+                      localStorage.setItem('glosmart_custom_categories', JSON.stringify(updated));
+                      setShowAddCategoryModal(false);
+                      setNewCategoryName('');
+                    }
+                  }}
+                  className="flex-1 py-3 bg-[#5B43D6] text-white font-bold rounded-xl text-sm hover:bg-[#4b36b0] transition-colors cursor-pointer border-none"
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl p-6 text-center">
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                <FiTrash2 className="w-8 h-8" />
+              </div>
+              <h3 className="font-extrabold text-xl text-slate-900 mb-2">Delete Batch</h3>
+              <p className="text-sm text-slate-500 mb-6">
+                Are you sure you want to delete <span className="font-bold text-slate-700">{deleteTarget?.batchName}</span>? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => { setShowDeleteModal(false); setDeleteTarget(null); }}
+                  className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-sm hover:bg-slate-200 transition-colors cursor-pointer border-none"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleConfirmDelete}
+                  className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition-colors cursor-pointer border-none"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         )}

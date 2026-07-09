@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
 const Students: React.FC = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [batches, setBatches] = useState<any[]>([]);
 
   useEffect(() => {

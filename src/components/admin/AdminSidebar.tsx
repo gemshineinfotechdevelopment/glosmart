@@ -1,10 +1,11 @@
 import React from 'react';
 import {
   FiGrid, FiUsers, FiBookOpen, FiUserCheck,
-  FiBell, FiSettings, FiLogOut, FiPlus
+  FiBell, FiSettings, FiLogOut
 } from 'react-icons/fi';
 import { MdCurrencyRupee } from 'react-icons/md';
 import { Link, useLocation } from 'react-router-dom';
+
 
 const AdminSidebar: React.FC = () => {
   const location = useLocation();
@@ -44,8 +45,8 @@ const AdminSidebar: React.FC = () => {
                 key={link.name}
                 to={link.path}
                 className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-semibold transition-all no-underline ${isActive
-                    ? 'bg-[#6247df] text-white shadow-md shadow-purple-900/20'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-[#6247df]'
+                  ? 'bg-[#6247df] text-white shadow-md shadow-purple-900/20'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-[#6247df]'
                   }`}
               >
                 {link.icon} {link.name}
