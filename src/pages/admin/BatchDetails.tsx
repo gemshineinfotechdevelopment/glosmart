@@ -133,20 +133,36 @@ const BatchDetails: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFeeFilter, setActiveFeeFilter] = useState<'All' | 'Paid' | 'Pending'>('All');
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [batches, setBatches] = useState<any[]>([]);
+
   useEffect(() => {
     fetch('http://localhost:5000/api/students')
       .then(res => res.json())
       .then(data => {
-        if (data.length > 0) {
-          setStudentsList(data);
-        } else {
-          setStudentsList(STUDENTS_DATA);
-        }
+        setStudentsList(data);
       })
       .catch(err => {
         console.error("Failed to load students from API", err);
-        setStudentsList(STUDENTS_DATA);
+        setStudentsList([]);
       });
+
+    fetch('http://localhost:5000/api/batches')
+      .then(res => res.json())
+      .then(data => {
+        setBatches(data);
+        if (data.length > 0) {
+          const uCourses = Array.from(new Set(data.map((b: any) => b.courseName))) as string[];
+          if (uCourses.length > 0) {
+            setSelectedCourse(uCourses[0]);
+            const courseBatches = data.filter((b: any) => b.courseName === uCourses[0]);
+            if (courseBatches.length > 0) {
+              setSelectedBatch(courseBatches[0].batchName);
+            }
+          }
+        }
+      })
+      .catch(err => console.error("Failed to fetch batches", err));
   }, []);
 
   // Modal display state
@@ -165,6 +181,68 @@ const BatchDetails: React.FC = () => {
   const [studentAvatar, setStudentAvatar] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingStudentId, setEditingStudentId] = useState<any>(null);
+
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportStudent, setReportStudent] = useState<any>(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const uniqueCourses = Array.from(new Set(batches.map(b => b.courseName))) as string[];
+  const filteredBatchesForSelectedCourse = batches.filter(b => b.courseName === selectedCourse);
+
+  const resetForm = () => {
+    setStudentName('');
+    setAge('');
+    setGender('Select Gender');
+    setPhone('');
+    setParentName('');
+    setResidentialAddress('');
+    setJoiningDate('');
+    setStudentAvatar(null);
+    setIsEditing(false);
+    setEditingStudentId(null);
+    if (uniqueCourses.length > 0) {
+      setSelectedCourse(uniqueCourses[0]);
+      const courseBatches = batches.filter(b => b.courseName === uniqueCourses[0]);
+      if (courseBatches.length > 0) {
+        setSelectedBatch(courseBatches[0].batchName);
+      }
+    } else {
+      setSelectedCourse('');
+      setSelectedBatch('');
+    }
+  };
+
+  const handleEditStudentClick = (student: any) => {
+    setIsEditing(true);
+    setEditingStudentId(student._id || student.id);
+    setStudentName(student.name || '');
+    setAge(student.age?.toString() || '');
+    setGender(student.gender || 'Select Gender');
+    setPhone(student.phone || '');
+    setParentName(student.parentName || '');
+    setResidentialAddress(student.address || '');
+    setSelectedCourse(student.course || '');
+    setSelectedBatch(student.batch || '');
+    setJoiningDate(student.joiningDate || '');
+    setStudentAvatar(student.avatar || null);
+    setShowAddModal(true);
+    setSelectedStudent(null); // Close detail drawer
+  };
+
+  const handleCourseChange = (course: string) => {
+    setSelectedCourse(course);
+    const courseBatches = batches.filter(b => b.courseName === course);
+    if (courseBatches.length > 0) {
+      setSelectedBatch(courseBatches[0].batchName);
+    } else {
+      setSelectedBatch('');
+    }
+  };
 
   // Handle avatar file upload
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,16 +276,14 @@ const BatchDetails: React.FC = () => {
       return;
     }
 
-    const newStudent: Student = {
-      // eslint-disable-next-line react-hooks/purity
-      id: Date.now(),
+    const payload = {
       name: studentName,
       email: phone || '+1(555) 000-0000',
       phone: phone || '+1(555) 000-0000',
       avatar: studentAvatar || 'https://i.pravatar.cc/150?img=12', // fallback avatar
       age: parseInt(age) || 15,
       gender: gender === 'Select Gender' ? 'Male' : gender,
-      joiningDate: formatDateString(joiningDate),
+      joiningDate: joiningDate.includes('-') ? formatDateString(joiningDate) : joiningDate,
       feeStatus: 'PENDING', // auto-assigned as prospective / pending
       batchEnd: '28 Aug 2026',
       remainingDays: 12,
@@ -216,41 +292,61 @@ const BatchDetails: React.FC = () => {
       batch: selectedBatch,
       course: selectedCourse,
       teacher: 'Assigned Later',
-      admissionDate: formatDateString(joiningDate),
+      admissionDate: joiningDate.includes('-') ? formatDateString(joiningDate) : joiningDate,
       schedule: selectedBatch,
       address: residentialAddress || 'Not provided'
     };
 
-    fetch('http://localhost:5000/api/students', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newStudent),
-    })
-      .then(res => res.json())
-      .then(data => {
-        setStudentsList([data, ...studentsList]);
-        setShowAddModal(false);
-        resetForm();
+    if (isEditing && editingStudentId) {
+      fetch(`http://localhost:5000/api/students/${editingStudentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       })
-      .catch(err => {
-        console.error("Error creating student:", err);
-        setStudentsList([newStudent, ...studentsList]);
-        setShowAddModal(false);
-        resetForm();
-      });
-  };
-
-  const resetForm = () => {
-    setStudentName('');
-    setAge('');
-    setGender('Select Gender');
-    setPhone('');
-    setParentName('');
-    setResidentialAddress('');
-    setSelectedCourse('Digital Illustration');
-    setSelectedBatch('Morning (09:00 - 11:00)');
-    setJoiningDate('');
-    setStudentAvatar(null);
+        .then(res => res.json())
+        .then(data => {
+          setStudentsList(studentsList.map(s => (s._id === editingStudentId || s.id === editingStudentId) ? data : s));
+          setShowAddModal(false);
+          resetForm();
+          alert('Student updated successfully!');
+          // Refresh batches list to update enrollment count locally
+          fetch('http://localhost:5000/api/batches')
+            .then(res => res.json())
+            .then(batchesData => setBatches(batchesData))
+            .catch(err => console.error("Error refreshing batches:", err));
+        })
+        .catch(err => {
+          console.error("Error updating student:", err);
+          alert("Failed to update student.");
+        });
+    } else {
+      const newStudent = {
+        ...payload,
+        id: Date.now()
+      };
+      fetch('http://localhost:5000/api/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newStudent),
+      })
+        .then(res => res.json())
+        .then(data => {
+          setStudentsList([data, ...studentsList]);
+          setShowAddModal(false);
+          resetForm();
+          // Refresh batches list to update enrollment count locally
+          fetch('http://localhost:5000/api/batches')
+            .then(res => res.json())
+            .then(batchesData => setBatches(batchesData))
+            .catch(err => console.error("Error refreshing batches:", err));
+        })
+        .catch(err => {
+          console.error("Error creating student:", err);
+          setStudentsList([newStudent as any, ...studentsList]);
+          setShowAddModal(false);
+          resetForm();
+        });
+    }
   };
 
   // Filters students list based on search query and fee status tabs
@@ -267,6 +363,15 @@ const BatchDetails: React.FC = () => {
 
     return matchesSearch && matchesFee;
   });
+
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeFeeFilter]);
 
   return (
     <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800 relative">
@@ -438,7 +543,7 @@ const BatchDetails: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredStudents.map((student) => (
+                {paginatedStudents.map((student) => (
                   <tr key={student.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group">
                     <td className="py-4 px-6">
                       <img src={student.avatar} alt={student.name} className="w-10 h-10 rounded-full object-cover" />
@@ -484,8 +589,18 @@ const BatchDetails: React.FC = () => {
                         >
                           <FiEye size={18} />
                         </button>
-                        <button className="hover:text-slate-700 transition-colors"><FiEdit2 size={18} /></button>
-                        <button className="hover:text-slate-700 transition-colors"><FiFileText size={18} /></button>
+                        <button
+                          onClick={() => handleEditStudentClick(student)}
+                          className="hover:text-slate-700 transition-colors border-none bg-transparent cursor-pointer"
+                        >
+                          <FiEdit2 size={18} />
+                        </button>
+                        <button
+                          onClick={() => { setReportStudent(student); setShowReportModal(true); }}
+                          className="hover:text-slate-700 transition-colors border-none bg-transparent cursor-pointer"
+                        >
+                          <FiFileText size={18} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -498,23 +613,35 @@ const BatchDetails: React.FC = () => {
           {/* Pagination */}
           <div className="p-6 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-sm font-medium text-slate-500">
-              Showing {filteredStudents.length} of {studentsList.length} students
+              Showing {filteredStudents.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, filteredStudents.length)} of {filteredStudents.length} students
             </div>
 
             <div className="flex items-center gap-2">
-              <button className="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 text-slate-400 hover:bg-slate-50 transition-colors bg-transparent cursor-pointer">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-transparent cursor-pointer"
+              >
                 <FiChevronLeft size={16} />
               </button>
-              <button className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#6247df] text-white font-bold text-sm shadow-md shadow-purple-200 border-none cursor-pointer">
-                1
-              </button>
-              <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-sm transition-colors bg-transparent border-none cursor-pointer">
-                2
-              </button>
-              <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-sm transition-colors bg-transparent border-none cursor-pointer">
-                3
-              </button>
-              <button className="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors bg-transparent cursor-pointer">
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors border-none cursor-pointer ${
+                    currentPage === pageNum
+                      ? 'bg-[#6247df] text-white shadow-md shadow-purple-200'
+                      : 'text-slate-600 hover:bg-slate-50 bg-transparent'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-transparent cursor-pointer"
+              >
                 <FiChevronRight size={16} />
               </button>
             </div>
@@ -669,10 +796,16 @@ const BatchDetails: React.FC = () => {
 
             {/* Bottom Actions */}
             <div className="p-6 border-t border-slate-100 flex gap-4 bg-slate-50 shrink-0">
-              <button className="flex-1 bg-white border-2 border-[#6247df] text-[#6247df] font-bold py-3 rounded-2xl text-sm hover:bg-purple-50 transition-colors shadow-sm focus:outline-none">
+              <button
+                onClick={() => handleEditStudentClick(selectedStudent)}
+                className="flex-1 bg-white border-2 border-[#6247df] text-[#6247df] font-bold py-3 rounded-2xl text-sm hover:bg-purple-50 transition-colors shadow-sm focus:outline-none cursor-pointer"
+              >
                 Edit Profile
               </button>
-              <button className="flex-1 bg-[#6247df] hover:bg-[#5035c9] text-white font-bold py-3.5 rounded-2xl text-sm transition-colors shadow-md shadow-purple-200 focus:outline-none">
+              <button
+                onClick={() => { setReportStudent(selectedStudent); setShowReportModal(true); }}
+                className="flex-1 bg-[#6247df] hover:bg-[#5035c9] text-white font-bold py-3.5 rounded-2xl text-sm transition-colors shadow-md shadow-purple-200 focus:outline-none cursor-pointer"
+              >
                 Generate Report
               </button>
             </div>
@@ -693,8 +826,12 @@ const BatchDetails: React.FC = () => {
                   <FiUserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-xl text-slate-900 leading-tight">New Student Enrollment</h3>
-                  <p className="text-slate-400 text-xs mt-1 font-medium">Complete the form below to register a new artist to the academy.</p>
+                  <h3 className="font-extrabold text-xl text-slate-900 leading-tight">
+                    {isEditing ? 'Edit Student Details' : 'New Student Enrollment'}
+                  </h3>
+                  <p className="text-slate-400 text-xs mt-1 font-medium">
+                    {isEditing ? 'Modify student profile information.' : 'Complete the form below to register a new artist to the academy.'}
+                  </p>
                 </div>
               </div>
               <button
@@ -879,15 +1016,16 @@ const BatchDetails: React.FC = () => {
                       <select
                         className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm appearance-none cursor-pointer font-sans"
                         value={selectedCourse}
-                        onChange={(e) => setSelectedCourse(e.target.value)}
+                        onChange={(e) => handleCourseChange(e.target.value)}
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 1rem center', backgroundSize: '1.25em', backgroundRepeat: 'no-repeat' }}
                       >
-                        <option>Digital Illustration</option>
-                        <option>Pencil Drawing</option>
-                        <option>Oil Painting</option>
-                        <option>Watercolor</option>
-                        <option>Sculpting</option>
-                        <option>Animation</option>
+                        {uniqueCourses.length > 0 ? (
+                          uniqueCourses.map(course => (
+                            <option key={course} value={course}>{course}</option>
+                          ))
+                        ) : (
+                          <option disabled value="">No courses available</option>
+                        )}
                       </select>
                     </div>
 
@@ -899,9 +1037,13 @@ const BatchDetails: React.FC = () => {
                         onChange={(e) => setSelectedBatch(e.target.value)}
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 1rem center', backgroundSize: '1.25em', backgroundRepeat: 'no-repeat' }}
                       >
-                        <option>Morning (09:00 - 11:00)</option>
-                        <option>Noon (12:00 - 14:00)</option>
-                        <option>Evening (15:00 - 17:00)</option>
+                        {filteredBatchesForSelectedCourse.length > 0 ? (
+                          filteredBatchesForSelectedCourse.map(b => (
+                            <option key={b._id || b.id} value={b.batchName}>{b.batchName}</option>
+                          ))
+                        ) : (
+                          <option disabled value="">No batches available</option>
+                        )}
                       </select>
                     </div>
                   </div>
@@ -955,6 +1097,105 @@ const BatchDetails: React.FC = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Modal - Student Report */}
+      {showReportModal && reportStudent && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 print:p-0 print:bg-white print:static">
+          <div className="bg-white w-full max-w-2xl rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[92vh] print:max-h-full print:shadow-none print:rounded-none">
+            {/* Modal Header (Hidden on print) */}
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between print:hidden">
+              <h3 className="font-extrabold text-lg text-slate-900">Academic & Enrollment Report</h3>
+              <button
+                onClick={() => { setShowReportModal(false); setReportStudent(null); }}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors border-none bg-transparent cursor-pointer"
+              >
+                <FiX className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body (Printable area) */}
+            <div className="p-8 overflow-y-auto flex-1 space-y-6 print:p-0 print:overflow-visible">
+              <div className="text-center pb-6 border-b border-slate-100">
+                <h2 className="text-2xl font-black text-[#6247df] tracking-wide">GLOSMART ACADEMY</h2>
+                <p className="text-xs font-bold text-slate-400 tracking-widest uppercase mt-1">Official Student Report Card</p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                <img
+                  src={reportStudent.avatar || "https://i.pravatar.cc/150?img=12"}
+                  alt={reportStudent.name}
+                  className="w-24 h-24 rounded-2xl object-cover border-2 border-purple-100"
+                />
+                <div className="flex-1 text-center sm:text-left space-y-1">
+                  <h3 className="text-xl font-bold text-slate-900">{reportStudent.name}</h3>
+                  <p className="text-sm font-medium text-slate-500">{reportStudent.email}</p>
+                  <p className="text-sm font-medium text-slate-500">Phone: {reportStudent.phone}</p>
+                  <p className="text-sm font-medium text-slate-500">Address: {reportStudent.address || 'Not provided'}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Course Enrolled</span>
+                  <span className="text-sm font-extrabold text-slate-800">{reportStudent.course || 'N/A'}</span>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Batch Schedule</span>
+                  <span className="text-sm font-extrabold text-slate-800">{reportStudent.batch || 'N/A'}</span>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Joining Date</span>
+                  <span className="text-sm font-extrabold text-slate-800">{reportStudent.joiningDate || 'N/A'}</span>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Fee Status</span>
+                  <span className={`text-xs font-black px-2 py-0.5 rounded uppercase ${
+                    reportStudent.feeStatus === 'PAID' ? 'bg-[#e6f8f8] text-[#108c9f]' :
+                    reportStudent.feeStatus === 'PARTIAL' ? 'bg-[#fcf2ea] text-[#b67323]' :
+                    'bg-[#fef1f1] text-[#ef4444]'
+                  }`}>
+                    {reportStudent.feeStatus || 'PENDING'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 space-y-4">
+                <h4 className="text-sm font-bold text-slate-900">Academic & Attendance Summary</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-purple-50/50 p-4 rounded-2xl border border-purple-100/50">
+                    <span className="text-[10px] font-bold text-purple-500 uppercase block mb-1">Attendance Rate</span>
+                    <span className="text-2xl font-black text-[#6247df]">{reportStudent.attendanceRate || 100}%</span>
+                  </div>
+                  <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-100/50">
+                    <span className="text-[10px] font-bold text-amber-600 uppercase block mb-1">Days Remaining</span>
+                    <span className="text-2xl font-black text-[#b67323]">{reportStudent.remainingDays || 0} Days</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-[10px] text-slate-400 text-center pt-8 italic">
+                Generated automatically on {new Date().toLocaleDateString()} by Glosmart Management System.
+              </div>
+            </div>
+
+            {/* Modal Footer (Hidden on print) */}
+            <div className="p-6 border-t border-slate-100 flex gap-4 bg-slate-50 print:hidden">
+              <button
+                onClick={() => { setShowReportModal(false); setReportStudent(null); }}
+                className="flex-1 bg-white border border-slate-200 text-slate-700 font-bold py-3 rounded-2xl text-sm hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="flex-1 bg-[#6247df] hover:bg-[#5035c9] text-white font-bold py-3.5 rounded-2xl text-sm transition-colors shadow-md shadow-purple-200 cursor-pointer"
+              >
+                Print Report
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
