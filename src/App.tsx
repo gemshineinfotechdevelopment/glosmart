@@ -19,6 +19,7 @@ import FeesPayments from './pages/admin/FeesPayments';
 import Students from './pages/admin/Students';
 import BatchDetails from './pages/admin/BatchDetails';
 
+
 function AppContent(): React.JSX.Element {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
