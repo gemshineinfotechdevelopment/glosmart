@@ -182,24 +182,14 @@ export default function AdminCoursePage() {
   // Edit mode state
   const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
 
-  const [customCategories, setCustomCategories] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('glosmart_custom_categories');
-      const parsed = saved ? JSON.parse(saved) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  });
+  const [categories, setCategories] = useState<any[]>([]);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
 
-  const availableCategories = Array.from(new Set([
-    ...customCategories
-  ]));
+  const availableCategories = Array.from(new Set(categories.map(c => c.name)));
 
   const fetchBatches = () => {
-    fetch('http://localhost:5000/api/batches')
+    fetch('http://127.0.0.1:5000/api/batches')
       .then(res => {
         if (!res.ok) throw new Error('API Error');
         return res.json();
@@ -213,8 +203,18 @@ export default function AdminCoursePage() {
       });
   };
 
+  const fetchCategories = () => {
+    fetch('http://127.0.0.1:5000/api/categories')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setCategories(data);
+      })
+      .catch(err => console.error("Failed to load categories from API", err));
+  };
+
   useEffect(() => {
     fetchBatches();
+    fetchCategories();
   }, []);
 
   // Close dropdown when clicking outside
@@ -330,7 +330,7 @@ export default function AdminCoursePage() {
         const matchedInst = instructorsList.find(i => i.name === existingBatch.instructor);
         if (matchedInst) setAssignedInstructor(matchedInst);
       } else {
-        fetch(`http://localhost:5000/api/batches/${batchId}`)
+        fetch(`http://127.0.0.1:5000/api/batches/${batchId}`)
           .then(res => res.json())
           .then(data => {
             setCourseTitle(data.courseName || '');
@@ -386,8 +386,8 @@ export default function AdminCoursePage() {
     };
 
     const url = isEditMode && editingBatchId
-      ? `http://localhost:5000/api/batches/${editingBatchId}`
-      : 'http://localhost:5000/api/batches';
+      ? `http://127.0.0.1:5000/api/batches/${editingBatchId}`
+      : 'http://127.0.0.1:5000/api/batches';
     const method = isEditMode ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -435,7 +435,7 @@ export default function AdminCoursePage() {
     if (!deleteTarget) return;
     const batchId = deleteTarget._id || deleteTarget.id;
 
-    fetch(`http://localhost:5000/api/batches/${batchId}`, {
+    fetch(`http://127.0.0.1:5000/api/batches/${batchId}`, {
       method: 'DELETE',
     })
       .then(async res => {
@@ -1144,7 +1144,7 @@ export default function AdminCoursePage() {
             {/* Batch Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredBatches.map((batch) => (
-                <div key={batch.id} className="bg-white rounded-[24px] p-4 shadow-sm border border-slate-100 flex flex-col group hover:shadow-md transition-all">
+                <div key={batch._id || batch.id} className="bg-white rounded-[24px] p-4 shadow-sm border border-slate-100 flex flex-col group hover:shadow-md transition-all">
                   {/* Image Container */}
                   <div className="relative rounded-2xl overflow-hidden mb-5 aspect-[16/10] bg-slate-100">
                     <img src={batch.image} alt={batch.batchName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -1300,11 +1300,27 @@ export default function AdminCoursePage() {
                 <button
                   onClick={() => {
                     if (newCategoryName.trim()) {
-                      const updated = [...customCategories, newCategoryName.trim()];
-                      setCustomCategories(updated);
-                      localStorage.setItem('glosmart_custom_categories', JSON.stringify(updated));
-                      setShowAddCategoryModal(false);
-                      setNewCategoryName('');
+                      fetch('http://127.0.0.1:5000/api/categories', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: newCategoryName.trim() })
+                      })
+                      .then(res => res.json())
+                      .then(data => {
+                        if (data.name) {
+                          setCategories(prev => [...prev, data]);
+                        } else {
+                           // If error (e.g. duplicate), still fetch to be safe
+                           fetchCategories();
+                        }
+                        setShowAddCategoryModal(false);
+                        setNewCategoryName('');
+                      })
+                      .catch(err => {
+                        console.error("Error creating category:", err);
+                        setShowAddCategoryModal(false);
+                        setNewCategoryName('');
+                      });
                     }
                   }}
                   className="flex-1 py-3 bg-[#5B43D6] text-white font-bold rounded-xl text-sm hover:bg-[#4b36b0] transition-colors cursor-pointer border-none"
