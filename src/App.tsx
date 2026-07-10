@@ -13,6 +13,8 @@ import Faqs from './pages/Faqs';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminCoursePage from './pages/admin/AdminCoursePage.tsx';
 import AdminCreateCoursePage from './pages/admin/AdminCreateCoursePage';
+import Teachers from './pages/admin/Teachers';
+
 import FeesPayments from './pages/admin/FeesPayments';
 import Students from './pages/admin/Students';
 import BatchDetails from './pages/admin/BatchDetails';
@@ -43,6 +45,7 @@ function AppContent(): React.JSX.Element {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/courses" element={<AdminCoursePage />} />
           <Route path="/admin/courses/new" element={<AdminCreateCoursePage />} />
+          <Route path="/admin/teachers" element={<Teachers />} />
           <Route path="/admin/fees" element={<FeesPayments />} />
           <Route path="/admin/students" element={<Students />} />
           <Route path="/admin/students/:batchId" element={<BatchDetails />} />

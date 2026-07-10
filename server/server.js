@@ -7,6 +7,8 @@ import batchRoutes from './routes/batchRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import teacherRoutes from './routes/teacherRoutes.js';
+
 
 dotenv.config();
 
@@ -26,6 +28,8 @@ app.use('/api/batches', batchRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/teachers', teacherRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('API is running...');
