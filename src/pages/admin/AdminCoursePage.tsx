@@ -2,21 +2,17 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   FiSearch, FiPlus, FiDroplet, FiVideo, FiImage,
-  FiInfo, FiUploadCloud, FiTrash2, FiPlusCircle, FiX, FiCheck
+  FiInfo, FiUploadCloud, FiTrash2, FiPlusCircle, FiX, FiCheck, FiCalendar, FiEdit2
 } from 'react-icons/fi';
 import { BiCube } from 'react-icons/bi';
 import { PiPencilSimpleBold } from 'react-icons/pi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
-// Categories array for the filter tabs
 const filterCategories = [
   { name: "All Batches", active: true },
   { name: "Active" },
   { name: "Upcoming" },
-  { name: "Completed" },
-  { name: "Morning" },
-  { name: "Evening" },
-  { name: "Weekend" }
+  { name: "Completed" }
 ];
 
 const initialBatches = [
@@ -31,6 +27,8 @@ const initialBatches = [
     courseIconBg: "bg-indigo-50",
     time: "10:00 - 12:00",
     schedule: "Mon, Wed",
+    startDate: "2026-07-01",
+    endDate: "2026-08-15",
     progressLabel: "PROGRESS",
     progressText: "70% • 18 days left",
     progressColor: "text-emerald-500",
@@ -53,6 +51,8 @@ const initialBatches = [
     courseIconBg: "bg-orange-50",
     time: "14:00 - 16:00",
     schedule: "Tue, Thu",
+    startDate: "2026-06-15",
+    endDate: "2026-09-01",
     progressLabel: "PROGRESS",
     progressText: "45% • 30 days left",
     progressColor: "text-orange-500",
@@ -75,6 +75,8 @@ const initialBatches = [
     courseIconBg: "bg-teal-50",
     time: "09:00 - 13:00",
     schedule: "Weekends",
+    startDate: "2026-08-20",
+    endDate: "2026-10-20",
     progressLabel: "LAUNCH TIMELINE",
     progressText: "Starts in 45 days",
     progressColor: "text-teal-600",
@@ -97,6 +99,8 @@ const initialBatches = [
     courseIconBg: "bg-teal-50",
     time: "12:00 - 13:00",
     schedule: "Weekends",
+    startDate: "2026-08-25",
+    endDate: "2026-10-30",
     progressLabel: "LAUNCH TIMELINE",
     progressText: "Starts in 45 days",
     progressColor: "text-teal-600",
@@ -119,6 +123,8 @@ const initialBatches = [
     courseIconBg: "bg-teal-50",
     time: "13:00 - 16:00",
     schedule: "Weekends",
+    startDate: "2026-09-01",
+    endDate: "2026-11-15",
     progressLabel: "LAUNCH TIMELINE",
     progressText: "Starts in 45 days",
     progressColor: "text-teal-600",
@@ -139,29 +145,90 @@ const instructorsList = [
   { name: 'Riley Chen', role: 'Animation Lead', avatar: 'https://i.pravatar.cc/150?img=9' }
 ];
 
+const getCategoryIcon = (category: string) => {
+  switch (category?.toLowerCase()) {
+    case 'sketching':
+      return <PiPencilSimpleBold className="w-5 h-5 text-emerald-600" />;
+    case 'watercolor':
+      return <FiDroplet className="w-5 h-5 text-blue-600" />;
+    case 'animation':
+      return <FiVideo className="w-5 h-5 text-purple-600" />;
+    case 'digital art':
+      return <FiUploadCloud className="w-5 h-5 text-indigo-600" />;
+    case 'sculpting':
+      return <BiCube className="w-5 h-5 text-rose-600" />;
+    case 'oil painting':
+      return <FiImage className="w-5 h-5 text-teal-600" />;
+    default:
+      return <FiImage className="w-5 h-5 text-slate-600" />;
+  }
+};
+
 export default function AdminCoursePage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [batchesList, setBatchesList] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState("All Batches");
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
+  // Dropdown menu state (tracks which card's menu is open)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  // Delete confirmation modal state
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Edit mode state
+  const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
+
+  const [customCategories, setCustomCategories] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('glosmart_custom_categories');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  const availableCategories = Array.from(new Set([
+    ...customCategories
+  ]));
+
+  const fetchBatches = () => {
     fetch('http://localhost:5000/api/batches')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('API Error');
+        return res.json();
+      })
       .then(data => {
-        if (data.length > 0) {
-          setBatchesList(data);
-        } else {
-          setBatchesList(initialBatches); // Fallback to initial data if DB is empty
-        }
+        setBatchesList(data);
       })
       .catch(err => {
         console.error("Failed to load batches from API", err);
-        setBatchesList(initialBatches); // Fallback on error
+        setBatchesList(initialBatches);
       });
+  };
+
+  useEffect(() => {
+    fetchBatches();
   }, []);
 
-  const isCreating = searchParams.get('mode') === 'create';
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    if (openMenuId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openMenuId]);
+
+  const mode = searchParams.get('mode');
+  const isCreating = mode === 'create' || mode === 'edit';
+  const isEditMode = mode === 'edit';
 
   // Form states for creation
   const [courseTitle, setCourseTitle] = useState('');
@@ -169,9 +236,13 @@ export default function AdminCoursePage() {
   const [category, setCategory] = useState('Select Category');
   const [difficultyLevel, setDifficultyLevel] = useState('Beginner');
   const [courseDescription, setCourseDescription] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [scheduleDays, setScheduleDays] = useState('Mon, Wed, Fri');
+  const [classTime, setClassTime] = useState('10:00 AM - 12:00 PM');
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [basePrice, setBasePrice] = useState('');
-  const [duration, setDuration] = useState(8);
+  const [duration, setDuration] = useState<string | number>('8');
   const [enrollmentActive, setEnrollmentActive] = useState(true);
   const [certificateIncluded, setCertificateIncluded] = useState(false);
   const [assignedInstructor, setAssignedInstructor] = useState(instructorsList[0]);
@@ -230,57 +301,80 @@ export default function AdminCoursePage() {
     const minsMatch = lastModule.subtext.match(/(\d+) mins/);
     let lessons = lessonsMatch ? parseInt(lessonsMatch[1]) : 0;
     let mins = minsMatch ? parseInt(minsMatch[1]) : 0;
-    
+
     lessons += 1;
     mins += 15; // add 15 minutes per lesson
-    
+
     lastModule.subtext = `${lessons} Lessons • ${mins} mins total`;
     setModules(updated);
   };
 
-  const getCategoryIcon = (catName: string) => {
-    switch (catName) {
-      case 'Sketching':
-      case 'Sketching & Charcoal':
-        return <PiPencilSimpleBold className="w-5 h-5 text-[#5B43D6]" />;
-      case 'Watercolor':
-        return <FiDroplet className="w-5 h-5 text-orange-500" />;
-      case 'Digital Art':
-      case 'Digital Media':
-        return <FiImage className="w-5 h-5 text-teal-600" />;
-      case 'Oil Painting':
-        return <FiImage className="w-5 h-5 text-teal-600" />;
-      case 'Sculpting':
-        return <BiCube className="w-5 h-5 text-[#5B43D6]" />;
-      case 'Animation':
-        return <FiVideo className="w-5 h-5 text-[#5B43D6]" />;
-      default:
-        return <FiImage className="w-5 h-5 text-[#5B43D6]" />;
+  // Pre-fill form when entering edit mode
+  useEffect(() => {
+    const batchId = searchParams.get('id');
+    if (isEditMode && batchId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditingBatchId(batchId);
+      
+      const existingBatch = batchesList.find(b => (b._id || b.id)?.toString() === batchId);
+      if (existingBatch) {
+        setCourseTitle(existingBatch.courseName || '');
+        setBatchName(existingBatch.batchName || '');
+        setCategory(existingBatch.category || 'Select Category');
+        setStartDate(existingBatch.startDate || existingBatch.progressText || '');
+        setEndDate(existingBatch.endDate || ''); 
+        setScheduleDays(existingBatch.schedule || 'Mon, Wed, Fri');
+        setClassTime(existingBatch.time || '10:00 AM - 12:00 PM');
+        setCoverImage(existingBatch.image || null);
+        setBasePrice(existingBatch.price ? existingBatch.price.replace(/[^0-9.]/g, '') : '');
+        const matchedInst = instructorsList.find(i => i.name === existingBatch.instructor);
+        if (matchedInst) setAssignedInstructor(matchedInst);
+      } else {
+        fetch(`http://localhost:5000/api/batches/${batchId}`)
+          .then(res => res.json())
+          .then(data => {
+            setCourseTitle(data.courseName || '');
+            setBatchName(data.batchName || '');
+            setCategory(data.category || 'Select Category');
+            setStartDate(data.startDate || data.progressText || '');
+            setEndDate(data.endDate || ''); 
+            setScheduleDays(data.schedule || 'Mon, Wed, Fri');
+            setClassTime(data.time || '10:00 AM - 12:00 PM');
+            setCoverImage(data.image || null);
+            setBasePrice(data.price ? data.price.replace(/[^0-9.]/g, '') : '');
+            const matchedInst = instructorsList.find(i => i.name === data.instructor);
+            if (matchedInst) setAssignedInstructor(matchedInst);
+          })
+          .catch(err => console.error('Error loading batch for edit:', err));
+      }
     }
-  };
+  }, [isEditMode, searchParams, batchesList]);
 
-  // Create course and append to state
+  // Create or Update course
   const handleCreateCourse = () => {
     if (!courseTitle.trim()) {
       alert("Please enter a course title.");
       return;
     }
 
-    const priceText = basePrice ? `$${parseFloat(basePrice).toFixed(2)}/mo` : "$0.00/mo";
+    const priceText = basePrice ? `₹${parseFloat(basePrice).toFixed(2)}/mo` : "₹0.00/mo";
 
-    const newBatch = {
+    const batchData = {
       price: priceText,
       batchName: batchName || `${courseTitle} - New Batch`,
       status: "UPCOMING",
       statusColor: "bg-teal-500",
+      // eslint-disable-next-line react-hooks/purity
       batchCode: `BAT-${Date.now().toString().slice(-3)}`,
       courseName: courseTitle,
       category: category,
       courseIconBg: "bg-teal-50",
-      time: "TBD",
-      schedule: "TBD",
+      time: classTime,
+      schedule: scheduleDays,
+      startDate: startDate,
+      endDate: endDate,
       progressLabel: "LAUNCH TIMELINE",
-      progressText: "Starts soon",
+      progressText: startDate || "Starts soon",
       progressColor: "text-teal-600",
       progressWidth: "w-0",
       progressBg: "bg-teal-500",
@@ -291,23 +385,79 @@ export default function AdminCoursePage() {
       image: coverImage || "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1000&auto=format&fit=crop",
     };
 
-    fetch('http://localhost:5000/api/batches', {
-      method: 'POST',
+    const url = isEditMode && editingBatchId
+      ? `http://localhost:5000/api/batches/${editingBatchId}`
+      : 'http://localhost:5000/api/batches';
+    const method = isEditMode ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newBatch),
+      body: JSON.stringify(batchData),
     })
       .then(res => res.json())
-      .then(data => {
-        setBatchesList([data, ...batchesList]);
-        setSearchParams({}); // Navigate back to list
+      .then(() => {
+        fetchBatches();
+        setSearchParams({});
         resetForm();
       })
       .catch(err => {
-        console.error("Error creating batch:", err);
-        // Fallback to local state if API fails
-        setBatchesList([newBatch, ...batchesList]);
+        console.error(`Error ${isEditMode ? 'updating' : 'creating'} batch:`, err);
+        // Fallback for mock updates when backend is down
+        if (isEditMode && editingBatchId) {
+          setBatchesList(prev => prev.map(b => (b._id || b.id)?.toString() === editingBatchId ? { ...b, ...batchData, _id: editingBatchId, id: b.id } : b));
+        } else {
+          setBatchesList(prev => [...prev, { ...batchData, id: Date.now() }]);
+        }
         setSearchParams({});
         resetForm();
+      });
+  };
+
+  // Handle edit batch (navigate to edit form)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleEditBatch = (batch: any) => {
+    const batchId = batch._id || batch.id;
+    setOpenMenuId(null);
+    setSearchParams({ mode: 'edit', id: batchId });
+  };
+
+  // Handle delete batch (show confirmation modal)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleDeleteBatch = (batch: any) => {
+    setOpenMenuId(null);
+    setDeleteTarget(batch);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    const batchId = deleteTarget._id || deleteTarget.id;
+
+    fetch(`http://localhost:5000/api/batches/${batchId}`, {
+      method: 'DELETE',
+    })
+      .then(async res => {
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Failed to delete');
+        }
+        return res.json();
+      })
+      .then(() => {
+        setBatchesList(prev => prev.filter(b => (b._id || b.id) !== batchId));
+        setShowDeleteModal(false);
+        setDeleteTarget(null);
+      })
+      .catch(err => {
+        console.error('Error deleting batch:', err);
+        // If it's a mock batch without a MongoDB _id, allow visual deletion anyway
+        if (!deleteTarget._id) {
+          setBatchesList(prev => prev.filter(b => (b._id || b.id) !== batchId));
+        }
+        setShowDeleteModal(false);
+        setDeleteTarget(null);
       });
   };
 
@@ -317,21 +467,56 @@ export default function AdminCoursePage() {
     setCategory('Select Category');
     setDifficultyLevel('Beginner');
     setCourseDescription('');
+    setStartDate('');
+    setEndDate('');
+    setScheduleDays('Mon, Wed, Fri');
+    setClassTime('10:00 AM - 12:00 PM');
     setCoverImage(null);
     setBasePrice('');
-    setDuration(8);
+    setDuration('8');
     setEnrollmentActive(true);
     setCertificateIncluded(false);
     setAssignedInstructor(instructorsList[0]);
+    setEditingBatchId(null);
     setModules([
       { id: 1, title: 'Module 1: Introduction & Fundamentals', subtext: '3 Lessons • 45 mins total' },
       { id: 2, title: 'Module 2: Color Theory and Blending', subtext: '5 Lessons • 1h 20 mins total' }
     ]);
   };
 
+  // Process batch status dynamically based on dates
+  const processedBatches = batchesList.map(batch => {
+    let calcStatus = batch.status || "UPCOMING";
+    let calcColor = batch.statusColor || "bg-teal-500";
+
+    if (batch.startDate && batch.endDate) {
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      const start = new Date(batch.startDate);
+      const end = new Date(batch.endDate);
+      
+      if (now < start) {
+        calcStatus = "UPCOMING";
+        calcColor = "bg-teal-500";
+      } else if (now > end) {
+        calcStatus = "COMPLETED";
+        calcColor = "bg-slate-500";
+      } else {
+        calcStatus = "ACTIVE";
+        calcColor = "bg-emerald-500";
+      }
+    }
+
+    return {
+      ...batch,
+      status: calcStatus,
+      statusColor: calcColor
+    };
+  });
+
   // Filter based on active category tabs and search input
-  const filteredBatches = batchesList.filter(batch => {
-    const matchesCategory = activeCategory === "All Batches" || batch.status.toLowerCase() === activeCategory.toLowerCase() || batch.schedule.toLowerCase().includes(activeCategory.toLowerCase());
+  const filteredBatches = processedBatches.filter(batch => {
+    const matchesCategory = activeCategory === "All Batches" || batch.status.toLowerCase() === activeCategory.toLowerCase();
     const matchesSearch = batch.batchName.toLowerCase().includes(searchQuery.toLowerCase()) || batch.courseName.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
@@ -368,9 +553,9 @@ export default function AdminCoursePage() {
 
             {/* Mail Icon */}
             <button className="relative p-1 text-slate-500 hover:text-slate-800 transition-colors bg-transparent border-none cursor-pointer">
-               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-               </svg>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+              </svg>
             </button>
 
             {/* Separator */}
@@ -394,7 +579,7 @@ export default function AdminCoursePage() {
         {isCreating ? (
           /* Create New Course Page View */
           <div className="p-8 flex-1 flex flex-col gap-6 select-none">
-            
+
             {/* Header / Breadcrumb Row */}
             <div className="flex justify-between items-start">
               <div>
@@ -423,10 +608,10 @@ export default function AdminCoursePage() {
 
             {/* Form Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mb-24">
-              
+
               {/* Left Column (2/3 width) */}
               <div className="lg:col-span-2 space-y-8">
-                
+
                 {/* General Information Card */}
                 <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-5">
                   <div className="flex items-center gap-2 mb-2">
@@ -471,12 +656,9 @@ export default function AdminCoursePage() {
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 1rem center', backgroundSize: '1.25em', backgroundRepeat: 'no-repeat' }}
                       >
                         <option disabled>Select Category</option>
-                        <option>Sketching</option>
-                        <option>Watercolor</option>
-                        <option>Digital Art</option>
-                        <option>Oil Painting</option>
-                        <option>Sculpting</option>
-                        <option>Animation</option>
+                        {availableCategories.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
                       </select>
                     </div>
 
@@ -508,6 +690,60 @@ export default function AdminCoursePage() {
                   </div>
                 </div>
 
+                {/* Course Schedule Card */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                      <FiCalendar className="w-4 h-4" />
+                    </div>
+                    <h3 className="font-bold text-lg text-slate-900">Batch Timing</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-600">Start Date</label>
+                      <input
+                        type="date"
+                        className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm font-sans text-slate-700"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-600">End Date</label>
+                      <input
+                        type="date"
+                        className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm font-sans text-slate-700"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-600">Days</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Mon, Wed, Fri"
+                        className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm font-sans text-slate-700"
+                        value={scheduleDays}
+                        onChange={(e) => setScheduleDays(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-600">Timing</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 10:00 AM - 12:00 PM"
+                        className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm font-sans text-slate-700"
+                        value={classTime}
+                        onChange={(e) => setClassTime(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Course Curriculum Card */}
                 <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-6">
                   <div className="flex items-center justify-between">
@@ -521,13 +757,13 @@ export default function AdminCoursePage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <button 
+                      <button
                         onClick={handleAddLesson}
                         className="px-3.5 py-2 bg-[#F3F4F6] text-slate-600 text-xs font-bold rounded-lg hover:bg-gray-200 transition-colors cursor-pointer border-none"
                       >
                         Add Lesson
                       </button>
-                      <button 
+                      <button
                         onClick={handleAddModule}
                         className="px-3.5 py-2 bg-violet-50 text-[#5B43D6] text-xs font-bold rounded-lg hover:bg-violet-100 transition-colors cursor-pointer border-none"
                       >
@@ -542,7 +778,7 @@ export default function AdminCoursePage() {
                       <div key={mod.id} className="relative">
                         {/* Timeline Node dot */}
                         <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 border-white bg-[#5B43D6] shadow-sm"></div>
-                        
+
                         <div className="bg-[#FAFBFF] border border-slate-200/50 rounded-2xl p-4 flex items-center justify-between group hover:border-[#5B43D6]/40 transition-colors">
                           <div className="flex-1 min-w-0">
                             <span className="block text-sm font-extrabold text-slate-800 truncate">{mod.title}</span>
@@ -553,7 +789,7 @@ export default function AdminCoursePage() {
                             <button className="p-1.5 text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer">
                               <FiPlusCircle className="w-4 h-4" />
                             </button>
-                            <button 
+                            <button
                               onClick={() => {
                                 setModules(modules.filter(m => m.id !== mod.id));
                               }}
@@ -571,11 +807,11 @@ export default function AdminCoursePage() {
 
               {/* Right Column (1/3 width) */}
               <div className="space-y-8">
-                
+
                 {/* Course Media Card */}
                 <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-5">
                   <span className="block text-xs font-extrabold text-slate-400 uppercase tracking-widest">COURSE MEDIA</span>
-                  
+
                   {/* Upload Image container */}
                   <div className="relative border-2 border-dashed border-slate-200 rounded-2xl aspect-video overflow-hidden bg-[#FAFBFF] flex flex-col items-center justify-center p-4 hover:border-[#5B43D6]/40 transition-colors select-none">
                     <input
@@ -590,7 +826,7 @@ export default function AdminCoursePage() {
                       <>
                         <img src={coverImage} alt="Cover Preview" className="absolute inset-0 w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-slate-950/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <button 
+                          <button
                             onClick={() => fileInputRef.current?.click()}
                             className="bg-white text-slate-800 text-xs font-extrabold px-4 py-2 rounded-xl shadow-md cursor-pointer border-none"
                           >
@@ -600,7 +836,7 @@ export default function AdminCoursePage() {
                       </>
                     ) : (
                       <>
-                        <div 
+                        <div
                           onClick={() => fileInputRef.current?.click()}
                           className="w-10 h-10 rounded-full bg-violet-50 text-[#5B43D6] flex items-center justify-center shadow-sm mb-3 cursor-pointer hover:scale-105 transition-transform"
                         >
@@ -616,12 +852,12 @@ export default function AdminCoursePage() {
                 {/* Pricing & Settings Card */}
                 <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-5">
                   <span className="block text-xs font-extrabold text-slate-400 uppercase tracking-widest">PRICING & SETTINGS</span>
-                  
+
                   {/* Base Monthly price */}
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Base Price / Month</label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">$</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">₹</span>
                       <input
                         type="text"
                         placeholder="0.00"
@@ -634,12 +870,13 @@ export default function AdminCoursePage() {
 
                   {/* Duration input */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Course Duration (Weeks)</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Course Duration</label>
                     <input
-                      type="number"
-                      className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm font-sans"
+                      type="text"
+                      placeholder="e.g. 8 Weeks, 2 Months"
+                      className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm font-sans text-slate-700"
                       value={duration}
-                      onChange={(e) => setDuration(parseInt(e.target.value) || 8)}
+                      onChange={(e) => setDuration(e.target.value)}
                     />
                   </div>
 
@@ -650,7 +887,7 @@ export default function AdminCoursePage() {
                         <span className="block text-xs font-bold text-slate-700">Open for Enrollment</span>
                         <span className="text-[10px] text-slate-400">Allow students to sign up immediately</span>
                       </div>
-                      <button 
+                      <button
                         onClick={() => setEnrollmentActive(!enrollmentActive)}
                         className={`w-10 h-6 rounded-full p-0.5 transition-colors border-none cursor-pointer flex items-center ${enrollmentActive ? 'bg-[#5B43D6]' : 'bg-slate-200'}`}
                       >
@@ -663,7 +900,7 @@ export default function AdminCoursePage() {
                         <span className="block text-xs font-bold text-slate-700">Include Certificate</span>
                         <span className="text-[10px] text-slate-400">Award certificates upon completion</span>
                       </div>
-                      <button 
+                      <button
                         onClick={() => setCertificateIncluded(!certificateIncluded)}
                         className={`w-10 h-6 rounded-full p-0.5 transition-colors border-none cursor-pointer flex items-center ${certificateIncluded ? 'bg-[#5B43D6]' : 'bg-slate-200'}`}
                       >
@@ -676,9 +913,9 @@ export default function AdminCoursePage() {
                 {/* Assign Instructor Card */}
                 <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 space-y-5">
                   <span className="block text-xs font-extrabold text-slate-400 uppercase tracking-widest">ASSIGN INSTRUCTOR</span>
-                  
+
                   {/* Instructor Selector */}
-                  <div 
+                  <div
                     onClick={handleCycleInstructor}
                     className="flex items-center gap-3 p-3 bg-[#F9FAFB] border border-slate-200/50 rounded-2xl cursor-pointer hover:bg-slate-50 transition-all select-none"
                   >
@@ -733,7 +970,7 @@ export default function AdminCoursePage() {
                   onClick={handleCreateCourse}
                   className="px-6 py-3 bg-[#5B43D6] hover:bg-[#4b36b0] text-white font-bold rounded-xl text-sm shadow-md shadow-purple-900/20 transition-all cursor-pointer border-none"
                 >
-                  Create Batch
+                  {isEditMode ? "Update Batch" : "Create Batch"}
                 </button>
               </div>
             </div>
@@ -745,7 +982,7 @@ export default function AdminCoursePage() {
                   {/* Modal Header */}
                   <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                     <h3 className="font-extrabold text-xl text-slate-900">Batch Detail Preview</h3>
-                    <button 
+                    <button
                       onClick={() => setShowPreview(false)}
                       className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors border-none bg-transparent cursor-pointer"
                     >
@@ -765,10 +1002,10 @@ export default function AdminCoursePage() {
                           <span className="text-xs font-semibold">No Cover Uploaded</span>
                         </div>
                       )}
-                      
+
                       {/* Price Badge */}
                       <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-full text-sm font-bold text-white bg-slate-900/75 backdrop-blur-sm shadow-md">
-                        {basePrice ? `$${parseFloat(basePrice).toFixed(2)}/mo` : "$0.00/mo"}
+                        {basePrice ? `₹${parseFloat(basePrice).toFixed(2)}/mo` : "₹0.00/mo"}
                       </div>
                     </div>
 
@@ -782,7 +1019,7 @@ export default function AdminCoursePage() {
                           {difficultyLevel}
                         </span>
                         <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-bold shadow-sm">
-                          {duration} Weeks
+                          {duration}
                         </span>
                       </div>
 
@@ -802,9 +1039,9 @@ export default function AdminCoursePage() {
 
                       {/* Instructor details */}
                       <div className="border-t border-slate-100 pt-4 flex items-center gap-3">
-                        <img 
-                          src={assignedInstructor.avatar} 
-                          alt={assignedInstructor.name} 
+                        <img
+                          src={assignedInstructor.avatar}
+                          alt={assignedInstructor.name}
                           className="w-10 h-10 rounded-full object-cover border border-white shadow-md"
                         />
                         <div>
@@ -848,7 +1085,7 @@ export default function AdminCoursePage() {
                       }}
                       className="px-5 py-2 bg-[#5B43D6] text-white font-bold rounded-xl text-sm shadow-md shadow-purple-900/10 hover:bg-[#4b36b0] transition-colors cursor-pointer border-none"
                     >
-                      Publish Now
+                      {isEditMode ? "Update Now" : "Publish Now"}
                     </button>
                   </div>
                 </div>
@@ -864,13 +1101,25 @@ export default function AdminCoursePage() {
                 <h2 className="text-3xl font-bold text-gray-900 mb-3">Batch Management</h2>
                 <p className="text-slate-500 text-sm leading-relaxed">Streamline academy operations: track active batches, monitor teacher performance, and manage student enrollment schedules.</p>
               </div>
-              <button 
-                onClick={() => setSearchParams({ mode: 'create' })}
-                className="flex items-center gap-2 bg-[#5B43D6] hover:bg-[#4b36b0] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm cursor-pointer border-none whitespace-nowrap"
-              >
-                <FiPlusCircle className="w-4 h-4" />
-                Create New Batch
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    resetForm();
+                    setSearchParams({ mode: 'create' });
+                  }}
+                  className="flex items-center gap-2 bg-[#5B43D6] hover:bg-[#4b36b0] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm cursor-pointer border-none whitespace-nowrap"
+                >
+                  <FiPlusCircle className="w-4 h-4" />
+                  Create New Batch
+                </button>
+                <button
+                  onClick={() => setShowAddCategoryModal(true)}
+                  className="flex items-center gap-2 bg-white border border-slate-200 text-[#5B43D6] hover:bg-slate-50 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+                >
+                  <FiPlusCircle className="w-4 h-4" />
+                  Create Category
+                </button>
+              </div>
             </div>
 
             {/* Categories tabs */}
@@ -881,11 +1130,10 @@ export default function AdminCoursePage() {
                   <button
                     key={cat.name}
                     onClick={() => setActiveCategory(cat.name)}
-                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors cursor-pointer border-none ${
-                      isActive
+                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors cursor-pointer border-none ${isActive
                         ? 'bg-[#5B43D6] text-white shadow-md'
                         : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 shadow-sm'
-                    }`}
+                      }`}
                   >
                     {cat.name}
                   </button>
@@ -894,7 +1142,7 @@ export default function AdminCoursePage() {
             </div>
 
             {/* Batch Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredBatches.map((batch) => (
                 <div key={batch.id} className="bg-white rounded-[24px] p-4 shadow-sm border border-slate-100 flex flex-col group hover:shadow-md transition-all">
                   {/* Image Container */}
@@ -903,29 +1151,57 @@ export default function AdminCoursePage() {
 
                     {/* Badges */}
                     <div className="absolute top-3 left-3 flex gap-2">
-                       <div className={`px-2.5 py-1 rounded text-[10px] font-bold text-white shadow-sm uppercase ${batch.statusColor}`}>
-                         {batch.status}
-                       </div>
-                       <div className="px-2.5 py-1 rounded text-[10px] font-bold text-white bg-slate-900/60 backdrop-blur-sm uppercase shadow-sm">
-                         {batch.batchCode}
-                       </div>
+                      <div className={`px-2.5 py-1 rounded text-[10px] font-bold text-white shadow-sm uppercase ${batch.statusColor}`}>
+                        {batch.status}
+                      </div>
+                      <div className="px-2.5 py-1 rounded text-[10px] font-bold text-white bg-slate-900/60 backdrop-blur-sm uppercase shadow-sm">
+                        {batch.batchCode}
+                      </div>
                     </div>
-                    
+
                     {/* Options Menu */}
-                    <button className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-600 shadow-sm border-none cursor-pointer hover:bg-white transition-colors">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-                      </svg>
-                    </button>
+                    <div className="absolute top-3 right-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const idToUse = batch._id || batch.id;
+                          setOpenMenuId(openMenuId === idToUse ? null : idToUse);
+                        }}
+                        className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-600 shadow-sm border-none cursor-pointer hover:bg-white transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                        </svg>
+                      </button>
+
+                      {openMenuId === (batch._id || batch.id) && (
+                        <div className="absolute right-0 mt-2 w-36 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-10 font-sans">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleEditBatch(batch); }}
+                            className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                          >
+                            <FiEdit2 className="w-4 h-4" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteBatch(batch); }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                          >
+                            <FiTrash2 className="w-4 h-4" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Content */}
                   <div className="px-1 flex-1 flex flex-col">
                     <h3 className="font-bold text-[17px] text-gray-900 mb-4">{batch.batchName}</h3>
-                    
+
                     <div className="flex items-center gap-3 mb-4">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${batch.courseIconBg}`}>
-                         {batch.courseIcon || getCategoryIcon(batch.category)}
+                        {batch.courseIcon || getCategoryIcon(batch.category)}
                       </div>
                       <div className="min-w-0">
                         <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Course</span>
@@ -933,64 +1209,61 @@ export default function AdminCoursePage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-5">
-                      <div className="flex items-center gap-2 min-w-0">
-                         <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                            </svg>
-                         </div>
-                         <div className="min-w-0">
-                           <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Time</span>
-                           <span className="block text-[11px] sm:text-xs font-semibold text-slate-800 truncate">{batch.time}</span>
-                         </div>
+                    <div className="grid grid-cols-2 gap-y-3 gap-x-2 mb-5 bg-slate-50/50 p-3 rounded-2xl border border-slate-100/60">
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Start Date</span>
+                        <span className="block text-[11px] sm:text-xs font-semibold text-slate-800">{batch.startDate || batch.progressText || "TBD"}</span>
                       </div>
-                      <div className="flex items-center gap-2 min-w-0">
-                         <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
-                            </svg>
-                         </div>
-                         <div className="min-w-0">
-                           <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Schedule</span>
-                           <span className="block text-[11px] sm:text-xs font-semibold text-slate-800 truncate">{batch.schedule}</span>
-                         </div>
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">End Date</span>
+                        <span className="block text-[11px] sm:text-xs font-semibold text-slate-800">{batch.endDate || "TBD"}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Schedule</span>
+                        <span className="block text-[11px] sm:text-xs font-semibold text-slate-800">{batch.schedule}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Time</span>
+                        <span className="block text-[11px] sm:text-xs font-semibold text-slate-800">{batch.time}</span>
                       </div>
                     </div>
 
                     <div className="mb-5 border-b border-slate-100/80 pb-5">
                       <div className="flex justify-between items-center mb-2">
-                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{batch.progressLabel}</span>
-                         <span className={`text-xs font-bold ${batch.progressColor}`}>{batch.progressText}</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{batch.progressLabel}</span>
+                        <span className={`text-xs font-bold ${batch.progressColor}`}>{batch.progressText}</span>
                       </div>
                       <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                         <div className={`h-full rounded-full ${batch.progressWidth} ${batch.progressBg}`}></div>
+                        <div className={`h-full rounded-full ${batch.progressWidth} ${batch.progressBg}`}></div>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between mt-auto">
-                       <div className="flex items-center gap-2.5 min-w-0">
-                          <img src={batch.instructorAvatar} alt={batch.instructor} className="w-8 h-8 rounded-full object-cover border border-slate-100 shadow-sm shrink-0" />
-                          <div className="min-w-0">
-                             <span className="block text-sm font-bold text-slate-800 truncate">{batch.instructor}</span>
-                             <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Instructor</span>
-                          </div>
-                       </div>
-                       
-                       <div className="bg-slate-50 px-2 sm:px-3 py-1.5 rounded-lg flex items-center gap-1.5 shrink-0">
-                          <svg className="w-3.5 h-3.5 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" />
-                          </svg>
-                          <span className="text-[11px] sm:text-xs font-bold text-slate-700">{batch.students} / {batch.maxStudents}</span>
-                       </div>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <img src={batch.instructorAvatar} alt={batch.instructor} className="w-8 h-8 rounded-full object-cover border border-slate-100 shadow-sm shrink-0" />
+                        <div className="min-w-0">
+                          <span className="block text-sm font-bold text-slate-800 truncate">{batch.instructor}</span>
+                          <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Instructor</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-50 px-2 sm:px-3 py-1.5 rounded-lg flex items-center gap-1.5 shrink-0">
+                        <svg className="w-3.5 h-3.5 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" />
+                        </svg>
+                        <span className="text-[11px] sm:text-xs font-bold text-slate-700">{batch.students} / {batch.maxStudents}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
 
               {/* New Batch Card */}
-              <button 
-                onClick={() => setSearchParams({ mode: 'create' })}
+              <button
+                onClick={() => {
+                  resetForm();
+                  setSearchParams({ mode: 'create' });
+                }}
                 className="bg-transparent border-2 border-dashed border-slate-200 rounded-[24px] p-6 flex flex-col items-center justify-center text-center hover:bg-slate-50 hover:border-slate-300 transition-colors group min-h-[440px] cursor-pointer"
               >
                 <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
@@ -999,6 +1272,76 @@ export default function AdminCoursePage() {
                 <h3 className="text-lg font-bold text-slate-800 mb-2">New Batch</h3>
                 <p className="text-sm text-slate-500 max-w-[200px] leading-relaxed">Design a new creative curriculum and schedule for the next semester.</p>
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Add Category Modal */}
+        {showAddCategoryModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl p-6">
+              <h3 className="font-extrabold text-xl text-slate-900 mb-2">Create Category</h3>
+              <p className="text-sm text-slate-500 mb-5">Add a new category for your courses.</p>
+              <input
+                type="text"
+                placeholder="e.g. Graphic Design"
+                className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5B43D6] text-sm font-sans mb-6 text-slate-800"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                autoFocus
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowAddCategoryModal(false); setNewCategoryName(''); }}
+                  className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-sm hover:bg-slate-200 transition-colors cursor-pointer border-none"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (newCategoryName.trim()) {
+                      const updated = [...customCategories, newCategoryName.trim()];
+                      setCustomCategories(updated);
+                      localStorage.setItem('glosmart_custom_categories', JSON.stringify(updated));
+                      setShowAddCategoryModal(false);
+                      setNewCategoryName('');
+                    }
+                  }}
+                  className="flex-1 py-3 bg-[#5B43D6] text-white font-bold rounded-xl text-sm hover:bg-[#4b36b0] transition-colors cursor-pointer border-none"
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl p-6 text-center">
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                <FiTrash2 className="w-8 h-8" />
+              </div>
+              <h3 className="font-extrabold text-xl text-slate-900 mb-2">Delete Batch</h3>
+              <p className="text-sm text-slate-500 mb-6">
+                Are you sure you want to delete <span className="font-bold text-slate-700">{deleteTarget?.batchName}</span>? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowDeleteModal(false); setDeleteTarget(null); }}
+                  className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-sm hover:bg-slate-200 transition-colors cursor-pointer border-none"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition-colors cursor-pointer border-none"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         )}

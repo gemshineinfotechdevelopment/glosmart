@@ -8,6 +8,7 @@ import AdminSidebar from '../../components/admin/AdminSidebar';
 
 
 const Dashboard: React.FC = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [stats, setStats] = useState<any>({});
 
   useEffect(() => {

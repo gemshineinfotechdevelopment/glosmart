@@ -10,6 +10,8 @@ const batchSchema = new mongoose.Schema({
   courseIconBg: { type: String, default: "bg-teal-50" },
   time: { type: String, default: "TBD" },
   schedule: { type: String, default: "TBD" },
+  startDate: { type: String },
+  endDate: { type: String },
   progressLabel: { type: String, default: "LAUNCH TIMELINE" },
   progressText: { type: String, default: "Starts soon" },
   progressColor: { type: String, default: "text-teal-600" },

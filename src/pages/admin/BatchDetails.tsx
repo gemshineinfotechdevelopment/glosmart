@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   FiSearch, FiCalendar, FiUpload, FiUserPlus,
   FiUsers, FiCreditCard, FiClock,
-  FiEye, FiEdit2, FiFileText, FiChevronLeft, FiChevronRight, 
+  FiEye, FiEdit2, FiFileText, FiChevronLeft, FiChevronRight,
   FiChevronRight as FiBreadcrumbRight, FiX, FiSave, FiCheck, FiUser
 } from 'react-icons/fi';
 import { MdCurrencyRupee } from 'react-icons/md';
@@ -199,6 +199,7 @@ const BatchDetails: React.FC = () => {
     }
 
     const newStudent: Student = {
+      // eslint-disable-next-line react-hooks/purity
       id: Date.now(),
       name: studentName,
       email: phone || '+1(555) 000-0000',
@@ -254,9 +255,9 @@ const BatchDetails: React.FC = () => {
 
   // Filters students list based on search query and fee status tabs
   const filteredStudents = studentsList.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          student.email.toLowerCase().includes(searchQuery.toLowerCase());
-    
+    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchQuery.toLowerCase());
+
     let matchesFee = true;
     if (activeFeeFilter === 'Paid') {
       matchesFee = student.feeStatus === 'PAID';
@@ -326,33 +327,30 @@ const BatchDetails: React.FC = () => {
           <div className="flex flex-wrap items-center gap-4">
             {/* Tabs */}
             <div className="bg-slate-100/80 p-1 rounded-xl flex items-center shadow-inner">
-              <button 
+              <button
                 onClick={() => setActiveFeeFilter('All')}
-                className={`px-6 py-2 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${
-                  activeFeeFilter === 'All'
+                className={`px-6 py-2 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${activeFeeFilter === 'All'
                     ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]'
                     : 'text-slate-500 hover:text-slate-700 bg-transparent'
-                }`}
+                  }`}
               >
                 All
               </button>
-              <button 
+              <button
                 onClick={() => setActiveFeeFilter('Paid')}
-                className={`px-6 py-2 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${
-                  activeFeeFilter === 'Paid'
+                className={`px-6 py-2 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${activeFeeFilter === 'Paid'
                     ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]'
                     : 'text-slate-500 hover:text-slate-700 bg-transparent'
-                }`}
+                  }`}
               >
                 Paid
               </button>
-              <button 
+              <button
                 onClick={() => setActiveFeeFilter('Pending')}
-                className={`px-6 py-2 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${
-                  activeFeeFilter === 'Pending'
+                className={`px-6 py-2 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${activeFeeFilter === 'Pending'
                     ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]'
                     : 'text-slate-500 hover:text-slate-700 bg-transparent'
-                }`}
+                  }`}
               >
                 Pending
               </button>
@@ -363,7 +361,7 @@ const BatchDetails: React.FC = () => {
             </button>
 
             {/* Trigger modal click */}
-            <button 
+            <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 bg-[#6247df] hover:bg-[#5035c9] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-purple-200 transition-colors cursor-pointer border-none"
             >
@@ -446,7 +444,7 @@ const BatchDetails: React.FC = () => {
                       <img src={student.avatar} alt={student.name} className="w-10 h-10 rounded-full object-cover" />
                     </td>
                     <td className="py-4 px-4">
-                      <div 
+                      <div
                         className="font-bold text-[#1c1c28] text-sm hover:text-[#6247df] cursor-pointer transition-colors"
                         onClick={() => setSelectedStudent(student)}
                       >
@@ -457,11 +455,10 @@ const BatchDetails: React.FC = () => {
                     <td className="py-4 px-4 text-sm font-medium text-slate-600">{student.age} / {student.gender}</td>
                     <td className="py-4 px-4 text-sm font-medium text-slate-600">{student.joiningDate}</td>
                     <td className="py-4 px-4">
-                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-md tracking-wider ${
-                        student.feeStatus === 'PAID' ? 'bg-[#e6f8f8] text-[#108c9f]' :
-                        student.feeStatus === 'PARTIAL' ? 'bg-[#fcf2ea] text-[#b67323]' :
-                        'bg-[#fef1f1] text-[#ef4444]'
-                      }`}>
+                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-md tracking-wider ${student.feeStatus === 'PAID' ? 'bg-[#e6f8f8] text-[#108c9f]' :
+                          student.feeStatus === 'PARTIAL' ? 'bg-[#fcf2ea] text-[#b67323]' :
+                            'bg-[#fef1f1] text-[#ef4444]'
+                        }`}>
                         {student.feeStatus}
                       </span>
                     </td>
@@ -469,8 +466,8 @@ const BatchDetails: React.FC = () => {
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
                         <div className="w-10 bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                          <div 
-                            className="bg-[#6247df] h-full rounded-full" 
+                          <div
+                            className="bg-[#6247df] h-full rounded-full"
                             style={{ width: `${student.attendanceRate}%` }}
                           />
                         </div>
@@ -481,7 +478,7 @@ const BatchDetails: React.FC = () => {
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center justify-end gap-3 text-slate-400">
-                        <button 
+                        <button
                           onClick={() => setSelectedStudent(student)}
                           className="hover:text-slate-700 transition-colors"
                         >
@@ -530,17 +527,17 @@ const BatchDetails: React.FC = () => {
       {selectedStudent && (
         <div className="fixed inset-0 z-50 flex justify-end">
           {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px] transition-opacity" 
+          <div
+            className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px] transition-opacity"
             onClick={() => setSelectedStudent(null)}
           />
-          
+
           {/* Drawer Panel */}
           <div className="relative w-full max-w-[460px] bg-white h-full shadow-2xl flex flex-col z-10 overflow-y-auto animate-fade-in border-l border-slate-100">
             {/* Purple Header */}
             <div className="bg-[#6247df] text-white p-8 relative shrink-0">
               {/* Close Button */}
-              <button 
+              <button
                 onClick={() => setSelectedStudent(null)}
                 className="absolute top-6 left-6 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors focus:outline-none"
               >
@@ -549,10 +546,10 @@ const BatchDetails: React.FC = () => {
 
               {/* Avatar and Name */}
               <div className="flex items-center gap-5 mt-12">
-                <img 
-                  src={selectedStudent.avatar} 
-                  alt={selectedStudent.name} 
-                  className="w-20 h-20 rounded-[1.25rem] border-4 border-white shadow-md object-cover bg-white shrink-0" 
+                <img
+                  src={selectedStudent.avatar}
+                  alt={selectedStudent.name}
+                  className="w-20 h-20 rounded-[1.25rem] border-4 border-white shadow-md object-cover bg-white shrink-0"
                 />
                 <div>
                   <h3 className="text-2xl font-black tracking-tight">{selectedStudent.name}</h3>
@@ -583,8 +580,8 @@ const BatchDetails: React.FC = () => {
                   </div>
                 </div>
                 <div className="w-full bg-purple-100 h-1.5 rounded-full overflow-hidden mt-4">
-                  <div 
-                    className="bg-[#6247df] h-full rounded-full" 
+                  <div
+                    className="bg-[#6247df] h-full rounded-full"
                     style={{ width: `${selectedStudent.attendanceRate}%` }}
                   />
                 </div>
@@ -685,7 +682,7 @@ const BatchDetails: React.FC = () => {
       {/* Modal - New Student Enrollment */}
       {showAddModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <form 
+          <form
             onSubmit={handleSaveStudent}
             className="bg-white w-full max-w-4xl rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[92vh] animate-scale-up"
           >
@@ -700,7 +697,7 @@ const BatchDetails: React.FC = () => {
                   <p className="text-slate-400 text-xs mt-1 font-medium">Complete the form below to register a new artist to the academy.</p>
                 </div>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => {
                   setShowAddModal(false);
@@ -714,10 +711,10 @@ const BatchDetails: React.FC = () => {
 
             {/* Modal Body */}
             <div className="p-8 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8">
-              
+
               {/* Left Column (Upload Photo & Admission Tips) */}
               <div className="space-y-6">
-                
+
                 {/* Upload Photo */}
                 <div className="border-2 border-dashed border-indigo-100 bg-[#F6F5FB]/40 rounded-2xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden group">
                   <input
@@ -731,7 +728,7 @@ const BatchDetails: React.FC = () => {
                   {studentAvatar ? (
                     <>
                       <img src={studentAvatar} className="w-24 h-24 rounded-full object-cover border border-white shadow-md mb-2" alt="Avatar Preview" />
-                      <button 
+                      <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         className="text-xs text-[#6247df] font-bold hover:underline cursor-pointer bg-transparent border-none mt-2"
@@ -741,7 +738,7 @@ const BatchDetails: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <div 
+                      <div
                         onClick={() => fileInputRef.current?.click()}
                         className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#6247df] shadow-sm mb-3 cursor-pointer hover:scale-105 transition-transform"
                       >
@@ -752,8 +749,8 @@ const BatchDetails: React.FC = () => {
                       </div>
                       <span className="text-sm font-bold text-slate-700">Upload Photo</span>
                       <span className="text-[10px] text-slate-400 mt-1.5 leading-normal">JPEG, PNG up to 5MB<br />Square ratio recommended</span>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => fileInputRef.current?.click()}
                         className="mt-4 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-[#6247df] rounded-xl text-xs font-bold transition-all border-none cursor-pointer"
                       >
@@ -785,7 +782,7 @@ const BatchDetails: React.FC = () => {
 
               {/* Right Column (Form details) */}
               <div className="space-y-6">
-                
+
                 {/* Personal Details Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
@@ -940,7 +937,7 @@ const BatchDetails: React.FC = () => {
 
             {/* Modal Footer */}
             <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3 shrink-0 font-sans">
-              <button 
+              <button
                 type="button"
                 onClick={() => {
                   setShowAddModal(false);
@@ -950,7 +947,7 @@ const BatchDetails: React.FC = () => {
               >
                 Cancel
               </button>
-              <button 
+              <button
                 type="submit"
                 className="px-6 py-2.5 bg-[#6247df] hover:bg-[#5035c9] text-white rounded-xl font-bold text-sm shadow-md shadow-purple-900/20 transition-all flex items-center gap-2 border-none cursor-pointer"
               >
