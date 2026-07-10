@@ -6,7 +6,7 @@ import {
   FiChevronRight as FiBreadcrumbRight, FiX, FiSave, FiCheck, FiUser
 } from 'react-icons/fi';
 import { MdCurrencyRupee } from 'react-icons/md';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
 interface Student {
@@ -128,6 +128,7 @@ const PaintPaletteIcon = () => (
 );
 
 const BatchDetails: React.FC = () => {
+  const { batchId } = useParams<{ batchId: string }>();
   const [studentsList, setStudentsList] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -135,6 +136,12 @@ const BatchDetails: React.FC = () => {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [batches, setBatches] = useState<any[]>([]);
+
+  const currentBatch = batches.find(b => b.batchCode?.toLowerCase() === batchId?.toLowerCase());
+  const studentsInBatch = studentsList.filter(student => {
+    if (!currentBatch) return true;
+    return student.batch === currentBatch.batchName;
+  });
 
   useEffect(() => {
     fetch('http://localhost:5000/api/students')
@@ -350,7 +357,7 @@ const BatchDetails: React.FC = () => {
   };
 
   // Filters students list based on search query and fee status tabs
-  const filteredStudents = studentsList.filter(student => {
+  const filteredStudents = studentsInBatch.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.email.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -422,11 +429,13 @@ const BatchDetails: React.FC = () => {
             <div className="flex items-center gap-2 text-sm font-semibold mb-2">
               <Link to="/admin/students" className="text-slate-500 hover:text-slate-700 no-underline">Students</Link>
               <FiBreadcrumbRight className="text-slate-400" size={14} />
-              <span className="text-slate-500">Pencil Drawing</span>
+              <span className="text-slate-500">{currentBatch ? currentBatch.courseName : 'Course'}</span>
               <FiBreadcrumbRight className="text-slate-400" size={14} />
-              <span className="text-[#6247df] font-bold">Batch A</span>
+              <span className="text-[#6247df] font-bold">{currentBatch ? currentBatch.batchName : 'Batch'}</span>
             </div>
-            <h2 className="text-[22px] font-bold text-[#1c1c28]">Pencil Drawing – Batch A</h2>
+            <h2 className="text-[22px] font-bold text-[#1c1c28]">
+              {currentBatch ? `${currentBatch.courseName} – ${currentBatch.batchName}` : 'Student List'}
+            </h2>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
@@ -476,7 +485,7 @@ const BatchDetails: React.FC = () => {
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
           {/* Card 1 */}
           <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex items-center gap-5">
             <div className="w-14 h-14 rounded-full bg-[#f3f0ff] text-[#6247df] flex items-center justify-center shrink-0">
@@ -484,33 +493,7 @@ const BatchDetails: React.FC = () => {
             </div>
             <div>
               <p className="text-[11px] font-bold text-slate-500 tracking-wider mb-0.5">TOTAL STUDENTS</p>
-              <h3 className="text-2xl font-black text-[#1c1c28]">{studentsList.length}</h3>
-            </div>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-full bg-[#e6f8f8] text-[#108c9f] flex items-center justify-center shrink-0">
-              <MdCurrencyRupee size={24} />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 tracking-wider mb-0.5">FEES PAID</p>
-              <h3 className="text-2xl font-black text-[#1c1c28]">
-                ₹{studentsList.filter(s => s.feeStatus === 'PAID').length * 120 + studentsList.filter(s => s.feeStatus === 'PARTIAL').length * 60}
-              </h3>
-            </div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-full bg-[#fcf2ea] text-[#b67323] flex items-center justify-center shrink-0">
-              <FiCreditCard size={24} />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 tracking-wider mb-0.5">PENDING FEES</p>
-              <h3 className="text-2xl font-black text-[#1c1c28]">
-                ₹{studentsList.filter(s => s.feeStatus === 'PENDING').length * 120 + studentsList.filter(s => s.feeStatus === 'PARTIAL').length * 60}
-              </h3>
+              <h3 className="text-2xl font-black text-[#1c1c28]">{studentsInBatch.length}</h3>
             </div>
           </div>
 
