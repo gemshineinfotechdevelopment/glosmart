@@ -6,6 +6,7 @@ import {
 import { FaPalette, FaRocket, FaPaintBrush } from 'react-icons/fa';
 
 import bgImage from '../assets/background-home.jpeg';
+import cloudImage from '../assets/cloud.png';
 
 // Mock images since we don't have the exact ones from the design
 const mockAvatar1 = "https://i.pravatar.cc/150?img=1";
@@ -130,7 +131,7 @@ const Home: React.FC = () => {
 
       {/* 4. Curriculum Section */}
       <section className="relative pt-24 pb-48 bg-[#f4fbff] px-6">
-        <div className="max-w-6xl mx-auto text-center flex flex-col items-center">
+        <div className="max-w-6xl mx-auto text-center flex flex-col items-center relative z-10">
           <div className="mb-2 bg-blue-100 p-2 rounded-full text-blue-500">
             <FaPalette size={24} />
           </div>
@@ -189,12 +190,16 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Pink Clouds Divider (Using SVG) */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
-          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-[150px] fill-pink-300 transform rotate-180">
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-          </svg>
-        </div>
+        {/* Pink Clouds Divider (Using Background Image) */}
+        <div 
+          className="absolute bottom-0 left-0 w-full h-[150px] md:h-[250px] z-0 pointer-events-none"
+          style={{
+            backgroundImage: `url(${cloudImage})`,
+            backgroundSize: '100% 100%',
+            backgroundPosition: 'bottom',
+            backgroundRepeat: 'no-repeat'
+          }}
+        ></div>
       </section>
 
       {/* 5. Objectives Section */}

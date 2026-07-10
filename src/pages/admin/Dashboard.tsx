@@ -1,66 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  FiGrid, FiUsers, FiBookOpen, FiUserCheck,
-  FiDollarSign, FiCalendar, FiImage, FiBell,
-  FiSettings, FiLogOut, FiCalendar as FiCal
+  FiUsers, FiBookOpen, FiUserCheck,
+  FiCalendar as FiCal,
 } from 'react-icons/fi';
+import { MdCurrencyRupee } from 'react-icons/md';
+import AdminSidebar from '../../components/admin/AdminSidebar';
 
 
 const Dashboard: React.FC = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [stats, setStats] = useState<any>({});
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/dashboard/stats')
+      .then(res => res.json())
+      .then(data => {
+        setStats(data);
+      })
+      .catch(err => {
+        console.error("Failed to load dashboard stats", err);
+      });
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
 
       {/* Sidebar */}
-      <aside className="w-[280px] bg-[#fdfcff] border-r border-slate-100 flex flex-col h-screen sticky top-0 hidden lg:flex shadow-[4px_0_24px_rgba(0,0,0,0.01)]">
-        <div className="p-8 flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-            G
-          </div>
-          <div>
-            <h1 className="font-bold text-[#6247df] text-xl leading-tight">GloSmart Art</h1>
-            <p className="text-xs text-slate-500 font-medium">Academy Admin</p>
-          </div>
-        </div>
-
-        <nav className="flex-1 px-4 flex flex-col gap-2 overflow-y-auto">
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-[#6247df] text-white shadow-md shadow-purple-900/20 font-semibold transition-all">
-            <FiGrid size={20} /> Dashboard
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
-            <FiUsers size={20} /> Students
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
-            <FiBookOpen size={20} /> Courses
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
-            <FiUserCheck size={20} /> Teachers
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
-            <FiDollarSign size={20} /> Fees & Payments
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
-            <FiCalendar size={20} /> Academy Schedule
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
-            <FiImage size={20} /> Gallery
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
-            <FiBell size={20} /> Notifications
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-slate-600 font-semibold hover:bg-slate-50 hover:text-[#6247df] transition-all">
-            <FiSettings size={20} /> Settings
-          </a>
-        </nav>
-
-        <div className="p-6 mt-auto flex flex-col gap-4">
-          <button className="w-full bg-[#6247df] text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-purple-900/20 hover:bg-[#5035c9] transition-all">
-            Create Course
-          </button>
-          <button className="flex items-center gap-3 px-4 py-2 text-slate-600 font-semibold hover:text-[#6247df] transition-all">
-            <FiLogOut size={20} /> Logout
-          </button>
-        </div>
-      </aside>
+      <AdminSidebar />
 
       {/* Main Content */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto">
@@ -93,12 +59,12 @@ const Dashboard: React.FC = () => {
               <span className="text-green-500 text-sm font-bold bg-green-50 px-2.5 py-1 rounded-lg">+5%↑</span>
             </div>
             <p className="text-slate-500 font-semibold text-sm mb-1">Total Students</p>
-            <h3 className="text-4xl font-black text-[#1c1c28] mb-4">150</h3>
+            <h3 className="text-4xl font-black text-[#1c1c28] mb-4">{stats.totalStudents || 150}</h3>
             <div className="mt-auto">
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-2">
                 <div className="bg-[#6247df] w-[70%] h-full rounded-full"></div>
               </div>
-              <p className="text-xs text-slate-500 font-medium">120 Active Students</p>
+              <p className="text-xs text-slate-500 font-medium">{stats.activeStudents || 120} Active Students</p>
             </div>
           </div>
 
@@ -106,15 +72,15 @@ const Dashboard: React.FC = () => {
           <div className="bg-white p-6 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
             <div className="flex justify-between items-start mb-6">
               <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center">
-                <FiDollarSign size={24} />
+                <MdCurrencyRupee size={24} />
               </div>
               <span className="text-slate-400 text-sm font-semibold">Monthly</span>
             </div>
             <p className="text-slate-500 font-semibold text-sm mb-1">Monthly Revenue</p>
-            <h3 className="text-4xl font-black text-[#b67323] mb-4">₹4,500</h3>
+            <h3 className="text-4xl font-black text-[#b67323] mb-4">₹{stats.monthlyRevenue || '4,500'}</h3>
             <div className="mt-auto">
               <p className="text-xs text-slate-500 font-medium">
-                <span className="text-red-500 font-bold">-₹800</span> pending fees
+                <span className="text-red-500 font-bold">-₹{stats.pendingFees || '800'}</span> pending fees
               </p>
             </div>
           </div>
@@ -128,7 +94,7 @@ const Dashboard: React.FC = () => {
               <span className="text-slate-400 text-sm font-semibold">Active Now</span>
             </div>
             <p className="text-slate-500 font-semibold text-sm mb-1">Total Courses</p>
-            <h3 className="text-4xl font-black text-[#108c9f] mb-4">15</h3>
+            <h3 className="text-4xl font-black text-[#108c9f] mb-4">{stats.totalCourses || 15}</h3>
             <div className="mt-auto">
               <p className="text-xs text-slate-500 font-medium">8 Upcoming classes today</p>
             </div>
@@ -142,7 +108,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             <p className="text-slate-500 font-semibold text-sm mb-1">Teachers Count</p>
-            <h3 className="text-4xl font-black text-[#1c1c28] mb-4">10</h3>
+            <h3 className="text-4xl font-black text-[#1c1c28] mb-4">{stats.teachersCount || 10}</h3>
             <div className="mt-auto flex -space-x-3">
               <img src="https://i.pravatar.cc/150?img=1" className="w-8 h-8 rounded-full border-2 border-white" alt="Teacher" />
               <img src="https://i.pravatar.cc/150?img=2" className="w-8 h-8 rounded-full border-2 border-white" alt="Teacher" />
@@ -227,7 +193,7 @@ const Dashboard: React.FC = () => {
               {/* Item 2 */}
               <div className="flex gap-4 relative z-10 items-start">
                 <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center shrink-0 border-4 border-white">
-                  <FiDollarSign size={18} />
+                  <MdCurrencyRupee size={18} />
                 </div>
                 <div className="pt-1">
                   <h4 className="font-bold text-[#1c1c28] text-sm">Fee Paid</h4>
@@ -333,7 +299,7 @@ const Dashboard: React.FC = () => {
 
             <button className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center gap-5 hover:border-orange-200 hover:shadow-md transition-all text-left group">
               <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <FiDollarSign size={20} />
+                <MdCurrencyRupee size={20} />
               </div>
               <div>
                 <h4 className="font-bold text-[#1c1c28]">Collect Fees</h4>
