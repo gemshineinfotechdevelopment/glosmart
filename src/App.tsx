@@ -18,6 +18,8 @@ import Teachers from './pages/admin/Teachers';
 import FeesPayments from './pages/admin/FeesPayments';
 import Students from './pages/admin/Students';
 import BatchDetails from './pages/admin/BatchDetails';
+import AdminGalleryPage from './pages/admin/AdminGalleryPage';
+import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 
 
 function AppContent(): React.JSX.Element {
@@ -50,6 +52,8 @@ function AppContent(): React.JSX.Element {
           <Route path="/admin/fees" element={<FeesPayments />} />
           <Route path="/admin/students" element={<Students />} />
           <Route path="/admin/students/:batchId" element={<BatchDetails />} />
+          <Route path="/admin/gallery" element={<AdminGalleryPage />} />
+          <Route path="/admin/settings" element={<AdminSettingsPage />} />
 
           {/* Fallback route back to About page */}
           <Route path="*" element={<About />} />

@@ -1,16 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   FiSearch, FiCalendar, FiUpload, FiUserPlus,
-  FiUsers, FiCreditCard, FiClock,
+  FiUsers, FiClock,
   FiEye, FiEdit2, FiFileText, FiChevronLeft, FiChevronRight,
   FiChevronRight as FiBreadcrumbRight, FiX, FiSave, FiCheck, FiUser
 } from 'react-icons/fi';
-import { MdCurrencyRupee } from 'react-icons/md';
 import { Link, useParams } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
 interface Student {
   id: number;
+  _id?: string;
   name: string;
   avatar: string;
   phone: string;
@@ -31,6 +31,7 @@ interface Student {
   address: string;
 }
 
+// @ts-ignore
 const STUDENTS_DATA: Student[] = [
   {
     id: 1,
