@@ -1,6 +1,7 @@
 import express from 'express';
 import Student from '../models/Student.js';
 import Batch from '../models/Batch.js';
+import Course from '../models/Course.js';
 import Payment from '../models/Payment.js';
 
 const router = express.Router();
@@ -26,12 +27,20 @@ router.get('/stats', async (req, res) => {
       return sum + num;
     }, 0);
 
-    // 3. Course Stats
-    const totalCourses = await Batch.countDocuments();
+    // 3. Course & Batch Stats
+    const totalCourses = await Course.countDocuments();
+    const activeCourses = await Course.countDocuments({ status: 'Active' });
+    const totalBatches = await Batch.countDocuments();
+    const activeBatches = await Batch.countDocuments({ status: 'ACTIVE' });
+    const upcomingBatches = await Batch.countDocuments({ status: 'UPCOMING' });
+    const completedBatches = await Batch.countDocuments({ status: 'COMPLETED' });
+
+    // Calculate Available Seats
+    const batches = await Batch.find();
+    const availableSeats = batches.reduce((sum, b) => sum + (b.availableSeats || 0), 0);
 
     // 4. Teachers count
-    const batches = await Batch.find().select('instructor');
-    const uniqueInstructors = new Set(batches.map(b => b.instructor));
+    const uniqueInstructors = new Set(batches.map(b => b.instructor).filter(Boolean));
     const teachersCount = uniqueInstructors.size;
 
     // We can also fetch recent activities, but returning basic stats first
@@ -41,6 +50,12 @@ router.get('/stats', async (req, res) => {
       monthlyRevenue,
       pendingFees,
       totalCourses,
+      activeCourses,
+      totalBatches,
+      activeBatches,
+      upcomingBatches,
+      completedBatches,
+      availableSeats,
       teachersCount
     });
 

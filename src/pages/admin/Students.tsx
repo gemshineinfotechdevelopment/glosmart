@@ -10,6 +10,8 @@ import AdminSidebar from '../../components/admin/AdminSidebar';
 const Students: React.FC = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [batches, setBatches] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
 
   // Modal display state
   const [showAddModal, setShowAddModal] = useState(false);
@@ -21,8 +23,8 @@ const Students: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [parentName, setParentName] = useState('');
   const [residentialAddress, setResidentialAddress] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState('Digital Illustration');
-  const [selectedBatch, setSelectedBatch] = useState('Morning (09:00 - 11:00)');
+  const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [selectedBatchId, setSelectedBatchId] = useState('');
   const [joiningDate, setJoiningDate] = useState('');
   const [studentAvatar, setStudentAvatar] = useState<string | null>(null);
 
@@ -60,6 +62,9 @@ const Students: React.FC = () => {
       return;
     }
 
+    const courseObj = courses.find(c => c._id === selectedCourseId);
+    const batchObj = batches.find(b => b._id === selectedBatchId);
+
     const newStudent = {
       name: studentName,
       email: phone || '+1(555) 000-0000',
@@ -73,11 +78,13 @@ const Students: React.FC = () => {
       remainingDays: 12,
       attendanceRate: 100,
       attendanceTrend: '+0%',
-      batch: selectedBatch,
-      course: selectedCourse,
-      teacher: 'Assigned Later',
+      batchId: batchObj?._id,
+      batch: batchObj?.batchName || '',
+      courseId: courseObj?._id,
+      course: courseObj?.courseName || '',
+      teacher: batchObj?.instructor || 'Assigned Later',
       admissionDate: formatDateString(joiningDate),
-      schedule: selectedBatch,
+      schedule: batchObj?.batchName || '',
       address: residentialAddress || 'Not provided'
     };
 
@@ -104,8 +111,7 @@ const Students: React.FC = () => {
       });
   };
 
-  const uniqueCourses = Array.from(new Set(batches.map(b => b.courseName))) as string[];
-  const filteredBatchesForSelectedCourse = batches.filter(b => b.courseName === selectedCourse);
+  const filteredBatchesForSelectedCourse = batches.filter(b => b.courseId?._id === selectedCourseId || b.courseId === selectedCourseId);
 
   const resetForm = () => {
     setStudentName('');
@@ -116,45 +122,60 @@ const Students: React.FC = () => {
     setResidentialAddress('');
     setJoiningDate('');
     setStudentAvatar(null);
-    if (uniqueCourses.length > 0) {
-      setSelectedCourse(uniqueCourses[0]);
-      const courseBatches = batches.filter(b => b.courseName === uniqueCourses[0]);
+    if (courses.length > 0) {
+      setSelectedCourseId(courses[0]._id);
+      const courseBatches = batches.filter(b => b.courseId?._id === courses[0]._id || b.courseId === courses[0]._id);
       if (courseBatches.length > 0) {
-        setSelectedBatch(courseBatches[0].batchName);
+        setSelectedBatchId(courseBatches[0]._id);
+      } else {
+        setSelectedBatchId('');
       }
     } else {
-      setSelectedCourse('');
-      setSelectedBatch('');
+      setSelectedCourseId('');
+      setSelectedBatchId('');
     }
   };
 
-  const handleCourseChange = (course: string) => {
-    setSelectedCourse(course);
-    const courseBatches = batches.filter(b => b.courseName === course);
+  const handleCourseChange = (courseId: string) => {
+    setSelectedCourseId(courseId);
+    const courseBatches = batches.filter(b => b.courseId?._id === courseId || b.courseId === courseId);
     if (courseBatches.length > 0) {
-      setSelectedBatch(courseBatches[0].batchName);
+      setSelectedBatchId(courseBatches[0]._id);
     } else {
-      setSelectedBatch('');
+      setSelectedBatchId('');
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      const [coursesRes, batchesRes, studentsRes] = await Promise.all([
+        fetch('http://localhost:5000/api/courses?limit=1000'),
+        fetch('http://localhost:5000/api/batches'),
+        fetch('http://localhost:5000/api/students')
+      ]);
+      const coursesData = await coursesRes.json();
+      const batchesData = await batchesRes.json();
+      const studentsData = await studentsRes.json();
+      
+      const loadedCourses = coursesData.courses || [];
+      setCourses(loadedCourses);
+      setBatches(batchesData);
+      setStudents(studentsData);
+
+      if (loadedCourses.length > 0) {
+        setSelectedCourseId(loadedCourses[0]._id);
+        const courseBatches = batchesData.filter((b: any) => b.courseId?._id === loadedCourses[0]._id || b.courseId === loadedCourses[0]._id);
+        if (courseBatches.length > 0) {
+          setSelectedBatchId(courseBatches[0]._id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch data", err);
     }
   };
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/batches')
-      .then(res => res.json())
-      .then(data => {
-        setBatches(data);
-        if (data.length > 0) {
-          const uCourses = Array.from(new Set(data.map((b: any) => b.courseName))) as string[];
-          if (uCourses.length > 0) {
-            setSelectedCourse(uCourses[0]);
-            const courseBatches = data.filter((b: any) => b.courseName === uCourses[0]);
-            if (courseBatches.length > 0) {
-              setSelectedBatch(courseBatches[0].batchName);
-            }
-          }
-        }
-      })
-      .catch(err => console.error("Failed to fetch batches", err));
+    fetchData();
   }, []);
 
   return (
@@ -252,7 +273,7 @@ const Students: React.FC = () => {
               </div>
               
               <h3 className="text-xl font-extrabold text-[#1c1c28] mb-1">{batch.batchName}</h3>
-              <p className="text-slate-500 font-medium text-sm mb-6">Course: {batch.courseName}</p>
+              <p className="text-slate-500 font-medium text-sm mb-6">Course: {batch.courseId?.courseName || batch.courseName}</p>
               
               <div className="flex items-center gap-3 mb-8">
                 <img src={batch.instructorAvatar || "https://i.pravatar.cc/150?img=5"} alt="Instructor" className="w-10 h-10 rounded-full object-cover" />
@@ -264,7 +285,7 @@ const Students: React.FC = () => {
               
               <div className="mt-auto">
                 <div className="flex justify-between items-end mb-2">
-                  <span className="text-xs font-bold text-slate-500">Enrollment: {batch.students || 0}/{batch.maxStudents || 30}</span>
+                  <span className="text-xs font-bold text-slate-500">Enrollment: {batch.enrolledStudents || 0}/{batch.capacity || 30}</span>
                   <span className="text-sm font-extrabold text-[#6247df]">{batch.progressText || '0%'}</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6">
@@ -273,11 +294,46 @@ const Students: React.FC = () => {
                 
                 <div className="flex justify-between items-center pt-5 border-t border-slate-100">
                   <span className="text-[11px] font-bold text-slate-400">{batch.progressLabel || 'Status'}</span>
-                  <Link to={`/admin/students/${batch.batchCode?.toLowerCase() || 'batch-a'}`} className="text-[#6247df] text-sm font-bold flex items-center gap-1 hover:text-[#5035c9] no-underline">
-                    View Students <FiArrowRight size={16} />
+                  <Link to={`/admin/students/${batch._id}`} className="text-[#6247df] text-sm font-bold flex items-center gap-1 hover:text-[#5035c9] no-underline">
+                    View Details <FiArrowRight size={16} />
                   </Link>
                 </div>
               </div>
+
+              {/* Students List for this Batch */}
+              <div className="mt-6 pt-6 border-t border-slate-100">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-sm font-bold text-[#1c1c28]">Students List</h4>
+                  <button 
+                    onClick={() => {
+                      const courseId = batch.courseId?._id || batch.courseId || '';
+                      setSelectedCourseId(courseId);
+                      setSelectedBatchId(batch._id);
+                      setShowAddModal(true);
+                    }}
+                    className="text-xs flex items-center gap-1 bg-indigo-50 text-[#6247df] px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors border-none cursor-pointer"
+                  >
+                    <FiPlus /> Add Student
+                  </button>
+                </div>
+                
+                <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                  {students.filter(s => s.batchId === batch._id || s.batch === batch.batchName).length > 0 ? (
+                    students.filter(s => s.batchId === batch._id || s.batch === batch.batchName).map(student => (
+                      <div key={student._id || student.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+                        <img src={student.avatar || "https://i.pravatar.cc/150?img=12"} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-[#1c1c28] truncate">{student.name}</p>
+                          <p className="text-[10px] text-slate-500 truncate">{student.email || student.phone}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-400 italic text-center py-4">No students enrolled yet.</p>
+                  )}
+                </div>
+              </div>
+
             </div>
           ))}
 
@@ -570,13 +626,13 @@ const Students: React.FC = () => {
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Course</label>
                       <select
                         className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm appearance-none cursor-pointer font-sans"
-                        value={selectedCourse}
+                        value={selectedCourseId}
                         onChange={(e) => handleCourseChange(e.target.value)}
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 1rem center', backgroundSize: '1.25em', backgroundRepeat: 'no-repeat' }}
                       >
-                        {uniqueCourses.length > 0 ? (
-                          uniqueCourses.map(course => (
-                            <option key={course} value={course}>{course}</option>
+                        {courses.length > 0 ? (
+                          courses.map(course => (
+                            <option key={course._id} value={course._id}>{course.courseName}</option>
                           ))
                         ) : (
                           <option disabled value="">No courses available</option>
@@ -588,13 +644,13 @@ const Students: React.FC = () => {
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Batch</label>
                       <select
                         className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm appearance-none cursor-pointer font-sans"
-                        value={selectedBatch}
-                        onChange={(e) => setSelectedBatch(e.target.value)}
+                        value={selectedBatchId}
+                        onChange={(e) => setSelectedBatchId(e.target.value)}
                         style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 1rem center', backgroundSize: '1.25em', backgroundRepeat: 'no-repeat' }}
                       >
                         {filteredBatchesForSelectedCourse.length > 0 ? (
                           filteredBatchesForSelectedCourse.map(b => (
-                            <option key={b._id || b.id} value={b.batchName}>{b.batchName}</option>
+                            <option key={b._id || b.id} value={b._id}>{b.batchName}</option>
                           ))
                         ) : (
                           <option disabled value="">No batches available</option>
