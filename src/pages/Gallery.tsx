@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import bgImage from '../assets/background-home.jpeg';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -43,13 +43,62 @@ const GRID_ARTWORKS = [
   { id: 12, author: "Ryan, Age 11", image: "/images/space_explorer.png", title: "Flying Whale", type: "Digital" },
 ];
 
+const getImageUrl = (path: string) => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/images/')) {
+    return path;
+  }
+  return `http://localhost:5000${path}`;
+};
+
 export default function Gallery() {
   const [activeFilter, setActiveFilter] = useState('All Media');
   const [visibleCount, setVisibleCount] = useState(8);
+  const [artworks, setArtworks] = useState<any[]>(GRID_ARTWORKS);
+  const [featuredArtworks, setFeaturedArtworks] = useState<any[]>(FEATURED_ARTISTS);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/gallery?limit=100')
+      .then(res => res.ok ? res.json() : Promise.reject('Failed to load gallery'))
+      .then(data => {
+        if (data && data.images && data.images.length > 0) {
+          // Map MongoDB format to GRID_ARTWORKS format
+          const formatted = data.images.map((img: any) => ({
+            id: img._id,
+            author: img.description || 'Anonymous',
+            image: img.imageUrl,
+            title: img.title,
+            type: img.category === 'Uncategorized' ? 'Digital' : img.category
+          }));
+          setArtworks(formatted);
+
+          // Extract featured images
+          const featured = data.images
+            .filter((img: any) => img.isFeatured)
+            .slice(0, 3)
+            .map((img: any, idx: number) => {
+              const bgColors = ['bg-[#ff8da1]', 'bg-[#59a9ff]', 'bg-[#8dc63f]'];
+              return {
+                id: img._id,
+                title: img.title,
+                author: img.description || 'Anonymous',
+                image: img.imageUrl,
+                color: bgColors[idx % bgColors.length]
+              };
+            });
+          if (featured.length > 0) {
+            setFeaturedArtworks(featured);
+          }
+        }
+      })
+      .catch(err => {
+        console.error("Failed to load gallery images, using mock data:", err);
+      });
+  }, []);
 
   const filteredArtworks = activeFilter === 'All Media'
-    ? GRID_ARTWORKS
-    : GRID_ARTWORKS.filter(art => art.type === activeFilter);
+    ? artworks
+    : artworks.filter(art => art.type === activeFilter);
 
   const displayedArtworks = filteredArtworks.slice(0, visibleCount);
 
@@ -175,10 +224,10 @@ export default function Gallery() {
       </header>
 
       <section className="relative z-10 flex flex-wrap justify-center gap-8 px-5 md:px-10 pb-16">
-        {FEATURED_ARTISTS.map(artist => (
+        {featuredArtworks.map(artist => (
           <div className="bg-white rounded-[24px] p-4 w-[320px] shadow-sm hover:-translate-y-2 transition-transform duration-300 ease-out border border-slate-100" key={artist.id}>
             <div className="w-full h-[288px] rounded-2xl overflow-hidden mb-4 bg-slate-100">
-              <img src={artist.image} alt={artist.title} className="w-full h-full object-cover" />
+              <img src={getImageUrl(artist.image)} alt={artist.title} className="w-full h-full object-cover" />
             </div>
             <div className="flex justify-between items-center px-2 pb-2">
               <div>
@@ -231,7 +280,7 @@ export default function Gallery() {
           {displayedArtworks.map(art => (
             <div className="bg-white rounded-2xl p-3 shadow-sm hover:-translate-y-1 transition-transform duration-300 border border-slate-100" key={art.id}>
               <div className="w-full aspect-square rounded-xl overflow-hidden mb-3 bg-slate-50">
-                <img src={art.image} alt={art.title} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                <img src={getImageUrl(art.image)} alt={art.title} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
               </div>
               <p className="m-0 px-2 pb-1 text-[#00738e] text-sm font-semibold">{art.author}</p>
             </div>

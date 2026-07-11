@@ -1,32 +1,28 @@
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import dotenv from 'dotenv';
 import Gallery from '../models/Gallery.js';
+
+dotenv.config();
 
 const router = express.Router();
 
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '..', 'uploads', 'gallery');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Multer Storage - Local disk
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, 'gallery-' + uniqueSuffix + ext);
-  },
+// Configure Multer Storage for Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'glosmart/gallery',
+    allowedFormats: ['jpg', 'png', 'jpeg'],
+  }
 });
 
 const fileFilter = (req, file, cb) => {
@@ -128,7 +124,9 @@ router.post('/', (req, res, next) => {
     }
 
     if (!title) {
-      fs.unlinkSync(req.file.path);
+      if (req.file.filename) {
+        await cloudinary.uploader.destroy(req.file.filename);
+      }
       return res.status(400).json({ message: 'Title is required' });
     }
 
@@ -136,7 +134,7 @@ router.post('/', (req, res, next) => {
     const maxOrderImage = await Gallery.findOne().sort({ order: -1 });
     const newOrder = maxOrderImage ? maxOrderImage.order + 1 : 0;
 
-    const imageUrl = `/uploads/gallery/${req.file.filename}`;
+    const imageUrl = req.file.path;
 
     const newImage = new Gallery({
       title,
@@ -213,11 +211,10 @@ router.delete('/bulk', async (req, res) => {
 
     const images = await Gallery.find({ _id: { $in: ids } });
 
-    // Delete files from disk
+    // Delete files from Cloudinary
     for (const image of images) {
-      const filePath = path.join(uploadsDir, image.publicId);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      if (image.publicId) {
+        await cloudinary.uploader.destroy(image.publicId);
       }
     }
 
@@ -242,10 +239,9 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Image not found' });
     }
 
-    // Delete file from disk
-    const filePath = path.join(uploadsDir, image.publicId);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    // Delete file from Cloudinary
+    if (image.publicId) {
+      await cloudinary.uploader.destroy(image.publicId);
     }
 
     // Delete from DB

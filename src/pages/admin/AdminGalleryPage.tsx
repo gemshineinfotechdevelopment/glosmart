@@ -521,7 +521,7 @@ const AdminGalleryPage: React.FC = () => {
                 {/* Image area */}
                 <div className="relative h-48 overflow-hidden bg-slate-100">
                   <img
-                    src={`${API_BASE}${img.imageUrl}`}
+                    src={img.imageUrl.startsWith('http') ? img.imageUrl : `${API_BASE}${img.imageUrl}`}
                     alt={img.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
                     onClick={() => setLightboxImage(img)}
@@ -867,7 +867,7 @@ const AdminGalleryPage: React.FC = () => {
             {/* Image */}
             <div className="md:w-2/3 bg-slate-900 flex items-center justify-center min-h-[300px]">
               <img
-                src={`${API_BASE}${lightboxImage.imageUrl}`}
+                src={lightboxImage.imageUrl.startsWith('http') ? lightboxImage.imageUrl : `${API_BASE}${lightboxImage.imageUrl}`}
                 alt={lightboxImage.title}
                 className="w-full h-full object-contain max-h-[70vh]"
               />
