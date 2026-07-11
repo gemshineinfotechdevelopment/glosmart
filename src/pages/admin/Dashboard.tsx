@@ -50,70 +50,49 @@ const Dashboard: React.FC = () => {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
 
-          {/* Card 1 */}
           <div className="bg-white p-6 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
             <div className="flex justify-between items-start mb-6">
               <div className="w-12 h-12 rounded-2xl bg-purple-100 text-[#6247df] flex items-center justify-center">
                 <FiUsers size={24} />
               </div>
-              <span className="text-green-500 text-sm font-bold bg-green-50 px-2.5 py-1 rounded-lg">+5%↑</span>
             </div>
             <p className="text-slate-500 font-semibold text-sm mb-1">Total Students</p>
-            <h3 className="text-4xl font-black text-[#1c1c28] mb-4">{stats.totalStudents || 150}</h3>
-            <div className="mt-auto">
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-2">
-                <div className="bg-[#6247df] w-[70%] h-full rounded-full"></div>
-              </div>
-              <p className="text-xs text-slate-500 font-medium">{stats.activeStudents || 120} Active Students</p>
-            </div>
+            <h3 className="text-4xl font-black text-[#1c1c28] mb-4">{stats.totalStudents || 0}</h3>
           </div>
 
-          {/* Card 2 */}
           <div className="bg-white p-6 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
             <div className="flex justify-between items-start mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center">
-                <MdCurrencyRupee size={24} />
+              <div className="w-12 h-12 rounded-2xl bg-green-100 text-green-600 flex items-center justify-center">
+                <FiUserCheck size={24} />
               </div>
-              <span className="text-slate-400 text-sm font-semibold">Monthly</span>
             </div>
-            <p className="text-slate-500 font-semibold text-sm mb-1">Monthly Revenue</p>
-            <h3 className="text-4xl font-black text-[#b67323] mb-4">₹{stats.monthlyRevenue || '4,500'}</h3>
-            <div className="mt-auto">
-              <p className="text-xs text-slate-500 font-medium">
-                <span className="text-red-500 font-bold">-₹{stats.pendingFees || '800'}</span> pending fees
-              </p>
-            </div>
+            <p className="text-slate-500 font-semibold text-sm mb-1">Available Seats</p>
+            <h3 className="text-4xl font-black text-green-600 mb-4">{stats.availableSeats || 0}</h3>
           </div>
 
-          {/* Card 3 */}
           <div className="bg-white p-6 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
             <div className="flex justify-between items-start mb-6">
               <div className="w-12 h-12 rounded-2xl bg-cyan-100 text-cyan-600 flex items-center justify-center">
                 <FiBookOpen size={24} />
               </div>
-              <span className="text-slate-400 text-sm font-semibold">Active Now</span>
             </div>
             <p className="text-slate-500 font-semibold text-sm mb-1">Total Courses</p>
-            <h3 className="text-4xl font-black text-[#108c9f] mb-4">{stats.totalCourses || 15}</h3>
-            <div className="mt-auto">
-              <p className="text-xs text-slate-500 font-medium">8 Upcoming classes today</p>
-            </div>
+            <h3 className="text-4xl font-black text-[#108c9f] mb-4">{stats.totalCourses || 0}</h3>
+            <p className="text-xs text-slate-500 mt-auto">{stats.activeCourses || 0} Active Courses</p>
           </div>
 
-          {/* Card 4 */}
           <div className="bg-white p-6 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
             <div className="flex justify-between items-start mb-6">
               <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                <FiUserCheck size={24} />
+                <FiCal size={24} />
               </div>
             </div>
-            <p className="text-slate-500 font-semibold text-sm mb-1">Teachers Count</p>
-            <h3 className="text-4xl font-black text-[#1c1c28] mb-4">{stats.teachersCount || 10}</h3>
-            <div className="mt-auto flex -space-x-3">
-              <img src="https://i.pravatar.cc/150?img=1" className="w-8 h-8 rounded-full border-2 border-white" alt="Teacher" />
-              <img src="https://i.pravatar.cc/150?img=2" className="w-8 h-8 rounded-full border-2 border-white" alt="Teacher" />
-              <img src="https://i.pravatar.cc/150?img=3" className="w-8 h-8 rounded-full border-2 border-white" alt="Teacher" />
-              <div className="w-8 h-8 rounded-full border-2 border-white bg-[#6247df] text-white flex items-center justify-center text-[10px] font-bold">+7</div>
+            <p className="text-slate-500 font-semibold text-sm mb-1">Total Batches</p>
+            <h3 className="text-4xl font-black text-[#1c1c28] mb-4">{stats.totalBatches || 0}</h3>
+            <div className="mt-auto flex justify-between text-xs text-slate-500">
+              <span>{stats.activeBatches || 0} Active</span>
+              <span>{stats.upcomingBatches || 0} Upcoming</span>
+              <span>{stats.completedBatches || 0} Done</span>
             </div>
           </div>
 
@@ -197,7 +176,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="pt-1">
                   <h4 className="font-bold text-[#1c1c28] text-sm">Fee Paid</h4>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">Invoice #3421 paid by Noah's parents ($120)</p>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">Invoice #3421 paid by Noah's parents (₹120)</p>
                   <span className="text-[10px] font-bold text-slate-400 mt-2 block">45 mins ago</span>
                 </div>
               </div>

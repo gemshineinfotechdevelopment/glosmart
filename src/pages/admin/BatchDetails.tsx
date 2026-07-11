@@ -9,8 +9,8 @@ import { Link, useParams } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
 interface Student {
-  id: number;
   _id?: string;
+  id: number;
   name: string;
   avatar: string;
   phone: string;
@@ -24,100 +24,14 @@ interface Student {
   attendanceRate: number;
   attendanceTrend: string;
   batch: string;
+  batchId?: string;
   course: string;
+  courseId?: string;
   teacher: string;
   admissionDate: string;
   schedule: string;
   address: string;
 }
-
-// @ts-ignore
-const STUDENTS_DATA: Student[] = [
-  {
-    id: 1,
-    name: "Mia Thompson",
-    avatar: "https://i.pravatar.cc/150?img=1",
-    phone: "+1 (555) 234-8901",
-    email: "mia@example.com",
-    age: 16,
-    gender: "Female",
-    joiningDate: "15 Mar 2024",
-    feeStatus: "PAID",
-    batchEnd: "28 Aug 2026",
-    remainingDays: 12,
-    attendanceRate: 92,
-    attendanceTrend: "+4%",
-    batch: "Batch A",
-    course: "Pencil Drawing",
-    teacher: "Mrs. Aris",
-    admissionDate: "Aug 24, 2023",
-    schedule: "Mon, Wed (4-6 PM)",
-    address: "892 Creative Lane, Apt 4B, New York"
-  },
-  {
-    id: 2,
-    name: "Lucas Bennett",
-    avatar: "https://i.pravatar.cc/150?img=3",
-    phone: "+1 (555) 098-7654",
-    email: "lucas@example.com",
-    age: 16,
-    gender: "Male",
-    joiningDate: "12 Apr 2024",
-    feeStatus: "PARTIAL",
-    batchEnd: "28 Aug 2026",
-    remainingDays: 12,
-    attendanceRate: 85,
-    attendanceTrend: "+2%",
-    batch: "Batch A",
-    course: "Pencil Drawing",
-    teacher: "Mrs. Aris",
-    admissionDate: "Apr 12, 2024",
-    schedule: "Mon, Wed (4-6 PM)",
-    address: "123 Artist Way, Brooklyn, New York"
-  },
-  {
-    id: 3,
-    name: "Sophia Rivera",
-    avatar: "https://i.pravatar.cc/150?img=5",
-    phone: "+1 (555) 234-5678",
-    email: "sophia@example.com",
-    age: 13,
-    gender: "Female",
-    joiningDate: "20 Feb 2024",
-    feeStatus: "PENDING",
-    batchEnd: "28 Aug 2026",
-    remainingDays: 12,
-    attendanceRate: 78,
-    attendanceTrend: "-1%",
-    batch: "Batch A",
-    course: "Pencil Drawing",
-    teacher: "Mrs. Aris",
-    admissionDate: "Feb 20, 2024",
-    schedule: "Mon, Wed (4-6 PM)",
-    address: "456 Canvas Court, Queens, New York"
-  },
-  {
-    id: 4,
-    name: "Ethan Walker",
-    avatar: "https://i.pravatar.cc/150?img=8",
-    phone: "+1 (555) 345-6789",
-    email: "ethan@example.com",
-    age: 17,
-    gender: "Male",
-    joiningDate: "05 May 2024",
-    feeStatus: "PAID",
-    batchEnd: "28 Aug 2026",
-    remainingDays: 12,
-    attendanceRate: 95,
-    attendanceTrend: "+5%",
-    batch: "Batch A",
-    course: "Pencil Drawing",
-    teacher: "Mrs. Aris",
-    admissionDate: "May 05, 2024",
-    schedule: "Mon, Wed (4-6 PM)",
-    address: "789 Palette Parkway, Manhattan, New York"
-  }
-];
 
 const PaintPaletteIcon = () => (
   <svg className="text-purple-600" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -138,10 +52,10 @@ const BatchDetails: React.FC = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [batches, setBatches] = useState<any[]>([]);
 
-  const currentBatch = batches.find(b => b.batchCode?.toLowerCase() === batchId?.toLowerCase());
+  const currentBatch = batches.find(b => b._id === batchId);
   const studentsInBatch = studentsList.filter(student => {
-    if (!currentBatch) return true;
-    return student.batch === currentBatch.batchName;
+    if (!currentBatch) return false;
+    return student.batchId === currentBatch._id || student.batch === currentBatch.batchName;
   });
 
   useEffect(() => {
@@ -430,12 +344,12 @@ const BatchDetails: React.FC = () => {
             <div className="flex items-center gap-2 text-sm font-semibold mb-2">
               <Link to="/admin/students" className="text-slate-500 hover:text-slate-700 no-underline">Students</Link>
               <FiBreadcrumbRight className="text-slate-400" size={14} />
-              <span className="text-slate-500">{currentBatch ? currentBatch.courseName : 'Course'}</span>
+              <span className="text-slate-500">{currentBatch ? (currentBatch.courseId?.courseName || currentBatch.courseName || 'Course') : 'Course'}</span>
               <FiBreadcrumbRight className="text-slate-400" size={14} />
               <span className="text-[#6247df] font-bold">{currentBatch ? currentBatch.batchName : 'Batch'}</span>
             </div>
             <h2 className="text-[22px] font-bold text-[#1c1c28]">
-              {currentBatch ? `${currentBatch.courseName} – ${currentBatch.batchName}` : 'Student List'}
+              {currentBatch ? `${currentBatch.courseId?.courseName || currentBatch.courseName || 'Course'} – ${currentBatch.batchName}` : 'Student List'}
             </h2>
           </div>
 

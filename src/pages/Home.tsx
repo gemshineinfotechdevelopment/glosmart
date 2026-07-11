@@ -369,7 +369,7 @@ const Home: React.FC = () => {
               <h3 className="text-xl font-bold text-[#1A254C] mb-2">Basic</h3>
               <p className="text-slate-500 text-sm mb-6">For casual learners</p>
               <div className="text-4xl font-extrabold text-[#1A254C] mb-8">
-                $29<span className="text-lg text-slate-400 font-medium">/mo</span>
+                ₹29<span className="text-lg text-slate-400 font-medium">/mo</span>
               </div>
               <ul className="flex flex-col gap-4 text-sm font-semibold text-slate-600 mb-8 flex-grow">
                 <li className="flex items-center gap-3"><FiCheck className="text-green-500" /> Access to 10 basic courses</li>
@@ -388,7 +388,7 @@ const Home: React.FC = () => {
               <h3 className="text-xl font-bold text-white mb-2">Mastery</h3>
               <p className="text-blue-200 text-sm mb-6">Full academy access</p>
               <div className="text-5xl font-extrabold text-white mb-8">
-                $59<span className="text-lg text-blue-300 font-medium">/mo</span>
+                ₹59<span className="text-lg text-blue-300 font-medium">/mo</span>
               </div>
               <ul className="flex flex-col gap-4 text-sm font-semibold text-blue-50 mb-8 flex-grow">
                 <li className="flex items-center gap-3"><FiCheck className="text-pink-400" /> All 100+ premium courses</li>
@@ -405,7 +405,7 @@ const Home: React.FC = () => {
               <h3 className="text-xl font-bold text-[#1A254C] mb-2">Elite</h3>
               <p className="text-slate-500 text-sm mb-6">For dedicated prodigies</p>
               <div className="text-4xl font-extrabold text-[#1A254C] mb-8">
-                $129<span className="text-lg text-slate-400 font-medium">/mo</span>
+                ₹129<span className="text-lg text-slate-400 font-medium">/mo</span>
               </div>
               <ul className="flex flex-col gap-4 text-sm font-semibold text-slate-600 mb-8 flex-grow">
                 <li className="flex items-center gap-3"><FiCheck className="text-green-500" /> Everything in Mastery</li>
