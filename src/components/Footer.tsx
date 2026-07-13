@@ -1,8 +1,43 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiPhone, FiMail, FiMapPin, FiInstagram, FiTwitter, FiYoutube } from 'react-icons/fi';
+import { FiPhone, FiMail, FiMapPin, FiFacebook, FiInstagram, FiTwitter, FiYoutube } from 'react-icons/fi';
+
+const API_BASE = 'http://localhost:5000';
+
+interface FooterSettings {
+  contactInfo: {
+    phone: string;
+    email: string;
+    address: string;
+  };
+  socialLinks: {
+    facebook: string;
+    instagram: string;
+    twitter: string;
+    youtube: string;
+  };
+}
 
 const Footer: React.FC = () => {
+  const [settings, setSettings] = useState<FooterSettings>({
+    contactInfo: { phone: '+1 234 567 890', email: 'hello@glosmartacademy.com', address: '123 Art Avenue, Creative District, New York, NY 10001' },
+    socialLinks: { facebook: '#', instagram: '#', twitter: '#', youtube: '#' }
+  });
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/settings`)
+      .then(res => res.ok ? res.json() : Promise.reject('Failed to load settings'))
+      .then(data => {
+        if (data) {
+          setSettings(prev => ({
+            contactInfo: { ...prev.contactInfo, ...data.contactInfo },
+            socialLinks: { ...prev.socialLinks, ...data.socialLinks }
+          }));
+        }
+      })
+      .catch(console.error);
+  }, []);
+
   return (
     <footer className="bg-[#1e233d] text-slate-300 rounded-t-[2.5rem] md:rounded-t-[4rem] pt-16 pb-8 px-6 md:px-16 mt-20 w-full overflow-hidden">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 pb-12 border-b border-slate-700/50">
@@ -16,13 +51,18 @@ const Footer: React.FC = () => {
             Empowering young minds to explore their creative potential and paint their dreams.
           </p>
           <div className="flex gap-4 mt-2">
-            <a href="#" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#00668A] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
+            {settings.socialLinks.facebook && settings.socialLinks.facebook !== '#' && (
+              <a href={settings.socialLinks.facebook} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#00668A] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
+                <FiFacebook size={18} />
+              </a>
+            )}
+            <a href={settings.socialLinks.instagram} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#00668A] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
               <FiInstagram size={18} />
             </a>
-            <a href="#" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#00668A] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
+            <a href={settings.socialLinks.twitter} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#00668A] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
               <FiTwitter size={18} />
             </a>
-            <a href="#" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#00668A] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
+            <a href={settings.socialLinks.youtube} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-800 hover:bg-[#00668A] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md">
               <FiYoutube size={18} />
             </a>
           </div>
@@ -61,15 +101,15 @@ const Footer: React.FC = () => {
           </h4>
           <div className="flex items-center gap-3 text-sm">
             <FiPhone className="text-[#00668A] shrink-0" size={16} />
-            <span>+1 234 567 890</span>
+            <span>{settings.contactInfo.phone}</span>
           </div>
           <div className="flex items-center gap-3 text-sm">
             <FiMail className="text-[#00668A] shrink-0" size={16} />
-            <span>hello@glosmartacademy.com</span>
+            <span>{settings.contactInfo.email}</span>
           </div>
           <div className="flex items-start gap-3 text-sm">
             <FiMapPin className="text-[#00668A] shrink-0 mt-0.5" size={16} />
-            <span className="leading-relaxed">123 Art Avenue, Creative District, New York, NY 10001</span>
+            <span className="leading-relaxed">{settings.contactInfo.address}</span>
           </div>
         </div>
 

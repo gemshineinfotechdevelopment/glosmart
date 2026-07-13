@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   FiSearch, FiCalendar, FiFilter, FiPlus, 
-  FiEdit2, FiArrowRight, FiVideo,
+  FiArrowRight, FiVideo,
   FiUserPlus, FiX, FiSave, FiCheck, FiBookOpen
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
@@ -94,7 +94,7 @@ const Students: React.FC = () => {
       body: JSON.stringify(newStudent),
     })
       .then(res => res.json())
-      .then(data => {
+      .then(() => {
         setShowAddModal(false);
         resetForm();
         alert('Student registered successfully!');

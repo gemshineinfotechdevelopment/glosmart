@@ -33,8 +33,6 @@ interface Student {
   address: string;
 }
 
-
-
 const PaintPaletteIcon = () => (
   <svg className="text-purple-600" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 22C17.5228 22 22 17.5228 22 12C22 9.5 20 7.5 17.5 7.5H15.5C14.5 7.5 13.5 6.5 13.5 5.5V3.5C13.5 2.5 12.5 2 11.5 2C5.97715 2 1.5 6.47715 1.5 12C1.5 17.5228 5.97715 22 11.5 22H12Z" />

@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   FiGrid, FiUsers, FiBookOpen, FiUserCheck,
-  FiBell, FiSettings, FiLogOut
+  FiBell, FiSettings, FiLogOut, FiImage
 } from 'react-icons/fi';
 import { MdCurrencyRupee } from 'react-icons/md';
 import { Link, useLocation } from 'react-router-dom';
@@ -17,8 +17,9 @@ const AdminSidebar: React.FC = () => {
     { name: 'Courses', path: '/admin/courses', icon: <FiBookOpen size={20} /> },
     { name: 'Teachers', path: '/admin/teachers', icon: <FiUserCheck size={20} /> },
     { name: 'Fees & Payments', path: '/admin/fees', icon: <MdCurrencyRupee size={20} /> },
+    { name: 'Gallery', path: '/admin/gallery', icon: <FiImage size={20} /> },
     { name: 'Notifications', path: '#', icon: <FiBell size={20} /> },
-    { name: 'Settings', path: '#', icon: <FiSettings size={20} /> },
+    { name: 'Settings', path: '/admin/settings', icon: <FiSettings size={20} /> },
   ];
 
   return (

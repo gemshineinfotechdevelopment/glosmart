@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import bgImage from '../assets/background-home.jpeg';
 
 // SVG Icons defined as components for cleanliness
@@ -59,6 +59,27 @@ const FAQS: FaqItem[] = [
 ];
 
 export const Contact: React.FC = () => {
+  const [settings, setSettings] = useState({
+    phone: '+91 9876543210',
+    email: 'glosmart@gmail.com',
+    address: '24, K.K Nagar, Sivakasi - 626123'
+  });
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/settings')
+      .then(res => res.ok ? res.json() : Promise.reject('Failed to load settings'))
+      .then(data => {
+        if (data && data.contactInfo) {
+          setSettings({
+            phone: data.contactInfo.phone || '+91 9876543210',
+            email: data.contactInfo.email || 'glosmart@gmail.com',
+            address: data.contactInfo.address || '24, K.K Nagar, Sivakasi - 626123'
+          });
+        }
+      })
+      .catch(console.error);
+  }, []);
+
   // Form State
   const [formData, setFormData] = useState({
     name: '',
@@ -132,7 +153,7 @@ export const Contact: React.FC = () => {
               </div>
               <div className="flex flex-col">
                 <span className="text-[12px] font-extrabold text-[#616c96] uppercase tracking-wider mb-1">Phone</span>
-                <span className="text-[17px] font-semibold text-[#1e295d]">+91 9876543210</span>
+                <span className="text-[17px] font-semibold text-[#1e295d]">{settings.phone}</span>
               </div>
             </div>
 
@@ -142,7 +163,7 @@ export const Contact: React.FC = () => {
               </div>
               <div className="flex flex-col">
                 <span className="text-[12px] font-extrabold text-[#616c96] uppercase tracking-wider mb-1">Email</span>
-                <span className="text-[17px] font-semibold text-[#1e295d]">glosmart@gmail.com</span>
+                <span className="text-[17px] font-semibold text-[#1e295d]">{settings.email}</span>
               </div>
             </div>
 
@@ -152,7 +173,7 @@ export const Contact: React.FC = () => {
               </div>
               <div className="flex flex-col">
                 <span className="text-[12px] font-extrabold text-[#616c96] uppercase tracking-wider mb-1">Address</span>
-                <span className="text-[17px] font-semibold text-[#1e295d]">24, K.K Nagar, Sivakasi - 626123</span>
+                <span className="text-[17px] font-semibold text-[#1e295d]">{settings.address}</span>
               </div>
             </div>
           </div>
