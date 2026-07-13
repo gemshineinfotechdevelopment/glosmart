@@ -2,46 +2,10 @@ import { useState, useEffect } from 'react';
 import bgImage from '../assets/background-home.jpeg';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { FiX } from 'react-icons/fi';
 
 
-const FEATURED_ARTISTS = [
-  {
-    id: 1,
-    title: "Maya's Garden",
-    author: "Maya, Age 7",
-    image: "/images/mayas_garden.png",
-    color: "bg-[#ff8da1]"
-  },
-  {
-    id: 2,
-    title: "Dragon Friend",
-    author: "Leo, Age 9",
-    image: "/images/dragon_friend.png",
-    color: "bg-[#59a9ff]"
-  },
-  {
-    id: 3,
-    title: "Space Explorer",
-    author: "Sam, Age 10",
-    image: "/images/space_explorer.png",
-    color: "bg-[#8dc63f]"
-  }
-];
 
-const GRID_ARTWORKS = [
-  { id: 1, author: "Sophie, Age 6", image: "/images/magic_castle.png", title: "Colorful Abstract", type: "Digital" },
-  { id: 2, author: "Ethan, Age 11", image: "/images/sunset_valley.png", title: "Sunset Valley", type: "Paintings" },
-  { id: 3, author: "Chloe, Age 8", image: "/images/underwater_world.png", title: "Underwater World", type: "Digital" },
-  { id: 4, author: "Aiden, Age 9", image: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&auto=format&fit=crop", title: "Magic Castle", type: "Digital" },
-  { id: 5, author: "Lily, Age 6", image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=500&auto=format&fit=crop", title: "Sunflower Field", type: "Paintings" },
-  { id: 6, author: "Noah, Age 10", image: "https://images.unsplash.com/photo-1569003339405-ea396a5a8a90?w=500&auto=format&fit=crop", title: "Robot Buddy", type: "Digital" },
-  { id: 7, author: "Emma, Age 7", image: "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?w=500&auto=format&fit=crop", title: "Rainbow Cats", type: "Digital" },
-  { id: 8, author: "James, Age 12", image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=500&auto=format&fit=crop", title: "Dark Forest", type: "Paintings" },
-  { id: 9, author: "Ava, Age 8", image: "https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=500&auto=format&fit=crop", title: "Fruit Bowl", type: "Digital" },
-  { id: 10, author: "Lucas, Age 9", image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=500&auto=format&fit=crop", title: "Peacock Colors", type: "Digital" },
-  { id: 11, author: "Zoe, Age 7", image: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=500&auto=format&fit=crop", title: "City Streets", type: "Paintings" },
-  { id: 12, author: "Ryan, Age 11", image: "/images/space_explorer.png", title: "Flying Whale", type: "Digital" },
-];
 
 const getImageUrl = (path: string) => {
   if (!path) return '';
@@ -54,22 +18,57 @@ const getImageUrl = (path: string) => {
 export default function Gallery() {
   const [activeFilter, setActiveFilter] = useState('All Media');
   const [visibleCount, setVisibleCount] = useState(8);
-  const [artworks, setArtworks] = useState<any[]>(GRID_ARTWORKS);
-  const [featuredArtworks, setFeaturedArtworks] = useState<any[]>(FEATURED_ARTISTS);
+  const [artworks, setArtworks] = useState<any[]>([]);
+  const [featuredArtworks, setFeaturedArtworks] = useState<any[]>([]);
+  const [courseFilters, setCourseFilters] = useState<string[]>(['All Media', 'Paintings', 'Digital']);
+  const [selectedArtwork, setSelectedArtwork] = useState<any | null>(null);
 
   useEffect(() => {
+    // Fetch courses
+    fetch('http://localhost:5000/api/courses?limit=1000&status=Active')
+      .then(res => res.ok ? res.json() : Promise.reject('Failed to load courses'))
+      .then(data => {
+        if (data && data.courses) {
+          const courseNames = data.courses.map((c: any) => {
+            const name = c.courseName || '';
+            let cleaned = name.replace(/\b(beginner|advanced|intermediate)\b/gi, '')
+              .replace(/\(\s*\)/g, '')
+              .replace(/^[\s-–—:]+|[\s-–—:]+$/g, '')
+              .replace(/\s+/g, ' ')
+              .trim();
+            return cleaned;
+          }).filter(Boolean);
+          const uniqueFilters = Array.from(new Set(['All Media', 'Paintings', 'Digital', ...courseNames]));
+          setCourseFilters(uniqueFilters);
+        }
+      })
+      .catch(err => {
+        console.error("Failed to load courses, using default filters:", err);
+      });
+
+    // Fetch gallery images
     fetch('http://localhost:5000/api/gallery?limit=100')
       .then(res => res.ok ? res.json() : Promise.reject('Failed to load gallery'))
       .then(data => {
         if (data && data.images && data.images.length > 0) {
-          // Map MongoDB format to GRID_ARTWORKS format
-          const formatted = data.images.map((img: any) => ({
-            id: img._id,
-            author: img.description || 'Anonymous',
-            image: img.imageUrl,
-            title: img.title,
-            type: img.category === 'Uncategorized' ? 'Digital' : img.category
-          }));
+          // Map MongoDB format
+          const formatted = data.images.map((img: any) => {
+            const cat = img.category || 'Uncategorized';
+            let cleanedCat = cat.replace(/\b(beginner|advanced|intermediate)\b/gi, '')
+              .replace(/\(\s*\)/g, '')
+              .replace(/^[\s-–—:]+|[\s-–—:]+$/g, '')
+              .replace(/\s+/g, ' ')
+              .trim();
+            if (!cleanedCat) cleanedCat = 'Uncategorized';
+
+            return {
+              id: img._id,
+              author: img.description || 'Anonymous',
+              image: img.imageUrl,
+              title: img.title,
+              type: cleanedCat
+            };
+          });
           setArtworks(formatted);
 
           // Extract featured images
@@ -78,21 +77,33 @@ export default function Gallery() {
             .slice(0, 3)
             .map((img: any, idx: number) => {
               const bgColors = ['bg-[#ff8da1]', 'bg-[#59a9ff]', 'bg-[#8dc63f]'];
+              const cat = img.category || 'Uncategorized';
+              let cleanedCat = cat.replace(/\b(beginner|advanced|intermediate)\b/gi, '')
+                .replace(/\(\s*\)/g, '')
+                .replace(/^[\s-–—:]+|[\s-–—:]+$/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+              if (!cleanedCat) cleanedCat = 'Uncategorized';
+
               return {
                 id: img._id,
                 title: img.title,
                 author: img.description || 'Anonymous',
                 image: img.imageUrl,
-                color: bgColors[idx % bgColors.length]
+                color: bgColors[idx % bgColors.length],
+                type: cleanedCat
               };
             });
           if (featured.length > 0) {
             setFeaturedArtworks(featured);
           }
+        } else {
+          setArtworks([]);
+          setFeaturedArtworks([]);
         }
       })
       .catch(err => {
-        console.error("Failed to load gallery images, using mock data:", err);
+        console.error("Failed to load gallery images:", err);
       });
   }, []);
 
@@ -106,7 +117,7 @@ export default function Gallery() {
     <>
       <Navbar />
       <div 
-        className="text-slate-800 min-h-screen relative overflow-x-hidden font-sans pt-28"
+        className="text-slate-800 min-h-screen relative overflow-hidden font-sans pt-28"
         style={{
           backgroundImage: `url(${bgImage})`,
           backgroundSize: '100% auto',
@@ -211,39 +222,48 @@ export default function Gallery() {
         </svg>
       </div>
 
-      <header className="relative z-10 text-center px-5 pt-4 pb-6 max-w-xl mx-auto">
-        <span className="inline-block bg-[#358091] text-white px-4 py-1.5 rounded-full text-xs font-semibold mb-3 mt-4">
-          ⭐ Artist of the Month
-        </span>
-        <h1 className="text-4xl md:text-5xl font-bold text-[#00738e] mb-3 tracking-tight">
-          Creative Stars
-        </h1>
-        <p className="text-slate-500 text-sm md:text-base leading-relaxed">
-          Celebrating the bold imaginations and vibrant colors of our most prolific young creators this month.
-        </p>
-      </header>
+      {featuredArtworks.length > 0 && (
+        <>
+          <header className="relative z-10 text-center px-5 pt-4 pb-6 max-w-xl mx-auto">
+            <span className="inline-block bg-[#358091] text-white px-4 py-1.5 rounded-full text-xs font-semibold mb-3 mt-4">
+              ⭐ Artist of the Month
+            </span>
+            <h1 className="text-4xl md:text-5xl font-bold text-[#00738e] mb-3 tracking-tight">
+              Creative Stars
+            </h1>
+            <p className="text-slate-500 text-sm md:text-base leading-relaxed">
+              Celebrating the bold imaginations and vibrant colors of our most prolific young creators this month.
+            </p>
+          </header>
 
-      <section className="relative z-10 flex flex-wrap justify-center gap-8 px-5 md:px-10 pb-16">
-        {featuredArtworks.map(artist => (
-          <div className="bg-white rounded-[24px] p-4 w-[320px] shadow-sm hover:-translate-y-2 transition-transform duration-300 ease-out border border-slate-100" key={artist.id}>
-            <div className="w-full h-[288px] rounded-2xl overflow-hidden mb-4 bg-slate-100">
-              <img src={getImageUrl(artist.image)} alt={artist.title} className="w-full h-full object-cover" />
-            </div>
-            <div className="flex justify-between items-center px-2 pb-2">
-              <div>
-                <h3 className="text-[#00738e] font-bold text-lg leading-tight mb-1">{artist.title}</h3>
-                <p className="text-slate-400 text-xs font-semibold">{artist.author}</p>
-              </div>
-              <button 
-                className={`w-10 h-10 rounded-full border-none text-white text-lg cursor-pointer flex items-center justify-center hover:scale-110 transition-transform ${artist.color}`}
-                aria-label="Like"
+          <section className="relative z-10 flex flex-wrap justify-center gap-8 px-5 md:px-10 pb-16">
+            {featuredArtworks.map(artist => (
+              <div 
+                className="bg-white rounded-[24px] p-4 w-[320px] shadow-sm hover:-translate-y-2 transition-transform duration-300 ease-out border border-slate-100 cursor-pointer" 
+                key={artist.id}
+                onClick={() => setSelectedArtwork(artist)}
               >
-                ♥
-              </button>
-            </div>
-          </div>
-        ))}
-      </section>
+                <div className="w-full h-[288px] rounded-2xl overflow-hidden mb-4 bg-slate-100">
+                  <img src={getImageUrl(artist.image)} alt={artist.title} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex justify-between items-center px-2 pb-2">
+                  <div>
+                    <h3 className="text-[#00738e] font-bold text-lg leading-tight mb-1">{artist.title}</h3>
+                    <p className="text-slate-400 text-xs font-semibold mb-2">{artist.author}</p>
+                    <span className="text-[10px] font-bold text-white bg-[#00738e] px-2.5 py-0.5 rounded-full">{artist.type}</span>
+                  </div>
+                  <button 
+                    className={`w-10 h-10 rounded-full border-none text-white text-lg cursor-pointer flex items-center justify-center hover:scale-110 transition-transform ${artist.color}`}
+                    aria-label="Like"
+                  >
+                    ♥
+                  </button>
+                </div>
+              </div>
+            ))}
+          </section>
+        </>
+      )}
 
       <section className="relative z-10 max-w-6xl mx-auto px-5 md:px-10 pb-20">
         <div className="flex flex-wrap justify-between items-end gap-5 mb-10">
@@ -255,14 +275,14 @@ export default function Gallery() {
             <button className="bg-white border border-slate-200 rounded-full w-11 h-11 flex items-center justify-center cursor-pointer text-[#00738e] hover:bg-slate-50 transition-colors">
                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
             </button>
-            <div className="flex bg-white p-1 rounded-full shadow-sm border border-slate-100">
-              {['All Media', 'Paintings', 'Digital'].map(f => (
+            <div className="flex flex-wrap bg-white p-1.5 rounded-3xl shadow-sm border border-slate-100 max-w-full gap-1">
+              {courseFilters.map(f => (
                 <button 
                   key={f} 
-                  className={`px-6 py-2 border-none bg-transparent rounded-full cursor-pointer font-semibold text-sm transition-all duration-300 ${
+                  className={`px-6 py-2 border-none rounded-full cursor-pointer font-semibold text-sm transition-all duration-300 ${
                     activeFilter === f 
                       ? 'bg-[#00738e] text-white shadow-sm' 
-                      : 'text-slate-500 hover:text-slate-800'
+                      : 'bg-transparent text-slate-500 hover:text-slate-800'
                   }`}
                   onClick={() => {
                     setActiveFilter(f);
@@ -278,11 +298,21 @@ export default function Gallery() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-10">
           {displayedArtworks.map(art => (
-            <div className="bg-white rounded-2xl p-3 shadow-sm hover:-translate-y-1 transition-transform duration-300 border border-slate-100" key={art.id}>
-              <div className="w-full aspect-square rounded-xl overflow-hidden mb-3 bg-slate-50">
-                <img src={getImageUrl(art.image)} alt={art.title} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+            <div 
+              className="bg-white rounded-2xl p-4 shadow-sm hover:-translate-y-1 transition-transform duration-300 border border-slate-100 flex flex-col justify-between cursor-pointer" 
+              key={art.id}
+              onClick={() => setSelectedArtwork(art)}
+            >
+              <div>
+                <div className="w-full aspect-square rounded-xl overflow-hidden mb-3 bg-slate-50">
+                  <img src={getImageUrl(art.image)} alt={art.title} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                </div>
+                <h4 className="m-0 px-2 text-[#00738e] text-base font-bold truncate mb-1">{art.title}</h4>
+                <p className="m-0 px-2 text-slate-500 text-xs font-medium truncate mb-2">{art.author}</p>
               </div>
-              <p className="m-0 px-2 pb-1 text-[#00738e] text-sm font-semibold">{art.author}</p>
+              <div className="px-2 pt-2 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-[10px] font-bold text-white bg-[#00738e] px-2.5 py-0.5 rounded-full">{art.type}</span>
+              </div>
             </div>
           ))}
         </div>
@@ -315,6 +345,67 @@ export default function Gallery() {
           </div>
         </div>
       </section>
+
+      {/* LIGHTBOX MODAL */}
+      {selectedArtwork && (
+        <div
+          className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedArtwork(null)}
+        >
+          <div
+            className="bg-white rounded-[2rem] max-w-4xl w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col md:flex-row relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button for mobile */}
+            <button
+              onClick={() => setSelectedArtwork(null)}
+              className="absolute top-4 right-4 md:hidden text-white bg-black/50 hover:bg-black/80 rounded-full p-2 z-10"
+            >
+              <FiX size={20} />
+            </button>
+
+            {/* Image */}
+            <div className="md:w-2/3 bg-slate-950 flex items-center justify-center min-h-[300px]">
+              <img
+                src={getImageUrl(selectedArtwork.image)}
+                alt={selectedArtwork.title}
+                className="w-full h-full object-contain max-h-[50vh] md:max-h-[80vh]"
+              />
+            </div>
+
+            {/* Details panel */}
+            <div className="md:w-1/3 p-6 md:p-8 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-2xl font-bold text-slate-800 leading-tight">{selectedArtwork.title}</h3>
+                  <button
+                    onClick={() => setSelectedArtwork(null)}
+                    className="hidden md:flex text-slate-400 hover:text-slate-600 p-1 shrink-0 ml-2"
+                  >
+                    <FiX size={24} />
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className="text-xs font-bold text-white bg-[#00738e] px-3 py-1 rounded-full">{selectedArtwork.type}</span>
+                </div>
+
+                <p className="text-slate-500 text-sm font-semibold mb-2">Creator</p>
+                <p className="text-[#00738e] text-base font-bold mb-4">{selectedArtwork.author}</p>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 mt-auto">
+                <button
+                  onClick={() => setSelectedArtwork(null)}
+                  className="w-full bg-[#00738e] text-white font-bold py-3 rounded-xl hover:bg-[#005c72] transition-colors shadow-sm"
+                >
+                  Close View
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       </div>
       <Footer />
