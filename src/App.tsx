@@ -22,21 +22,24 @@ import BatchDetails from './pages/admin/BatchDetails';
 import AdminGalleryPage from './pages/admin/AdminGalleryPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 
+// Student Pages
+import StudentProfile from './pages/student/StudentProfile';
 
 function AppContent(): React.JSX.Element {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
   const isSignupPage = location.pathname === '/signup';
   const isAdminPage = location.pathname.startsWith('/admin');
+  const isStudentPage = location.pathname.startsWith('/student');
   const isGalleryPage = location.pathname === '/gallery';
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbfe] w-full overflow-x-hidden">
       {/* Floating sticky Navbar */}
-      {!isAdminPage && !isGalleryPage && <Navbar />}
+      {!isAdminPage && !isStudentPage && !isGalleryPage && <Navbar />}
 
       {/* Main Content Area */}
-      <div className={isAdminPage ? "" : "flex-grow"}>
+      <div className={(isAdminPage || isStudentPage) ? "" : "flex-grow"}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -46,6 +49,8 @@ function AppContent(): React.JSX.Element {
           <Route path="/faqs" element={<Faqs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          
+          {/* Admin Routes */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/courses" element={<AdminCoursePage />} />
           <Route path="/admin/courses/new" element={<AdminCreateCoursePage />} />
@@ -58,17 +63,19 @@ function AppContent(): React.JSX.Element {
           <Route path="/admin/gallery" element={<AdminGalleryPage />} />
           <Route path="/admin/settings" element={<AdminSettingsPage />} />
 
+          {/* Student Routes */}
+          <Route path="/student/profile" element={<StudentProfile />} />
+
           {/* Fallback route back to About page */}
           <Route path="*" element={<About />} />
         </Routes>
       </div>
 
       {/* Footer */}
-      {!isLoginPage && !isSignupPage && !isAdminPage && !isGalleryPage && <Footer />}
+      {!isLoginPage && !isSignupPage && !isAdminPage && !isStudentPage && !isGalleryPage && <Footer />}
     </div>
   );
 }
-
 
 function App(): React.JSX.Element {
   return (
