@@ -4,8 +4,6 @@ import {
   FiActivity,
   FiBook,
   FiClipboard,
-  FiUser,
-  FiHelpCircle,
   FiLogOut
 } from 'react-icons/fi';
 import { MdOutlinePayment } from 'react-icons/md';
@@ -21,7 +19,6 @@ const StudentSidebar: React.FC = () => {
     { name: 'Courses', path: '/student/courses', icon: <FiBook size={20} /> },
     { name: 'Assignments', path: '/student/assignments', icon: <FiClipboard size={20} /> },
     { name: 'Fees & Payment', path: '/student/fees', icon: <MdOutlinePayment size={20} /> },
-    { name: 'Emergency Contact', path: '/student/emergency', icon: <FiUser size={20} /> },
   ];
 
   return (
@@ -57,11 +54,7 @@ const StudentSidebar: React.FC = () => {
         </nav>
 
         <div className="px-6 py-6 border-t border-slate-200 mt-auto flex flex-col gap-4">
-          <button className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-[#e6e6fa] text-[#1c1c28] font-bold rounded-xl transition-all border-none cursor-pointer text-[15px] hover:bg-[#d8d8f6]">
-            <FiHelpCircle size={20} /> Help Center
-          </button>
-          
-          <button className="flex items-center gap-3 px-4 py-2 mt-2 text-slate-500 font-semibold hover:text-slate-800 transition-all bg-transparent border-none cursor-pointer text-[15px]">
+          <button className="flex items-center gap-3 px-4 py-2 text-slate-500 font-semibold hover:text-slate-800 transition-all bg-transparent border-none cursor-pointer text-[15px]">
             <FiLogOut size={20} /> Logout
           </button>
         </div>
