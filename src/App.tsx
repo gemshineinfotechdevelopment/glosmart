@@ -21,6 +21,7 @@ import Students from './pages/admin/Students';
 import BatchDetails from './pages/admin/BatchDetails';
 import AdminGalleryPage from './pages/admin/AdminGalleryPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+import AdminNotificationsPage from './pages/admin/AdminNotificationsPage';
 
 // Student Pages
 import StudentProfile from './pages/student/StudentProfile';
@@ -60,8 +61,9 @@ function AppContent(): React.JSX.Element {
           <Route path="/admin/fees" element={<FeesPayments />} />
           <Route path="/admin/students" element={<Students />} />
           <Route path="/admin/students/:batchId" element={<BatchDetails />} />
-          <Route path="/admin/gallery" element={<AdminGalleryPage />} />
+           <Route path="/admin/gallery" element={<AdminGalleryPage />} />
           <Route path="/admin/settings" element={<AdminSettingsPage />} />
+          <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
 
           {/* Student Routes */}
           <Route path="/student/profile" element={<StudentProfile />} />

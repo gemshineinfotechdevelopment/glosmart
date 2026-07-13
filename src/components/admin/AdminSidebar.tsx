@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FiGrid, FiUsers, FiBookOpen, FiUserCheck,
   FiBell, FiSettings, FiLogOut, FiImage
@@ -6,10 +6,23 @@ import {
 import { MdCurrencyRupee } from 'react-icons/md';
 import { Link, useLocation } from 'react-router-dom';
 
+const API_BASE = 'http://localhost:5000';
 
 const AdminSidebar: React.FC = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/notifications`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        if (Array.isArray(data)) {
+          setUnreadCount(data.filter((n: any) => !n.isRead).length);
+        }
+      })
+      .catch(console.error);
+  }, [currentPath]);
 
   const links = [
     { name: 'Dashboard', path: '/admin', icon: <FiGrid size={20} /> },
@@ -18,7 +31,7 @@ const AdminSidebar: React.FC = () => {
     { name: 'Teachers', path: '/admin/teachers', icon: <FiUserCheck size={20} /> },
     { name: 'Fees & Payments', path: '/admin/fees', icon: <MdCurrencyRupee size={20} /> },
     { name: 'Gallery', path: '/admin/gallery', icon: <FiImage size={20} /> },
-    { name: 'Notifications', path: '#', icon: <FiBell size={20} /> },
+    { name: 'Notifications', path: '/admin/notifications', icon: <FiBell size={20} /> },
     { name: 'Settings', path: '/admin/settings', icon: <FiSettings size={20} /> },
   ];
 
@@ -45,19 +58,27 @@ const AdminSidebar: React.FC = () => {
               <Link
                 key={link.name}
                 to={link.path}
-                className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-semibold transition-all no-underline ${isActive
+                className={`flex items-center justify-between px-4 py-3.5 rounded-2xl font-semibold transition-all no-underline ${isActive
                   ? 'bg-[#6247df] text-white shadow-md shadow-purple-900/20'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-[#6247df]'
                   }`}
               >
-                {link.icon} {link.name}
+                <div className="flex items-center gap-3">
+                  {link.icon} <span>{link.name}</span>
+                </div>
+                {link.name === 'Notifications' && unreadCount > 0 && (
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold shadow-sm shrink-0 ${
+                    isActive ? 'bg-white text-[#6247df]' : 'bg-[#6247df] text-white'
+                  }`}>
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
 
         <div className="p-6 mt-auto flex flex-col gap-4">
-
           <button className="flex items-center gap-3 px-4 py-2 text-slate-600 font-semibold hover:text-[#6247df] transition-all bg-transparent border-none cursor-pointer text-sm">
             <FiLogOut size={20} /> Logout
           </button>

@@ -58,6 +58,8 @@ const FAQS: FaqItem[] = [
   },
 ];
 
+const API_BASE = typeof window !== 'undefined' ? `http://${window.location.hostname}:5000` : 'http://localhost:5000';
+
 export const Contact: React.FC = () => {
   const [settings, setSettings] = useState({
     phone: '+91 9876543210',
@@ -66,7 +68,7 @@ export const Contact: React.FC = () => {
   });
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/settings')
+    fetch(`${API_BASE}/api/settings`)
       .then(res => res.ok ? res.json() : Promise.reject('Failed to load settings'))
       .then(data => {
         if (data && data.contactInfo) {
@@ -88,6 +90,8 @@ export const Contact: React.FC = () => {
     message: '',
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Accordion State — first FAQ open by default, matching the design
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -108,14 +112,33 @@ export const Contact: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.name && formData.email && formData.message) {
+    if (!formData.name || !formData.email || !formData.message) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/notifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to send message. Please try again.');
+      }
+
       setIsSubmitted(true);
+      setFormData({ name: '', phone: '', email: '', message: '' });
       setTimeout(() => {
         setIsSubmitted(false);
-        setFormData({ name: '', phone: '', email: '', message: '' });
-      }, 3000);
+      }, 4000);
+    } catch (err: any) {
+      console.error(err);
+      setSubmitError(err.message || 'An error occurred while sending the message.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -241,8 +264,22 @@ export const Contact: React.FC = () => {
                   ></textarea>
                 </div>
 
-                <button type="submit" className="w-full bg-[#00668f] text-white border-none rounded-lg py-4 text-[16px] font-bold cursor-pointer transition-colors duration-300 hover:bg-[#005172] active:scale-[0.99] mt-2.5">
-                  Send Message
+                {submitError && (
+                  <p className="text-red-500 text-sm font-semibold mb-4 text-center">{submitError}</p>
+                )}
+                <button 
+                  type="submit" 
+                  disabled={submitting}
+                  className="w-full bg-[#00668f] text-white border-none rounded-lg py-4 text-[16px] font-bold cursor-pointer transition-colors duration-300 hover:bg-[#005172] active:scale-[0.99] mt-2.5 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {submitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Message'
+                  )}
                 </button>
               </form>
             )}
