@@ -66,8 +66,8 @@ const AdminGalleryPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalImages, setTotalImages] = useState(0);
 
-  // Dynamic categories from API
-  const [categories, setCategories] = useState<string[]>([]);
+  // Dynamic courses from API
+  const [courses, setCourses] = useState<string[]>([]);
 
   // Search & filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,19 +136,31 @@ const AdminGalleryPage: React.FC = () => {
     fetchImages(1);
   }, [fetchImages]);
 
-  // Fetch categories from the course categories API
+  // Fetch active courses from API
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchCourses = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/categories`);
-        if (!res.ok) throw new Error('Failed to fetch categories');
-        const data = await res.json();
-        setCategories(data.map((cat: { name: string }) => cat.name));
+        const courseRes = await fetch(`${API_BASE}/api/courses?limit=1000&status=Active`);
+        if (courseRes.ok) {
+          const courseData = await courseRes.json();
+          if (courseData && courseData.courses) {
+            const courseNames = courseData.courses.map((c: { courseName: string }) => {
+              const name = c.courseName || '';
+              let cleaned = name.replace(/\b(beginner|advanced|intermediate)\b/gi, '')
+                .replace(/\(\s*\)/g, '')
+                .replace(/^[\s-–—:]+|[\s-–—:]+$/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+              return cleaned;
+            }).filter(Boolean);
+            setCourses(Array.from(new Set(courseNames)));
+          }
+        }
       } catch (err) {
-        console.error('Error loading categories:', err);
+        console.error('Error loading courses:', err);
       }
     };
-    fetchCategories();
+    fetchCourses();
   }, []);
 
   // Debounced search
@@ -440,7 +452,7 @@ const AdminGalleryPage: React.FC = () => {
             />
           </div>
 
-          {/* Category filter */}
+          {/* Course filter */}
           <div className="relative">
             <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <select
@@ -448,9 +460,9 @@ const AdminGalleryPage: React.FC = () => {
               onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }}
               className="pl-9 pr-8 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:border-[#6247df] focus:ring-2 focus:ring-purple-100 appearance-none cursor-pointer"
             >
-              <option value="All">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
+              <option value="All">All Courses</option>
+              {courses.map((crs) => (
+                <option key={crs} value={crs}>{crs}</option>
               ))}
             </select>
           </div>
@@ -710,20 +722,19 @@ const AdminGalleryPage: React.FC = () => {
                   />
                 </div>
 
-                {/* Category */}
+                {/* Course */}
                 <div>
-                  <label className="block text-sm font-bold text-[#1c1c28] mb-2">Category</label>
+                  <label className="block text-sm font-bold text-[#1c1c28] mb-2">Course *</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:border-[#6247df] focus:ring-2 focus:ring-purple-100 appearance-none cursor-pointer"
                     disabled={uploading}
                   >
-                    {categories.length > 0 ? categories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    )) : (
-                      <option value="Uncategorized">Uncategorized</option>
-                    )}
+                    <option value="Uncategorized">Select a course</option>
+                    {courses.map((crs) => (
+                      <option key={crs} value={crs}>{crs}</option>
+                    ))}
                   </select>
                 </div>
 
