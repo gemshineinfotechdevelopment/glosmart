@@ -50,6 +50,9 @@ const StudentAssignments: React.FC = () => {
   
   // States
   const [studentId, setStudentId] = useState('');
+  const [studentName, setStudentName] = useState('Sarah Jenkins');
+  const [studentGrade, setStudentGrade] = useState('5th Grade');
+  const [studentAvatar, setStudentAvatar] = useState('https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
   const [pendingCount, setPendingCount] = useState(4);
   const [completedCount, setCompletedCount] = useState(2);
   const gpa = "3.8";
@@ -63,35 +66,41 @@ const StudentAssignments: React.FC = () => {
     fetch('http://localhost:5000/api/students/first')
       .then(res => res.json())
       .then(data => {
-        if (data && data.assignments) {
+        if (data) {
           setStudentId(data._id);
-          setAllAssignments(data.assignments);
-          
-          // Map pending
-          const pending = data.assignments.filter((a: any) => a.status === 'Pending').map((a: any) => ({
-            id: a.id || a._id,
-            title: a.title,
-            course: a.course,
-            instructor: 'TBD',
-            dueDate: a.dueDate || 'No Due Date',
-            dueInDays: 5
-          }));
-          setPendingAssignments(pending);
-          setPendingCount(pending.length);
+          if (data.name) setStudentName(data.name);
+          if (data.grade) setStudentGrade(data.grade);
+          if (data.avatar) setStudentAvatar(data.avatar);
 
-          // Map submitted
-          const submitted = data.assignments.filter((a: any) => a.status === 'Submitted' || a.status === 'Graded').map((a: any) => ({
-            id: a.id || a._id,
-            title: a.title,
-            course: a.course,
-            submittedDate: a.submittedAt || 'Just Now',
-            status: a.status === 'Graded' ? 'Graded' : 'Awaiting Grade',
-            grade: a.grade,
-            comments: a.description,
-            fileName: a.submittedFile || 'document.pdf'
-          }));
-          setSubmittedAssignments(submitted);
-          setCompletedCount(submitted.length);
+          if (data.assignments) {
+            setAllAssignments(data.assignments);
+            
+            // Map pending
+            const pending = data.assignments.filter((a: any) => a.status === 'Pending').map((a: any) => ({
+              id: a.id || a._id,
+              title: a.title,
+              course: a.course,
+              instructor: 'TBD',
+              dueDate: a.dueDate || 'No Due Date',
+              dueInDays: 5
+            }));
+            setPendingAssignments(pending);
+            setPendingCount(pending.length);
+
+            // Map submitted
+            const submitted = data.assignments.filter((a: any) => a.status === 'Submitted' || a.status === 'Graded').map((a: any) => ({
+              id: a.id || a._id,
+              title: a.title,
+              course: a.course,
+              submittedDate: a.submittedAt || 'Just Now',
+              status: a.status === 'Graded' ? 'Graded' : 'Awaiting Grade',
+              grade: a.grade,
+              comments: a.description,
+              fileName: a.submittedFile || 'document.pdf'
+            }));
+            setSubmittedAssignments(submitted);
+            setCompletedCount(submitted.length);
+          }
         }
       })
       .catch(err => console.error('Error fetching assignments:', err));
@@ -250,12 +259,12 @@ const StudentAssignments: React.FC = () => {
           
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <p className="text-[14px] font-bold text-slate-900 leading-none">Sarah Jenkins</p>
-              <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • 5th Grade</p>
+              <p className="text-[14px] font-bold text-slate-900 leading-none">{studentName}</p>
+              <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • {studentGrade}</p>
             </div>
             <img 
-              src="https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80" 
-              alt="Sarah Jenkins" 
+              src={studentAvatar} 
+              alt={studentName} 
               className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm cursor-pointer"
               onClick={() => navigate('/student/profile')}
             />

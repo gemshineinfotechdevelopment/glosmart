@@ -36,50 +36,13 @@ const StudentCourses: React.FC = () => {
   // const [toastMessage, setToastMessage] = useState('');
   
   const [studentId, setStudentId] = useState<string>('');
+  const [studentName, setStudentName] = useState('Sarah Jenkins');
+  const [studentGrade, setStudentGrade] = useState('5th Grade');
+  const [studentAvatar, setStudentAvatar] = useState('https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [suggestedCourses, setSuggestedCourses] = useState<Course[]>([]);
 
-  const defaultEnrolledCourses: EnrolledCourse[] = [
-    {
-      _id: 'enrolled-1',
-      courseName: 'Advanced Oil Painting',
-      courseCode: 'ART004',
-      description: 'Master advanced oil techniques, color glazing, impasto, and canvas prep with hands-on projects.',
-      skillLevel: 'Advanced',
-      thumbnailImage: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&q=80',
-      status: 'Active',
-      progress: 75,
-      instructor: 'Prof. Sarah Jenkins',
-      nextSession: 'Wednesday, 09:00 AM',
-      lastAccessed: '2 days ago'
-    },
-    {
-      _id: 'enrolled-2',
-      courseName: 'Introduction to Sculpture',
-      courseCode: 'ART002',
-      description: 'Explore clay modeling, plaster casting, and basic form sculpting in 3 dimensions.',
-      skillLevel: 'Intermediate',
-      thumbnailImage: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=500&q=80',
-      status: 'Active',
-      progress: 40,
-      instructor: 'Michael Rossi',
-      nextSession: 'Friday, 02:00 PM',
-      lastAccessed: 'Yesterday'
-    },
-    {
-      _id: 'enrolled-3',
-      courseName: 'Anatomy for Artists',
-      courseCode: 'ART007',
-      description: 'Deconstruct the human form, skeletal proportions, and muscular flows for drawing accuracy.',
-      skillLevel: 'Advanced',
-      thumbnailImage: 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=500&q=80',
-      status: 'Active',
-      progress: 90,
-      instructor: 'Dr. Elena Kostic',
-      nextSession: 'Monday, 11:30 AM',
-      lastAccessed: 'Today'
-    }
-  ];
+
 
   // Fetch student and courses from DB
   useEffect(() => {
@@ -90,17 +53,12 @@ const StudentCourses: React.FC = () => {
         if (studentRes.ok) {
           const studentData = await studentRes.json();
           setStudentId(studentData._id);
+          if (studentData.name) setStudentName(studentData.name);
+          if (studentData.grade) setStudentGrade(studentData.grade);
+          if (studentData.avatar) setStudentAvatar(studentData.avatar);
 
-          if (studentData.enrolledCourses && studentData.enrolledCourses.length > 0) {
+          if (studentData.enrolledCourses) {
             setEnrolledCourses(studentData.enrolledCourses);
-          } else {
-            // Seed defaults locally and save to database
-            setEnrolledCourses(defaultEnrolledCourses);
-            await fetch(`http://localhost:5000/api/students/${studentData._id}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ enrolledCourses: defaultEnrolledCourses })
-            });
           }
         }
       } catch (error) {
@@ -197,12 +155,12 @@ const StudentCourses: React.FC = () => {
           
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <p className="text-[14px] font-bold text-slate-900 leading-none">Sarah Jenkins</p>
-              <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • 5th Grade</p>
+              <p className="text-[14px] font-bold text-slate-900 leading-none">{studentName}</p>
+              <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • {studentGrade}</p>
             </div>
             <img 
-              src="https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80" 
-              alt="Sarah Jenkins" 
+              src={studentAvatar} 
+              alt={studentName} 
               className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm cursor-pointer"
               onClick={() => navigate('/student/profile')}
             />
