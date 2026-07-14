@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiPlus, FiArrowLeft, FiEdit2, FiTrash2, FiUsers, FiClock, FiCalendar } from 'react-icons/fi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdminCourseBatchesPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [course, setCourse] = useState<any>(null);
   const [batches, setBatches] = useState<any[]>([]);
@@ -202,12 +204,14 @@ export default function AdminCourseBatchesPage() {
                 </h1>
                 <p className="text-slate-500 mt-1">Manage schedules, instructors, and capacities.</p>
               </div>
-              <button 
-                onClick={() => { resetForm(); setEditingBatch(null); setShowModal(true); }}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                <FiPlus /> Create Batch
-              </button>
+              {user?.role === 'admin' && (
+                <button 
+                  onClick={() => { resetForm(); setEditingBatch(null); setShowModal(true); }}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  <FiPlus /> Create Batch
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -264,22 +268,24 @@ export default function AdminCourseBatchesPage() {
                     )}
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-auto">
-                    <button 
-                      onClick={() => openEditModal(batch)}
-                      className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                      title="Edit"
-                    >
-                      <FiEdit2 />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(batch._id)}
-                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
-                      title="Delete"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </div>
+                  {user?.role === 'admin' && (
+                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-auto">
+                      <button 
+                        onClick={() => openEditModal(batch)}
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                        title="Edit"
+                      >
+                        <FiEdit2 />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(batch._id)}
+                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                        title="Delete"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
               

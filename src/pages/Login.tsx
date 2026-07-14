@@ -1,17 +1,42 @@
 import React, { useState } from 'react';
 import { FiCheck } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import loginImg from '../assets/login.png';
 import crayonImg from '../assets/crayon.png';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login attempt:', { email, password });
+    setError('');
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        login(data);
+        if (data.role === 'student') {
+          navigate('/student/dashboard');
+        } else {
+          navigate('/admin');
+        }
+      } else {
+        setError(data.message || 'Login failed');
+      }
+    } catch (err) {
+      setError('An error occurred during login');
+    }
   };
 
   return (
@@ -86,6 +111,21 @@ const Login: React.FC = () => {
               <h2 className="text-3xl font-extrabold text-[#112a36] mb-2">Welcome Back!</h2>
               <p className="text-slate-500 text-sm">Ready to ignite your next masterpiece?</p>
             </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 text-sm text-yellow-800">
+              <p className="font-bold mb-2">Demo Credentials:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li><span className="font-semibold">Admin:</span> admin@glosmart.com / admin</li>
+                <li><span className="font-semibold">Teacher:</span> teacher@glosmart.com / teacher</li>
+                <li><span className="font-semibold">Student:</span> student@glosmart.com / student</li>
+              </ul>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4 text-center">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleLogin} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">

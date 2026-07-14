@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import About from './pages/About';
@@ -31,8 +32,11 @@ import StudentAssignments from './pages/student/StudentAssignments';
 import StudentFees from './pages/student/StudentFees';
 import StudentDashboard from './pages/student/StudentDashboard';
 
+import { AuthProvider } from './context/AuthContext';
+
 function AppContent(): React.JSX.Element {
   const location = useLocation();
+
   const isLoginPage = location.pathname === '/login';
   const isSignupPage = location.pathname === '/signup';
   const isAdminPage = location.pathname.startsWith('/admin');
@@ -57,26 +61,26 @@ function AppContent(): React.JSX.Element {
           <Route path="/signup" element={<Signup />} />
           
           {/* Admin Routes */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/courses" element={<AdminCoursePage />} />
-          <Route path="/admin/courses/new" element={<AdminCreateCoursePage />} />
-          <Route path="/admin/courses/edit/:id" element={<AdminCreateCoursePage />} />
-          <Route path="/admin/courses/:id/batches" element={<AdminCourseBatchesPage />} />
-          <Route path="/admin/teachers" element={<Teachers />} />
-          <Route path="/admin/fees" element={<FeesPayments />} />
-          <Route path="/admin/students" element={<Students />} />
-          <Route path="/admin/students/:batchId" element={<BatchDetails />} />
-           <Route path="/admin/gallery" element={<AdminGalleryPage />} />
-          <Route path="/admin/settings" element={<AdminSettingsPage />} />
-          <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/courses" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminCoursePage /></ProtectedRoute>} />
+          <Route path="/admin/courses/new" element={<ProtectedRoute allowedRoles={['admin']}><AdminCreateCoursePage /></ProtectedRoute>} />
+          <Route path="/admin/courses/edit/:id" element={<ProtectedRoute allowedRoles={['admin']}><AdminCreateCoursePage /></ProtectedRoute>} />
+          <Route path="/admin/courses/:id/batches" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminCourseBatchesPage /></ProtectedRoute>} />
+          <Route path="/admin/teachers" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><Teachers /></ProtectedRoute>} />
+          <Route path="/admin/fees" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><FeesPayments /></ProtectedRoute>} />
+          <Route path="/admin/students" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><Students /></ProtectedRoute>} />
+          <Route path="/admin/students/:batchId" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><BatchDetails /></ProtectedRoute>} />
+          <Route path="/admin/gallery" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminGalleryPage /></ProtectedRoute>} />
+          <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminSettingsPage /></ProtectedRoute>} />
+          <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminNotificationsPage /></ProtectedRoute>} />
 
           {/* Student Routes */}
-          <Route path="/student/profile" element={<StudentProfile />} />
-          <Route path="/student/attendance" element={<StudentAttendance />} />
-          <Route path="/student/courses" element={<StudentCourses />} />
-          <Route path="/student/assignments" element={<StudentAssignments />} />
-          <Route path="/student/fees" element={<StudentFees />} />
-          <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/student/profile" element={<ProtectedRoute allowedRoles={['student']}><StudentProfile /></ProtectedRoute>} />
+          <Route path="/student/attendance" element={<ProtectedRoute allowedRoles={['student']}><StudentAttendance /></ProtectedRoute>} />
+          <Route path="/student/courses" element={<ProtectedRoute allowedRoles={['student']}><StudentCourses /></ProtectedRoute>} />
+          <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={['student']}><StudentAssignments /></ProtectedRoute>} />
+          <Route path="/student/fees" element={<ProtectedRoute allowedRoles={['student']}><StudentFees /></ProtectedRoute>} />
+          <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
 
           {/* Fallback route back to About page */}
           <Route path="*" element={<About />} />
@@ -101,10 +105,12 @@ function ScrollToTop(): null {
 
 function App(): React.JSX.Element {
   return (
-    <Router>
-      <ScrollToTop />
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <ScrollToTop />
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 }
 

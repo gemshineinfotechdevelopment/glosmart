@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiCalendar, FiUsers, FiEdit2 } from 'react-icons/fi';
 import { MdOutlineDashboard } from 'react-icons/md';
 import AdminSidebar from '../../components/admin/AdminSidebar';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdminCoursePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All Courses');
@@ -43,12 +45,14 @@ export default function AdminCoursePage() {
               <h1 className="text-3xl font-bold text-slate-800 mb-2">Course Management</h1>
               <p className="text-slate-500">Streamline academy operations: track active batches, monitor teacher performance, and manage student enrollment schedules.</p>
             </div>
-            <button 
-              onClick={() => navigate('/admin/courses/new')}
-              className="flex items-center gap-2 px-6 py-3 bg-[#4f39f6] text-white rounded-full hover:bg-indigo-700 transition-colors font-semibold shadow-md shadow-indigo-200 shrink-0"
-            >
-              <FiPlus size={20} /> Create New Course
-            </button>
+            {user?.role === 'admin' && (
+              <button 
+                onClick={() => navigate('/admin/courses/new')}
+                className="flex items-center gap-2 px-6 py-3 bg-[#4f39f6] text-white rounded-full hover:bg-indigo-700 transition-colors font-semibold shadow-md shadow-indigo-200 shrink-0"
+              >
+                <FiPlus size={20} /> Create New Course
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-3 mb-8 overflow-x-auto pb-2">
@@ -92,9 +96,11 @@ export default function AdminCoursePage() {
                       {course.courseCode}
                     </span>
                   </div>
-                  <button className="absolute top-4 right-4 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-600 hover:text-indigo-600 shadow-sm" onClick={(e) => { e.stopPropagation(); navigate(`/admin/courses/edit/${course._id}`); }}>
-                    <FiEdit2 size={14} />
-                  </button>
+                  {user?.role === 'admin' && (
+                    <button className="absolute top-4 right-4 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-600 hover:text-indigo-600 shadow-sm" onClick={(e) => { e.stopPropagation(); navigate(`/admin/courses/edit/${course._id}`); }}>
+                      <FiEdit2 size={14} />
+                    </button>
+                  )}
                 </div>
 
                 <div className="p-6 flex flex-col flex-1">
@@ -139,16 +145,18 @@ export default function AdminCoursePage() {
             ))}
 
             {/* New Course Card */}
-            <div 
-              onClick={() => navigate('/admin/courses/new')}
-              className="bg-white rounded-2xl shadow-sm border border-dashed border-slate-300 flex flex-col items-center justify-center p-8 text-center cursor-pointer hover:border-[#4f39f6] hover:bg-slate-50 transition-colors min-h-[440px] group"
-            >
-              <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-6 group-hover:bg-[#4f39f6] group-hover:text-white group-hover:border-transparent transition-colors shadow-sm">
-                <FiPlus size={28} />
+            {user?.role === 'admin' && (
+              <div 
+                onClick={() => navigate('/admin/courses/new')}
+                className="bg-white rounded-2xl shadow-sm border border-dashed border-slate-300 flex flex-col items-center justify-center p-8 text-center cursor-pointer hover:border-[#4f39f6] hover:bg-slate-50 transition-colors min-h-[440px] group"
+              >
+                <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-6 group-hover:bg-[#4f39f6] group-hover:text-white group-hover:border-transparent transition-colors shadow-sm">
+                  <FiPlus size={28} />
+                </div>
+                <h3 className="font-extrabold text-xl text-slate-800 mb-3 group-hover:text-[#4f39f6] transition-colors">New Course</h3>
+                <p className="text-sm font-medium text-slate-500 max-w-[200px] leading-relaxed">Design a new creative curriculum and schedule for the next semester.</p>
               </div>
-              <h3 className="font-extrabold text-xl text-slate-800 mb-3 group-hover:text-[#4f39f6] transition-colors">New Course</h3>
-              <p className="text-sm font-medium text-slate-500 max-w-[200px] leading-relaxed">Design a new creative curriculum and schedule for the next semester.</p>
-            </div>
+            )}
           </div>
           )}
 

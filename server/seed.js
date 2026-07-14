@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import Batch from './models/Batch.js';
 import Student from './models/Student.js';
 import Payment from './models/Payment.js';
+import User from './models/User.js';
 
 dotenv.config();
 
@@ -19,7 +20,19 @@ const seedData = async () => {
     await Batch.deleteMany();
     await Student.deleteMany();
     await Payment.deleteMany();
+    await User.deleteMany();
     console.log('Cleared existing data');
+
+    // Seed Demo Users FIRST
+    const users = [
+      { email: 'admin@glosmart.com', password: 'admin', role: 'admin' },
+      { email: 'teacher@glosmart.com', password: 'teacher', role: 'teacher' },
+      { email: 'student@glosmart.com', password: 'student', role: 'student' }
+    ];
+    for (const u of users) {
+      await User.create(u);
+    }
+    console.log('Seeded Demo Users');
 
     // Seed Batches
     const batches = [
