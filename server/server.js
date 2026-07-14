@@ -15,6 +15,7 @@ import categoryRoutes from './routes/categoryRoutes.js';
 import galleryRoutes from './routes/galleryRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 
 dotenv.config();
@@ -58,6 +59,7 @@ app.use('/api/gallery', galleryRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/auth', authRoutes);
 
 
 app.get('/', (req, res) => {

@@ -7,11 +7,19 @@ import {
   FiLogOut
 } from 'react-icons/fi';
 import { MdOutlinePayment } from 'react-icons/md';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const StudentSidebar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const currentPath = location.pathname;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const links = [
     { name: 'Dashboard', path: '/student/dashboard', icon: <FiGrid size={20} /> },
@@ -54,7 +62,7 @@ const StudentSidebar: React.FC = () => {
         </nav>
 
         <div className="px-6 py-6 border-t border-slate-200 mt-auto flex flex-col gap-4">
-          <button className="flex items-center gap-3 px-4 py-2 text-slate-500 font-semibold hover:text-slate-800 transition-all bg-transparent border-none cursor-pointer text-[15px]">
+          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2 text-slate-500 font-semibold hover:text-slate-800 transition-all bg-transparent border-none cursor-pointer text-[15px]">
             <FiLogOut size={20} /> Logout
           </button>
         </div>
