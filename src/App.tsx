@@ -25,6 +25,11 @@ import AdminNotificationsPage from './pages/admin/AdminNotificationsPage';
 
 // Student Pages
 import StudentProfile from './pages/student/StudentProfile';
+import StudentAttendance from './pages/student/StudentAttendance';
+import StudentCourses from './pages/student/StudentCourses';
+import StudentAssignments from './pages/student/StudentAssignments';
+import StudentFees from './pages/student/StudentFees';
+import StudentDashboard from './pages/student/StudentDashboard';
 
 function AppContent(): React.JSX.Element {
   const location = useLocation();
@@ -67,6 +72,11 @@ function AppContent(): React.JSX.Element {
 
           {/* Student Routes */}
           <Route path="/student/profile" element={<StudentProfile />} />
+          <Route path="/student/attendance" element={<StudentAttendance />} />
+          <Route path="/student/courses" element={<StudentCourses />} />
+          <Route path="/student/assignments" element={<StudentAssignments />} />
+          <Route path="/student/fees" element={<StudentFees />} />
+          <Route path="/student/dashboard" element={<StudentDashboard />} />
 
           {/* Fallback route back to About page */}
           <Route path="*" element={<About />} />
