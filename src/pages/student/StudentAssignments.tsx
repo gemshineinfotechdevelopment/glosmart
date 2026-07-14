@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FiClipboard, 
+import {  
   FiCheckCircle, 
   FiUploadCloud, 
   FiEye, 
@@ -12,7 +11,6 @@ import {
   FiAlertCircle, 
   FiCheck, 
   FiX,
-  FiStar,
   FiFileText
 } from 'react-icons/fi';
 
@@ -50,8 +48,8 @@ const StudentAssignments: React.FC = () => {
   
   // States
   const [studentId, setStudentId] = useState('');
-  const [pendingCount, setPendingCount] = useState(4);
-  const [completedCount, setCompletedCount] = useState(2);
+  // const [pendingCount, setPendingCount] = useState(4);
+  // const [completedCount, setCompletedCount] = useState(2);
   // const gpa = "3.8";
   
   const [pendingAssignments, setPendingAssignments] = useState<PendingAssignment[]>([]);
@@ -77,7 +75,7 @@ const StudentAssignments: React.FC = () => {
             dueInDays: 5
           }));
           setPendingAssignments(pending);
-          setPendingCount(pending.length);
+          // setPendingCount(pending.length);
 
           // Map submitted
           const submitted = data.assignments.filter((a: any) => a.status === 'Submitted' || a.status === 'Graded').map((a: any) => ({
@@ -91,7 +89,7 @@ const StudentAssignments: React.FC = () => {
             fileName: a.submittedFile || 'document.pdf'
           }));
           setSubmittedAssignments(submitted);
-          setCompletedCount(submitted.length);
+          // setCompletedCount(submitted.length);
         }
       })
       .catch(err => console.error('Error fetching assignments:', err));
@@ -207,8 +205,8 @@ const StudentAssignments: React.FC = () => {
           // Update state locally
           setSubmittedAssignments([newSubmission, ...submittedAssignments]);
           setPendingAssignments(pendingAssignments.filter(a => a.id !== selectedAssignment.id));
-          setPendingCount(prev => Math.max(0, prev - 1));
-          setCompletedCount(prev => prev + 1);
+          // setPendingCount(prev => Math.max(0, prev - 1));
+          // setCompletedCount(prev => prev + 1);
 
           // Close modal
           setIsUploadOpen(false);
