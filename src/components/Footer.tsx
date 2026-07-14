@@ -75,7 +75,7 @@ const Footer: React.FC = () => {
           </h4>
           <ul className="flex flex-col gap-3 text-sm">
             <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
-            <li><Link to="/" className="hover:text-white transition-colors">About</Link></li>
+            <li><Link to="/about" className="hover:text-white transition-colors">About</Link></li>
             <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
             <li><Link to="/gallery" className="hover:text-white transition-colors">Gallery</Link></li>
             <li><Link to="/faqs" className="hover:text-white transition-colors">FAQs</Link></li>
@@ -88,9 +88,9 @@ const Footer: React.FC = () => {
             Our Courses
           </h4>
           <ul className="flex flex-col gap-3 text-sm">
-            <li><a href="#" className="hover:text-white transition-colors">Pre-Junior (Ages 4-6)</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Junior (Ages 7-10)</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Senior (Ages 11-15)</a></li>
+            <li><Link to="/courses" className="hover:text-white transition-colors">Pre-Junior (Ages 4-6)</Link></li>
+            <li><Link to="/courses" className="hover:text-white transition-colors">Junior (Ages 7-10)</Link></li>
+            <li><Link to="/courses" className="hover:text-white transition-colors">Senior (Ages 11-15)</Link></li>
           </ul>
         </div>
 
