@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiCalendar, FiUsers, FiEdit2 } from 'react-icons/fi';
+import { FiPlus, FiCalendar, FiEdit2 } from 'react-icons/fi';
 import { MdOutlineDashboard } from 'react-icons/md';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
@@ -128,10 +128,6 @@ export default function AdminCoursePage() {
                   <div className="mt-auto pt-5 border-t border-slate-100 flex items-center justify-between">
                     <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 rounded-lg text-sm font-bold text-indigo-600 border border-indigo-100">
                       Batches: {course.batches?.length || 0}
-                    </div>
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-lg text-sm font-bold text-slate-600 border border-slate-100">
-                      <FiUsers size={14} className="text-slate-400" />
-                      Max {course.maxStudents}
                     </div>
                   </div>
                 </div>

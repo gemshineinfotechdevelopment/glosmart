@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FiPlus, FiArrowLeft, FiEdit2, FiTrash2, FiUsers, FiClock, FiCalendar } from 'react-icons/fi';
+import { FiPlus, FiArrowLeft, FiEdit2, FiTrash2, FiClock, FiCalendar } from 'react-icons/fi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
 export default function AdminCourseBatchesPage() {
@@ -245,23 +245,9 @@ export default function AdminCourseBatchesPage() {
                       <FiClock className="text-slate-400" />
                       {batch.startTime || 'TBD'} - {batch.endTime || 'TBD'}
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <FiUsers className="text-slate-400" />
-                      Enrolled: {batch.enrolledStudents}/{batch.capacity}
-                    </div>
                     <div className="text-sm">
                       Days: {batch.days?.length > 0 ? batch.days.join(', ') : 'TBD'}
                     </div>
-                    
-                    {batch.availableSeats === 0 ? (
-                      <div className="text-sm font-medium text-rose-600 bg-rose-50 px-3 py-2 rounded">
-                        Batch Full (Enrollments Disabled)
-                      </div>
-                    ) : (
-                      <div className="text-sm font-medium text-emerald-600 bg-emerald-50 px-3 py-2 rounded">
-                        {batch.availableSeats} Seats Available
-                      </div>
-                    )}
                   </div>
 
                   <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-auto">
@@ -364,7 +350,7 @@ export default function AdminCourseBatchesPage() {
                   <input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
 
-                <div>
+                <div className="hidden">
                   <label className="block text-sm font-medium text-slate-700 mb-1">Max Capacity</label>
                   <input type="number" name="capacity" value={formData.capacity} onChange={handleInputChange} min="1" className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
