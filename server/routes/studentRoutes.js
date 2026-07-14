@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import Student from '../models/Student.js';
 import Batch from '../models/Batch.js';
+import Course from '../models/Course.js';
 
 const router = express.Router();
 
@@ -99,6 +100,33 @@ router.get('/first', async (req, res) => {
       await student.save();
       console.log('Seeded default Sarah Jenkins student');
     }
+
+    // Clean up any enrolledCourses that no longer exist in the Course collection
+    if (student && student.enrolledCourses && student.enrolledCourses.length > 0) {
+      const activeCourses = await Course.find({}, '_id courseName');
+      const activeCourseIds = activeCourses.map(c => c._id.toString());
+      const activeCourseNames = activeCourses.map(c => c.courseName.toLowerCase());
+
+      const filteredEnrolledCourses = student.enrolledCourses.filter(ec => {
+        // Keep it if it's one of the seeded defaults
+        if (['sculpt-101', 'draw-202', 'oil-303'].includes(ec.courseId)) {
+          return true;
+        }
+        // Keep it if the courseId is a valid ObjectId and exists in the Course collection
+        if (mongoose.Types.ObjectId.isValid(ec.courseId)) {
+          return activeCourseIds.includes(ec.courseId.toString());
+        }
+        // Otherwise, check if the courseName exists in active course names
+        return activeCourseNames.includes(ec.courseName.toLowerCase());
+      });
+
+      if (filteredEnrolledCourses.length !== student.enrolledCourses.length) {
+        student.enrolledCourses = filteredEnrolledCourses;
+        await student.save();
+        console.log('Cleaned up deleted courses from student enrolled list');
+      }
+    }
+
     res.json(student);
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
-import { FiEdit2, FiDownload, FiX, FiCheck, FiCheckCircle } from 'react-icons/fi';
+import { FiEdit2, FiX, FiCheck, FiCheckCircle } from 'react-icons/fi';
 
 interface ProfileData {
   name: string;
@@ -112,12 +112,7 @@ const StudentProfile: React.FC = () => {
       });
   };
 
-  // Handle Download Portfolio
-  const handleDownloadPortfolio = () => {
-    setToastMessage('Downloading Sarah_Jenkins_Portfolio_2026.pdf...');
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 4000);
-  };
+
 
   return (
     <div className="flex min-h-screen bg-[#F9FAFB] w-full font-sans">
@@ -200,7 +195,7 @@ const StudentProfile: React.FC = () => {
             </div>
 
             {/* Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 w-full">
+            <div className="w-full">
               <button 
                 onClick={() => {
                   setEditName(profile.name);
@@ -210,15 +205,9 @@ const StudentProfile: React.FC = () => {
                   setEditGrade(profile.grade);
                   setIsEditModalOpen(true);
                 }}
-                className="flex-1 bg-[#4700b3] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#3d0099] transition-colors border-none cursor-pointer shadow-md shadow-purple-900/10"
+                className="w-full bg-[#4700b3] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#3d0099] transition-colors border-none cursor-pointer shadow-md shadow-purple-900/10"
               >
                 <FiEdit2 size={18} /> Edit Profile
-              </button>
-              <button 
-                onClick={handleDownloadPortfolio}
-                className="flex-1 bg-[#eef0f7] text-[#111827] py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#e5e7eb] transition-colors border-none cursor-pointer"
-              >
-                <FiDownload size={18} /> Download Portfolio
               </button>
             </div>
             
