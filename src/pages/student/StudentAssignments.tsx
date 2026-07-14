@@ -52,7 +52,7 @@ const StudentAssignments: React.FC = () => {
   const [studentId, setStudentId] = useState('');
   const [pendingCount, setPendingCount] = useState(4);
   const [completedCount, setCompletedCount] = useState(2);
-  const gpa = "3.8";
+  // const gpa = "3.8";
   
   const [pendingAssignments, setPendingAssignments] = useState<PendingAssignment[]>([]);
   const [submittedAssignments, setSubmittedAssignments] = useState<SubmittedAssignment[]>([]);
@@ -263,7 +263,7 @@ const StudentAssignments: React.FC = () => {
         </header>
 
         {/* Outer Container */}
-        <div className="px-6 lg:px-10 mt-8 space-y-10 flex-1">
+        <div className="px-6 lg:px-10 mt-6 space-y-6 flex-1">
           
           {/* Toast Notification */}
           {showToast && (
@@ -275,10 +275,12 @@ const StudentAssignments: React.FC = () => {
             </div>
           )}
 
-          {/* First Row: 3 Metric Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* First Row: 2 Metric Cards */}
+          {/*
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Card 1: Pending Tasks */}
+            {/*
             <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Pending Tasks</p>
@@ -290,19 +292,10 @@ const StudentAssignments: React.FC = () => {
                 <FiClipboard size={22} className="stroke-[2.5]" />
               </div>
             </div>
+            */}
 
-            {/* Card 2: Total GPA */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total GPA</p>
-                <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">{gpa}</h2>
-              </div>
-              <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl">
-                <FiStar size={22} className="stroke-[2.5]" />
-              </div>
-            </div>
-
-            {/* Card 3: Completed */}
+            {/* Card 2: Completed */}
+            {/*
             <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Completed Tasks</p>
@@ -314,6 +307,7 @@ const StudentAssignments: React.FC = () => {
             </div>
 
           </div>
+          */}
 
           {/* Section 2: Pending Assignments */}
           <section className="space-y-6">
@@ -340,7 +334,7 @@ const StudentAssignments: React.FC = () => {
                   return (
                     <div 
                       key={assignment.id} 
-                      className="bg-white rounded-[2rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 flex flex-col justify-between hover:shadow-md transition-shadow duration-300"
+                      className="bg-white rounded-[2rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-5 flex flex-col justify-between hover:shadow-md transition-shadow duration-300"
                     >
                       <div className="flex justify-between items-start gap-4">
                         <div className="flex gap-4">
@@ -364,19 +358,10 @@ const StudentAssignments: React.FC = () => {
                         </span>
                       </div>
 
-                      <div className="mt-8 pt-4 border-t border-slate-50 flex justify-between items-center">
+                      <div className="mt-4 pt-3 border-t border-slate-50 flex justify-between items-center">
                         <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5">
                           <FiAlertCircle size={14} /> Due by {assignment.dueDate}
                         </span>
-                        <button 
-                          onClick={() => {
-                            setSelectedAssignment(assignment);
-                            setIsUploadOpen(true);
-                          }}
-                          className="bg-[#4700b3] hover:bg-[#3d0099] text-white py-2.5 px-5 rounded-xl font-bold transition-all border-none cursor-pointer flex items-center gap-1.5 text-xs shadow-sm shadow-purple-900/10"
-                        >
-                          <FiUploadCloud size={14} /> Upload
-                        </button>
                       </div>
                     </div>
                   );
@@ -386,6 +371,7 @@ const StudentAssignments: React.FC = () => {
           </section>
 
           {/* Section 3: Submitted */}
+          {/*
           <section className="space-y-6">
             <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
               <span className="w-1.5 h-6 bg-[#4700b3] rounded-full inline-block"></span>
@@ -436,6 +422,7 @@ const StudentAssignments: React.FC = () => {
               </div>
             </div>
           </section>
+          */}
 
           {/* Section 4: Course Certificates */}
           {/* 
