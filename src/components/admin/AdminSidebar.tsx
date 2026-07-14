@@ -4,14 +4,22 @@ import {
   FiBell, FiSettings, FiLogOut, FiImage
 } from 'react-icons/fi';
 import { MdCurrencyRupee } from 'react-icons/md';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const API_BASE = 'http://localhost:5000';
 
 const AdminSidebar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const currentPath = location.pathname;
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   useEffect(() => {
     fetch(`${API_BASE}/api/notifications`)
@@ -79,7 +87,7 @@ const AdminSidebar: React.FC = () => {
         </nav>
 
         <div className="p-6 mt-auto flex flex-col gap-4">
-          <button className="flex items-center gap-3 px-4 py-2 text-slate-600 font-semibold hover:text-[#6247df] transition-all bg-transparent border-none cursor-pointer text-sm">
+          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2 text-slate-600 font-semibold hover:text-[#6247df] transition-all bg-transparent border-none cursor-pointer text-sm">
             <FiLogOut size={20} /> Logout
           </button>
         </div>
