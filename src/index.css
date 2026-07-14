@@ -18,7 +18,8 @@
   --radius-3xl: 1.5rem;
   --radius-4xl: 2rem;
 
-  --animate-blob-slow: blob-slow 20s infinite ease-in-out;
+  --animate-blob-slow: blob-slow 10s infinite ease-in-out;
+  --animate-marquee: marquee 80s linear infinite;
 
   @keyframes blob-slow {
     0%, 100% {
@@ -33,6 +34,11 @@
       transform: translate(-50%, -50%) rotate(240deg) scale(0.95);
       border-radius: 50% 45% 60% 40% / 55% 50% 45% 50%;
     }
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
   }
 }
 

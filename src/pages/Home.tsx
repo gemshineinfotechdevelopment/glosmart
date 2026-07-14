@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FiPlay, FiSmile, FiTrendingUp, FiImage, FiShield,
-  FiStar, FiCheck, FiChevronDown,
+  FiStar, FiCheck, FiChevronDown, FiCalendar, FiEdit2
 } from 'react-icons/fi';
+import { MdOutlineDashboard } from 'react-icons/md';
 import { FaPalette, FaRocket, FaPaintBrush } from 'react-icons/fa';
 
 import bgImage from '../assets/background-home.jpeg';
@@ -17,7 +19,15 @@ const mockArtwork3 = "https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?
 const mockArtwork4 = "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&q=80";
 
 const Home: React.FC = () => {
-  const [isYearly, setIsYearly] = useState(false);
+  const navigate = useNavigate();
+  const [courses, setCourses] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/courses')
+      .then(res => res.json())
+      .then(data => setCourses(data.courses || []))
+      .catch(error => console.error('Error fetching courses', error));
+  }, []);
 
   return (
     <main
@@ -191,7 +201,7 @@ const Home: React.FC = () => {
         </div>
 
         {/* Pink Clouds Divider (Using Background Image) */}
-        <div 
+        <div
           className="absolute bottom-0 left-0 w-full h-[150px] md:h-[250px] z-0 pointer-events-none"
           style={{
             backgroundImage: `url(${cloudImage})`,
@@ -347,74 +357,68 @@ const Home: React.FC = () => {
         <div className="max-w-6xl mx-auto text-center flex flex-col items-center">
           <h2 className="text-3xl lg:text-4xl font-extrabold text-[#1A254C] mb-8">Choose Your Art Plan</h2>
 
-          {/* Toggle */}
-          <div className="bg-white rounded-full p-1 inline-flex shadow-sm mb-16 border border-slate-100">
-            <button
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${!isYearly ? 'bg-[#005577] text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
-              onClick={() => setIsYearly(false)}
-            >
-              Monthly
-            </button>
-            <button
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${isYearly ? 'bg-[#005577] text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
-              onClick={() => setIsYearly(true)}
-            >
-              Yearly (Save 20%)
-            </button>
-          </div>
+          {/* Scroll container */}
+          <div className="w-full overflow-hidden py-8 -mx-6 px-6">
+            <div className="flex w-max animate-marquee gap-8 hover:[animation-play-state:paused]">
+              {courses.length > 0 ? [...courses, ...courses, ...courses, ...courses].map((course, index) => {
+                const isBlue = index % 2 !== 0;
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl items-center">
-            {/* Basic */}
-            <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-slate-100 flex flex-col h-full text-left">
-              <h3 className="text-xl font-bold text-[#1A254C] mb-2">Basic</h3>
-              <p className="text-slate-500 text-sm mb-6">For casual learners</p>
-              <div className="text-4xl font-extrabold text-[#1A254C] mb-8">
-                ₹29<span className="text-lg text-slate-400 font-medium">/mo</span>
-              </div>
-              <ul className="flex flex-col gap-4 text-sm font-semibold text-slate-600 mb-8 flex-grow">
-                <li className="flex items-center gap-3"><FiCheck className="text-green-500" /> Access to 10 basic courses</li>
-                <li className="flex items-center gap-3"><FiCheck className="text-green-500" /> Community gallery access</li>
-              </ul>
-              <button className="w-full py-4 rounded-full border-2 border-[#005577] text-[#005577] font-bold hover:bg-[#005577] hover:text-white transition-all">
-                Select Plan
-              </button>
-            </div>
+                return (
+                  <div key={`${course._id}-${index}`} className={`${isBlue ? 'bg-[#f0f8ff]' : 'bg-white'} w-[350px] shrink-0 rounded-2xl shadow-xl border border-slate-100 overflow-hidden flex flex-col hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 h-full cursor-pointer`} onClick={() => navigate('/courses')}>
+                    <div className="relative h-56 bg-slate-100 shrink-0">
+                      {course.thumbnailImage ? (
+                        <img src={course.thumbnailImage} alt={course.courseName} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-200">
+                          <MdOutlineDashboard size={48} />
+                        </div>
+                      )}
+                      <div className="absolute top-4 left-4 flex gap-2">
+                        <span className="px-3 py-1 text-[11px] font-bold rounded-md text-white uppercase tracking-wider bg-emerald-500 shadow-sm">
+                          ACTIVE
+                        </span>
+                        <span className="px-3 py-1 text-[11px] font-bold rounded-md bg-black/60 text-white backdrop-blur-md shadow-sm">
+                          {course.courseCode || 'ART001'}
+                        </span>
+                      </div>
+                      <button className="absolute top-4 right-4 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-600 hover:text-indigo-600 shadow-sm transition-colors">
+                        <FiEdit2 size={16} />
+                      </button>
+                    </div>
 
-            {/* Mastery (Highlighted) */}
-            <div className="bg-[#005577] rounded-[2rem] p-8 shadow-2xl shadow-blue-900/20 flex flex-col h-full text-left relative transform md:-translate-y-4">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-pink-400 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
-                MOST POPULAR
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Mastery</h3>
-              <p className="text-blue-200 text-sm mb-6">Full academy access</p>
-              <div className="text-5xl font-extrabold text-white mb-8">
-                ₹59<span className="text-lg text-blue-300 font-medium">/mo</span>
-              </div>
-              <ul className="flex flex-col gap-4 text-sm font-semibold text-blue-50 mb-8 flex-grow">
-                <li className="flex items-center gap-3"><FiCheck className="text-pink-400" /> All 100+ premium courses</li>
-                <li className="flex items-center gap-3"><FiCheck className="text-pink-400" /> 1-on-1 monthly review</li>
-                <li className="flex items-center gap-3"><FiCheck className="text-pink-400" /> Skill tracking reports</li>
-              </ul>
-              <button className="w-full py-4 rounded-full bg-white text-[#005577] font-bold hover:bg-slate-100 transition-all shadow-lg">
-                Start Free Trial
-              </button>
-            </div>
+                    <div className="p-8 flex flex-col flex-1">
+                      <h3 className="font-extrabold text-2xl text-[#1A254C] mb-6 leading-tight">{course.courseName}</h3>
 
-            {/* Elite */}
-            <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-slate-100 flex flex-col h-full text-left">
-              <h3 className="text-xl font-bold text-[#1A254C] mb-2">Elite</h3>
-              <p className="text-slate-500 text-sm mb-6">For dedicated prodigies</p>
-              <div className="text-4xl font-extrabold text-[#1A254C] mb-8">
-                ₹129<span className="text-lg text-slate-400 font-medium">/mo</span>
-              </div>
-              <ul className="flex flex-col gap-4 text-sm font-semibold text-slate-600 mb-8 flex-grow">
-                <li className="flex items-center gap-3"><FiCheck className="text-green-500" /> Everything in Mastery</li>
-                <li className="flex items-center gap-3"><FiCheck className="text-green-500" /> Weekly private tutoring</li>
-                <li className="flex items-center gap-3"><FiCheck className="text-green-500" /> Priority expo features</li>
-              </ul>
-              <button className="w-full py-4 rounded-full border-2 border-[#005577] text-[#005577] font-bold hover:bg-[#005577] hover:text-white transition-all">
-                Select Plan
-              </button>
+                      <div className="flex items-center gap-4 mb-8">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${isBlue ? 'bg-white text-blue-500 shadow-sm' : 'bg-[#eef2ff] text-[#4f39f6]'}`}>
+                          <MdOutlineDashboard size={24} />
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Skill Level</p>
+                          <p className="text-base font-bold text-slate-700">{course.skillLevel || 'Beginner'}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-6 mt-auto">
+                        <div>
+                          <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                            <FiCalendar size={14} /> Start Date
+                          </div>
+                          <p className="text-base font-bold text-slate-800">{course.startDate ? new Date(course.startDate).toLocaleDateString() : '7/13/2026'}</p>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                            <FiCalendar size={14} /> End Date
+                          </div>
+                          <p className="text-base font-bold text-slate-800">{course.endDate ? new Date(course.endDate).toLocaleDateString() : '7/31/2026'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }) : (
+                <div className="col-span-3 text-slate-500 py-10 font-bold">Loading courses...</div>
+              )}
             </div>
           </div>
         </div>

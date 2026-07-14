@@ -1,5 +1,7 @@
 import express from 'express';
 import Course from '../models/Course.js';
+import Student from '../models/Student.js';
+import Batch from '../models/Batch.js';
 
 const router = express.Router();
 
@@ -80,11 +82,66 @@ router.put('/:id', async (req, res) => {
 // DELETE course by ID
 router.delete('/:id', async (req, res) => {
   try {
-    const deletedCourse = await Course.findByIdAndDelete(req.params.id);
+    const courseId = req.params.id;
+    const deletedCourse = await Course.findByIdAndDelete(courseId);
     if (!deletedCourse) {
       return res.status(404).json({ message: 'Course not found' });
     }
-    res.json({ message: 'Course deleted successfully', id: req.params.id });
+
+    // 1. Remove this course from enrolledCourses array of all students
+    await Student.updateMany(
+      { 
+        $or: [
+          { "enrolledCourses.courseId": courseId },
+          { "enrolledCourses.courseName": deletedCourse.courseName }
+        ]
+      },
+      { 
+        $pull: { 
+          enrolledCourses: { 
+            $or: [
+              { courseId: courseId },
+              { courseName: deletedCourse.courseName }
+            ]
+          } 
+        } 
+      }
+    );
+
+    // 2. Also unset the primary courseId/course fields on students if assigned
+    await Student.updateMany(
+      { 
+        $or: [
+          { courseId: courseId },
+          { course: deletedCourse.courseName }
+        ]
+      },
+      { 
+        $unset: { courseId: 1, course: 1 } 
+      }
+    );
+
+    // 3. Find and clean up batches associated with this course
+    const batchIds = await Batch.find({ courseId: courseId }).distinct('_id');
+    const batchNames = await Batch.find({ courseId: courseId }).distinct('batchName');
+
+    // Remove batch associations from students
+    await Student.updateMany(
+      { 
+        $or: [
+          { batchId: { $in: batchIds } },
+          { batch: { $in: batchNames } }
+        ]
+      },
+      { 
+        $unset: { batchId: 1, batch: 1 } 
+      }
+    );
+
+    // Now delete the batches
+    await Batch.deleteMany({ courseId: courseId });
+
+    res.json({ message: 'Course deleted successfully', id: courseId });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
