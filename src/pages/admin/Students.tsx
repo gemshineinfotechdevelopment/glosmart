@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FiSearch, FiCalendar, FiFilter, FiPlus, 
   FiArrowRight, FiVideo,
-  FiUserPlus, FiX, FiSave, FiCheck, FiBookOpen
+  FiUserPlus, FiX, FiSave, FiBookOpen
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
@@ -26,21 +26,7 @@ const Students: React.FC = () => {
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [selectedBatchId, setSelectedBatchId] = useState('');
   const [joiningDate, setJoiningDate] = useState('');
-  const [studentAvatar, setStudentAvatar] = useState<string | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Handle avatar file upload
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setStudentAvatar(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  const [feeStatus, setFeeStatus] = useState('PENDING');
 
   // Format date helper: e.g. "2026-07-06" to "06 Jul 2026"
   const formatDateString = (dateStr: string) => {
@@ -69,11 +55,10 @@ const Students: React.FC = () => {
       name: studentName,
       email: phone || '+1(555) 000-0000',
       phone: phone || '+1(555) 000-0000',
-      avatar: studentAvatar || 'https://i.pravatar.cc/150?img=12', // fallback avatar
       age: parseInt(age) || 15,
       gender: gender === 'Select Gender' ? 'Male' : gender,
       joiningDate: formatDateString(joiningDate),
-      feeStatus: 'PENDING',
+      feeStatus: feeStatus,
       batchEnd: '28 Aug 2026',
       remainingDays: 12,
       attendanceRate: 100,
@@ -121,7 +106,7 @@ const Students: React.FC = () => {
     setParentName('');
     setResidentialAddress('');
     setJoiningDate('');
-    setStudentAvatar(null);
+    setFeeStatus('PENDING');
     if (courses.length > 0) {
       setSelectedCourseId(courses[0]._id);
       const courseBatches = batches.filter(b => b.courseId?._id === courses[0]._id || b.courseId === courses[0]._id);
@@ -304,17 +289,6 @@ const Students: React.FC = () => {
               <div className="mt-6 pt-6 border-t border-slate-100">
                 <div className="flex justify-between items-center mb-4">
                   <h4 className="text-sm font-bold text-[#1c1c28]">Students List</h4>
-                  <button 
-                    onClick={() => {
-                      const courseId = batch.courseId?._id || batch.courseId || '';
-                      setSelectedCourseId(courseId);
-                      setSelectedBatchId(batch._id);
-                      setShowAddModal(true);
-                    }}
-                    className="text-xs flex items-center gap-1 bg-indigo-50 text-[#6247df] px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors border-none cursor-pointer"
-                  >
-                    <FiPlus /> Add Student
-                  </button>
                 </div>
                 
                 <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
@@ -458,77 +432,9 @@ const Students: React.FC = () => {
             </div>
 
             {/* Modal Body */}
-            <div className="p-8 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 font-sans">
+            <div className="p-8 overflow-y-auto flex-1 font-sans">
 
-              {/* Left Column (Upload Photo & Admission Tips) */}
-              <div className="space-y-6">
-
-                {/* Upload Photo */}
-                <div className="border-2 border-dashed border-indigo-100 bg-[#F6F5FB]/40 rounded-2xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden group">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    className="hidden"
-                    onChange={handleAvatarChange}
-                  />
-
-                  {studentAvatar ? (
-                    <>
-                      <img src={studentAvatar} className="w-24 h-24 rounded-full object-cover border border-white shadow-md mb-2" alt="Avatar Preview" />
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="text-xs text-[#6247df] font-bold hover:underline cursor-pointer bg-transparent border-none mt-2"
-                      >
-                        Change Photo
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <div
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#6247df] shadow-sm mb-3 cursor-pointer hover:scale-105 transition-transform"
-                      >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
-                        </svg>
-                      </div>
-                      <span className="text-sm font-bold text-slate-700">Upload Photo</span>
-                      <span className="text-[10px] text-slate-400 mt-1.5 leading-normal">JPEG, PNG up to 5MB<br />Square ratio recommended</span>
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="mt-4 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-[#6247df] rounded-xl text-xs font-bold transition-all border-none cursor-pointer"
-                      >
-                        Browse Files
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                {/* Admission Tips */}
-                <div className="bg-[#f5f3ff] rounded-2xl p-5 border border-purple-50 space-y-4">
-                  <span className="text-xs font-bold text-[#6247df] uppercase tracking-wider block">ADMISSION TIPS</span>
-                  <ul className="space-y-3 p-0 m-0">
-                    <li className="flex items-start gap-2.5 text-xs text-slate-600 font-medium">
-                      <div className="bg-[#6247df] text-white p-0.5 rounded-full mt-0.5 flex items-center justify-center shrink-0">
-                        <FiCheck className="w-2.5 h-2.5" />
-                      </div>
-                      <span>Verify age for junior batches.</span>
-                    </li>
-                    <li className="flex items-start gap-2.5 text-xs text-slate-600 font-medium">
-                      <div className="bg-[#6247df] text-white p-0.5 rounded-full mt-0.5 flex items-center justify-center shrink-0">
-                        <FiCheck className="w-2.5 h-2.5" />
-                      </div>
-                      <span>Emergency contact is mandatory.</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Right Column (Form details) */}
+              {/* Form details */}
               <div className="space-y-6">
 
                 {/* Personal Details Section */}
@@ -671,15 +577,20 @@ const Students: React.FC = () => {
                       />
                     </div>
 
-                    {/* Status indicator */}
-                    <div className="py-3 flex flex-col gap-1.5">
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Status</label>
-                      <div className="flex items-center gap-2">
-                        <span className="bg-[#e0f7fa] text-[#006064] text-[10px] font-black px-3 py-1.5 rounded-md tracking-wider shadow-sm select-none">
-                          PROSPECTIVE
-                        </span>
-                        <span className="text-[11px] text-slate-400 font-semibold">Auto-assigned</span>
-                      </div>
+                    {/* Payment Status */}
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Payment Status</label>
+                      <select
+                        className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm appearance-none cursor-pointer font-sans"
+                        value={feeStatus}
+                        onChange={(e) => setFeeStatus(e.target.value)}
+                        style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 1rem center', backgroundSize: '1.25em', backgroundRepeat: 'no-repeat' }}
+                      >
+                        <option value="PAID">PAID</option>
+                        <option value="PARTIAL">PARTIAL</option>
+                        <option value="PENDING">PENDING</option>
+                        <option value="UNPAID">UNPAID</option>
+                      </select>
                     </div>
                   </div>
                 </div>

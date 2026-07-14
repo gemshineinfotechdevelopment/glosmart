@@ -25,6 +25,7 @@ const seedData = async () => {
     const batches = [
       {
         batchName: 'Morning Batch A',
+        
         status: 'ACTIVE',
         statusColor: 'bg-green-500',
         batchCode: 'B-M-A-101',
