@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   FiSearch, FiFilter, FiPlus, 
-  FiEdit2, FiTrash2, FiMail, FiPhone, FiUpload
+  FiEdit2, FiTrash2, FiMail, FiPhone, FiUpload, FiUser
 } from 'react-icons/fi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
@@ -25,6 +25,7 @@ const Teachers: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: '',
     phone: '',
     subject: '',
     qualification: '',
@@ -53,6 +54,7 @@ const Teachers: React.FC = () => {
     setFormData({
       name: '',
       email: '',
+      password: '',
       phone: '',
       subject: '',
       qualification: '',
@@ -65,6 +67,16 @@ const Teachers: React.FC = () => {
 
   const openAddModal = () => {
     resetForm();
+    setFormData({
+      name: '',
+      email: '',
+      password: 'teacher@glosmart', // Pre-populated temporary password
+      phone: '',
+      subject: '',
+      qualification: '',
+      experience: '',
+      status: 'Active',
+    });
     setIsModalOpen(true);
   };
 
@@ -72,6 +84,7 @@ const Teachers: React.FC = () => {
     setFormData({
       name: teacher.name,
       email: teacher.email,
+      password: '', // Not editing password here
       phone: teacher.phone || '',
       subject: teacher.subject,
       qualification: teacher.qualification || '',
@@ -108,6 +121,9 @@ const Teachers: React.FC = () => {
     data.append('qualification', formData.qualification);
     data.append('experience', formData.experience);
     data.append('status', formData.status);
+    if (!editingTeacherId) {
+      data.append('password', formData.password);
+    }
     if (imageFile) {
       data.append('image', imageFile);
     }
@@ -190,7 +206,13 @@ const Teachers: React.FC = () => {
           {teachers.map((teacher) => (
             <div key={teacher._id} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
               <div className="flex justify-between items-start mb-6">
-                <img src={teacher.avatar || `https://i.pravatar.cc/150?u=${teacher._id}`} alt={teacher.name} className="w-16 h-16 rounded-2xl object-cover shadow-sm" />
+                {teacher.avatar ? (
+                  <img src={teacher.avatar} alt={teacher.name} className="w-16 h-16 rounded-2xl object-cover shadow-sm" />
+                ) : (
+                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-100 shadow-sm">
+                    <FiUser size={28} />
+                  </div>
+                )}
                 <span className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${teacher.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${teacher.status === 'Active' ? 'bg-green-600' : 'bg-slate-400'}`}></span> {teacher.status || 'Active'}
                 </span>
@@ -247,7 +269,7 @@ const Teachers: React.FC = () => {
                       <p className="text-sm font-medium text-slate-600">
                         {imageFile ? imageFile.name : 'Click to upload photo'}
                       </p>
-                      <p className="text-xs text-slate-400 mt-1">JPEG, PNG, JPG allowed</p>
+                      <p className="text-xs text-slate-400 mt-1">JPEG, PNG, JPG allowed (Max 1MB)</p>
                     </div>
                     <input 
                       type="file" 
@@ -256,7 +278,18 @@ const Teachers: React.FC = () => {
                       className="hidden"
                       onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
-                          setImageFile(e.target.files[0]);
+                          const file = e.target.files[0];
+                          const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+                          if (!validTypes.includes(file.type)) {
+                            alert('Please upload an image in JPEG, JPG, or PNG format.');
+                            return;
+                          }
+                          const maxSize = 1 * 1024 * 1024; // 1MB
+                          if (file.size > maxSize) {
+                            alert('Image size must be less than 1MB.');
+                            return;
+                          }
+                          setImageFile(file);
                         }
                       }}
                     />
@@ -285,6 +318,19 @@ const Teachers: React.FC = () => {
                         placeholder="john@example.com"
                       />
                     </div>
+                    {!editingTeacherId && (
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Temporary Password</label>
+                        <input 
+                          required
+                          type="text" 
+                          value={formData.password}
+                          onChange={e => setFormData({...formData, password: e.target.value})}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#6247df] focus:border-transparent transition-all"
+                          placeholder="Enter temporary password"
+                        />
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-bold text-slate-700 mb-2">Phone Number</label>
                       <input 
