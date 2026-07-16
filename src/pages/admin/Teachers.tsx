@@ -75,6 +75,10 @@ const Teachers: React.FC = () => {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [subjectFilter, setSubjectFilter] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -287,6 +291,25 @@ const Teachers: React.FC = () => {
     }
   };
 
+  const subjects = Array.from(new Set(teachers.map(t => t.subject).filter(Boolean)));
+
+  const displayedTeachers = teachers.filter(teacher => {
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!teacher.name.toLowerCase().includes(q) && 
+          !teacher.email.toLowerCase().includes(q) &&
+          !(teacher.subject && teacher.subject.toLowerCase().includes(q))) {
+        return false;
+      }
+    }
+    
+    if (subjectFilter && teacher.subject !== subjectFilter) {
+      return false;
+    }
+    
+    return true;
+  });
+
   return (
     <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800">
       <AdminSidebar />
@@ -300,6 +323,8 @@ const Teachers: React.FC = () => {
               <input 
                 type="text" 
                 placeholder="Search Teachers..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-slate-50 border-none rounded-full py-2.5 pl-11 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-100 placeholder:text-slate-400"
               />
             </div>
@@ -327,9 +352,33 @@ const Teachers: React.FC = () => {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-4">
-            <button className="flex items-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
-              <FiFilter size={16} /> Filter
-            </button>
+            {showFilters ? (
+              <div className="flex items-center gap-2">
+                <select 
+                  value={subjectFilter}
+                  onChange={(e) => setSubjectFilter(e.target.value)}
+                  className="bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 outline-none cursor-pointer"
+                >
+                  <option value="">All Subjects</option>
+                  {subjects.map((sub, i) => (
+                    <option key={i} value={sub}>{sub}</option>
+                  ))}
+                </select>
+                <button 
+                  onClick={() => { setShowFilters(false); setSubjectFilter(''); }}
+                  className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors cursor-pointer border-none"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowFilters(true)}
+                className="flex items-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
+              >
+                <FiFilter size={16} /> Filter
+              </button>
+            )}
             <button 
               onClick={openAddModal}
               className="flex items-center gap-2 bg-[#6247df] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-purple-200 hover:bg-[#5035c9] transition-colors h-full"
@@ -341,7 +390,7 @@ const Teachers: React.FC = () => {
 
         {/* Teachers Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {teachers.map((teacher) => (
+          {displayedTeachers.map((teacher) => (
             <div key={teacher._id} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
               <div className="flex justify-between items-start mb-6">
                 {teacher.avatar ? (
