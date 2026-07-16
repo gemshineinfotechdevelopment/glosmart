@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 interface StatItem {
   value: string;
@@ -43,9 +44,9 @@ const StatsSection: React.FC = () => {
 
           {/* CTA Button */}
           <div className="mt-4">
-            <button className="bg-[#d2ff55] text-[#081f37] hover:bg-white hover:text-[#0b3142] text-sm md:text-base font-extrabold px-8 py-4 rounded-full shadow-lg shadow-lime-900/10 hover:shadow-2xl hover:scale-105 transition-all duration-300">
+            <Link to="/courses" className="inline-block bg-[#d2ff55] text-[#081f37] hover:bg-white hover:text-[#0b3142] text-sm md:text-base font-extrabold px-8 py-4 rounded-full shadow-lg shadow-lime-900/10 hover:shadow-2xl hover:scale-105 transition-all duration-300 no-underline">
               Start Your Art Journey
-            </button>
+            </Link>
           </div>
         </div>
 

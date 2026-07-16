@@ -70,7 +70,7 @@ const Navbar: React.FC = () => {
           <Link to="/login" className="text-sm font-bold text-[#00668f] hover:opacity-80 transition-opacity no-underline">
             Login
           </Link>
-          <Link to="/join" className="bg-[#00668f] text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md shadow-sky-100/50 hover:bg-[#005172] transition-colors no-underline">
+          <Link to="/courses" className="bg-[#00668f] text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md shadow-sky-100/50 hover:bg-[#005172] transition-colors no-underline">
             Join Academy
           </Link>
         </div>
@@ -105,12 +105,20 @@ const Navbar: React.FC = () => {
             ))}
           </div>
           <div className="flex flex-col gap-3 pt-2">
-            <button className="w-full bg-slate-50 text-slate-700 font-semibold py-3 rounded-full hover:bg-slate-100 transition-all">
+            <Link 
+              to="/login" 
+              onClick={() => setIsOpen(false)} 
+              className="w-full bg-slate-50 text-slate-700 font-semibold py-3 rounded-full hover:bg-slate-100 transition-all text-center no-underline"
+            >
               Log in
-            </button>
-            <button className="w-full bg-[#00668f] text-white font-semibold py-3 rounded-full hover:bg-[#005172] transition-all">
+            </Link>
+            <Link 
+              to="/courses" 
+              onClick={() => setIsOpen(false)} 
+              className="w-full bg-[#00668f] text-white font-semibold py-3 rounded-full hover:bg-[#005172] transition-all text-center no-underline"
+            >
               Join Academy
-            </button>
+            </Link>
           </div>
         </div>
       )}

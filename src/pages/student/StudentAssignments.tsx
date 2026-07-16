@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import {
   FiCheckCircle, 
   FiUploadCloud, 
   FiEye, 
-  // FiShare2, 
-  // FiDownload, 
-  // FiFilter, 
   FiAlertCircle, 
   FiCheck, 
   FiX,
-  FiFileText
+  FiFileText,
+  FiClipboard,
+  FiAward
 } from 'react-icons/fi';
 
 interface PendingAssignment {
@@ -45,12 +45,15 @@ interface Certificate {
 
 const StudentAssignments: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // States
   const [studentId, setStudentId] = useState('');
-  const [studentName, setStudentName] = useState('Sarah Jenkins');
+  const [studentName, setStudentName] = useState('Student User');
   const [studentGrade, setStudentGrade] = useState('5th Grade');
   const [studentAvatar, setStudentAvatar] = useState('https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
+  // const [pendingCount, setPendingCount] = useState(4);
+  // const [completedCount, setCompletedCount] = useState(2);
   // const gpa = "3.8";
   
   const [pendingAssignments, setPendingAssignments] = useState<PendingAssignment[]>([]);
@@ -59,7 +62,8 @@ const StudentAssignments: React.FC = () => {
 
   // Fetch student assignments on mount
   useEffect(() => {
-    fetch('http://localhost:5000/api/students/first')
+    const profileId = user?.profileId || 'first';
+    fetch(`http://localhost:5000/api/students/${profileId}`)
       .then(res => res.json())
       .then(data => {
         if (data) {
@@ -81,6 +85,7 @@ const StudentAssignments: React.FC = () => {
               dueInDays: 5
             }));
             setPendingAssignments(pending);
+            // setPendingCount(pending.length);
 
             // Map submitted
             const submitted = data.assignments.filter((a: any) => a.status === 'Submitted' || a.status === 'Graded').map((a: any) => ({
@@ -94,11 +99,12 @@ const StudentAssignments: React.FC = () => {
               fileName: a.submittedFile || 'document.pdf'
             }));
             setSubmittedAssignments(submitted);
+            // setCompletedCount(submitted.length);
           }
         }
       })
       .catch(err => console.error('Error fetching assignments:', err));
-  }, []);
+  }, [user]);
 
   // Certificates list commented out
   /*
@@ -210,6 +216,8 @@ const StudentAssignments: React.FC = () => {
           // Update state locally
           setSubmittedAssignments([newSubmission, ...submittedAssignments]);
           setPendingAssignments(pendingAssignments.filter(a => a.id !== selectedAssignment.id));
+          // setPendingCount(prev => Math.max(0, prev - 1));
+          // setCompletedCount(prev => prev + 1);
 
           // Close modal
           setIsUploadOpen(false);
@@ -276,41 +284,52 @@ const StudentAssignments: React.FC = () => {
             </div>
           )}
 
-          {/* First Row: 2 Metric Cards */}
-          {/*
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* Card 1: Pending Tasks */}
-            {/*
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 flex items-center justify-between">
+          {/* Stat Cards Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {/* Card 1: Pending */}
+            <div className="bg-white rounded-[24px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 flex items-center justify-between group hover:shadow-md transition-shadow">
               <div>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Pending Tasks</p>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Pending</p>
                 <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">
-                  {pendingCount.toString().padStart(2, '0')}
+                  {pendingAssignments.length.toString().padStart(2, '0')}
                 </h2>
+                <span className="text-[10px] text-amber-600 font-extrabold mt-1 block">Awaiting submission</span>
               </div>
-              <div className="p-4 bg-purple-50 text-[#4700b3] rounded-2xl">
+              <div className="p-4 bg-purple-50 text-[#4700b3] rounded-2xl group-hover:bg-[#4700b3] group-hover:text-white transition-colors duration-300">
                 <FiClipboard size={22} className="stroke-[2.5]" />
               </div>
             </div>
-            */}
 
-            {/* Card 2: Completed */}
-            {/*
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 flex items-center justify-between">
+            {/* Card 2: Submitted */}
+            <div className="bg-white rounded-[24px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 flex items-center justify-between group hover:shadow-md transition-shadow">
               <div>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Completed Tasks</p>
-                <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">{completedCount}</h2>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Submitted</p>
+                <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">
+                  {submittedAssignments.filter(s => s.status === 'Awaiting Grade').length.toString().padStart(2, '0')}
+                </h2>
+                <span className="text-[10px] text-[#4700b3] font-extrabold mt-1 block">Awaiting grade</span>
               </div>
-              <div className="p-4 bg-slate-50 text-slate-600 rounded-2xl">
-                <FiCheckCircle size={22} className="stroke-[2.5]" />
+              <div className="p-4 bg-purple-50 text-[#4700b3] rounded-2xl group-hover:bg-[#4700b3] group-hover:text-white transition-colors duration-300">
+                <FiUploadCloud size={22} className="stroke-[2.5]" />
               </div>
             </div>
 
+            {/* Card 3: Graded */}
+            <div className="bg-white rounded-[24px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 flex items-center justify-between group hover:shadow-md transition-shadow">
+              <div>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Graded</p>
+                <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">
+                  {submittedAssignments.filter(s => s.status === 'Graded').length.toString().padStart(2, '0')}
+                </h2>
+                <span className="text-[10px] text-emerald-600 font-extrabold mt-1 block">Feedback ready</span>
+              </div>
+              <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
+                <FiCheckCircle size={22} className="stroke-[2.5]" />
+              </div>
+            </div>
           </div>
-          */}
 
-          {/* Section 2: Pending Assignments */}
+          {/* Section: Pending Assignments */}
           <section className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
@@ -323,10 +342,12 @@ const StudentAssignments: React.FC = () => {
             </div>
 
             {pendingAssignments.length === 0 ? (
-              <div className="bg-white rounded-3xl border border-slate-150 p-12 text-center text-slate-500 shadow-sm">
-                <FiCheckCircle size={48} className="mx-auto text-emerald-500 mb-3" />
+              <div className="bg-white rounded-3xl border border-slate-100 p-12 text-center shadow-[0_8px_30px_rgb(0,0,0,0.015)]">
+                <div className="mx-auto w-16 h-16 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mb-4">
+                  <FiCheckCircle size={32} />
+                </div>
                 <h3 className="font-extrabold text-slate-900 text-lg">All caught up!</h3>
-                <p className="text-xs text-slate-400 mt-1">No pending assignments left to submit.</p>
+                <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">You have no pending assignments. Check back later or explore your courses for new tasks.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -339,7 +360,7 @@ const StudentAssignments: React.FC = () => {
                     >
                       <div className="flex justify-between items-start gap-4">
                         <div className="flex gap-4">
-                          <div className="p-3 bg-purple-50 text-[#4700b3] rounded-2xl h-12 w-12 flex items-center justify-center shrink-0">
+                          <div className={`p-3 rounded-2xl h-12 w-12 flex items-center justify-center shrink-0 ${isUrgent ? 'bg-red-50 text-red-500' : 'bg-purple-50 text-[#4700b3]'}`}>
                             <FiFileText size={20} />
                           </div>
                           <div className="text-left">
@@ -355,14 +376,23 @@ const StudentAssignments: React.FC = () => {
                         <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold whitespace-nowrap ${
                           isUrgent ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-purple-50 text-[#4700b3] border border-purple-100'
                         }`}>
-                          Due in {assignment.dueInDays} days
+                          {isUrgent ? '⚠ Urgent' : `${assignment.dueInDays}d left`}
                         </span>
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-slate-50 flex justify-between items-center">
+                      <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
                         <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5">
-                          <FiAlertCircle size={14} /> Due by {assignment.dueDate}
+                          <FiAlertCircle size={14} /> Due {assignment.dueDate}
                         </span>
+                        <button 
+                          onClick={() => {
+                            setSelectedAssignment(assignment);
+                            setIsUploadOpen(true);
+                          }}
+                          className="bg-[#4700b3] hover:bg-[#3d0099] text-white py-2 px-4 rounded-xl font-bold text-[11px] flex items-center gap-1.5 border-none cursor-pointer transition-all shadow-sm shadow-purple-200"
+                        >
+                          <FiUploadCloud size={14} /> Submit
+                        </button>
                       </div>
                     </div>
                   );
@@ -371,128 +401,79 @@ const StudentAssignments: React.FC = () => {
             )}
           </section>
 
-          {/* Section 3: Submitted */}
-          {/*
-          <section className="space-y-6">
-            <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-              <span className="w-1.5 h-6 bg-[#4700b3] rounded-full inline-block"></span>
-              Submitted Assignments
-            </h2>
-
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-left bg-slate-50/50">
-                      <th className="py-4 pl-6 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Assignment Title</th>
-                      <th className="py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Submitted Date</th>
-                      <th className="py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                      <th className="py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right pr-6">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50 font-sans">
-                    {submittedAssignments.map((sub) => (
-                      <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="py-4 pl-6 text-left">
-                          <h4 className="font-bold text-slate-800 text-xs">{sub.title}</h4>
-                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">{sub.course}</p>
-                        </td>
-                        <td className="py-4 text-xs font-semibold text-slate-500 text-left">
-                          {sub.submittedDate}
-                        </td>
-                        <td className="py-4 text-left">
-                          <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 w-fit ${
-                            sub.status === 'Graded' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-[#4700b3] border border-purple-100'
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${sub.status === 'Graded' ? 'bg-emerald-500' : 'bg-[#4700b3]'}`}></span>
-                            {sub.status === 'Graded' ? `Graded (${sub.grade})` : 'Awaiting Grade'}
-                          </span>
-                        </td>
-                        <td className="py-4 text-right pr-6">
-                          <button 
-                            onClick={() => setViewingSubmission(sub)}
-                            className="text-[#4700b3] hover:text-[#3d0099] font-bold text-xs bg-transparent border-none cursor-pointer flex items-center gap-1 ml-auto"
-                          >
-                            <FiEye size={12} /> View Submission
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
-          */}
-
-          {/* Section 4: Course Certificates */}
-          {/* 
+          {/* Section: Submitted Assignments */}
           <section className="space-y-6">
             <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Course Certificates</h2>
-                <p className="text-slate-400 text-xs mt-0.5">Official recognition of your course completions</p>
-              </div>
-              <button className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 bg-white rounded-xl hover:bg-slate-50 font-bold text-xs text-slate-600 cursor-pointer">
-                <FiFilter size={14} /> Filter
-              </button>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span className="w-1.5 h-6 bg-emerald-500 rounded-full inline-block"></span>
+                Submitted & Graded
+              </h2>
+              <span className="text-slate-400 text-xs font-semibold">
+                {submittedAssignments.length} total submissions
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {certificates.map((cert) => (
-                <div 
-                  key={cert.id} 
-                  className="bg-white rounded-[2rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-5 flex flex-col group hover:shadow-md transition-shadow duration-300"
-                >
-                  <div className="w-full aspect-[1.58] bg-[#FAF8FF] border border-purple-100/50 rounded-2xl p-4 flex flex-col justify-between items-center relative overflow-hidden shrink-0 shadow-inner mb-4">
-                    <div className="absolute inset-2 border border-dashed border-purple-300/40 rounded-xl pointer-events-none"></div>
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-[#4700b3]/5 rounded-bl-full"></div>
-                    
-                    <div className="text-center mt-3 z-10">
-                      <span className="text-[10px] font-bold text-purple-700/80 uppercase tracking-widest block">Certificate of Completion</span>
-                      <h4 className="font-extrabold text-[13px] text-slate-900 mt-1 max-w-[200px] leading-tight truncate">{cert.title}</h4>
-                    </div>
-
-                    <div className="text-center z-10">
-                      <span className="text-[8px] font-semibold text-slate-400 block uppercase">awarded to</span>
-                      <span className="text-xs font-serif font-bold text-[#4700b3] block mt-0.5">Sarah Jenkins</span>
-                    </div>
-
-                    <div className="w-full flex justify-between items-center text-[7px] text-slate-400 font-bold px-2 mb-1 z-10 uppercase tracking-wider">
-                      <span>{cert.completedDate}</span>
-                      <span>ID: {cert.credentialId}</span>
-                    </div>
-                  </div>
-
-                  <div className="text-left flex-grow">
-                    <h3 className="font-extrabold text-slate-900 text-sm">{cert.title}</h3>
-                    <div className="flex items-center gap-2 mt-1.5 mb-5">
-                      <span className="px-2 py-0.5 text-[9px] font-extrabold bg-teal-50 text-teal-600 rounded border border-teal-100">
-                        VERIFIED
-                      </span>
-                      <span className="text-slate-400 text-[10px] font-medium">{cert.completedDate}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button 
-                      onClick={() => triggerDownload(cert.title)}
-                      className="flex-1 bg-[#4700b3] hover:bg-[#3d0099] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-1.5 border-none cursor-pointer text-xs shadow-sm shadow-purple-900/10"
-                    >
-                      <FiDownload size={14} /> PDF
-                    </button>
-                    <button 
-                      onClick={() => setSharingCert(cert)}
-                      className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 py-3 rounded-xl font-bold flex items-center justify-center gap-1.5 border border-slate-200 cursor-pointer text-xs"
-                    >
-                      <FiShare2 size={14} /> Share
-                    </button>
-                  </div>
+            {submittedAssignments.length === 0 ? (
+              <div className="bg-white rounded-3xl border border-slate-100 p-10 text-center shadow-[0_8px_30px_rgb(0,0,0,0.015)]">
+                <div className="mx-auto w-14 h-14 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center mb-4">
+                  <FiAward size={28} />
                 </div>
-              ))}
-            </div>
+                <h3 className="font-extrabold text-slate-900 text-base">No submissions yet</h3>
+                <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Once you submit an assignment, it will appear here with its grading status.</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-left bg-slate-50/50">
+                        <th className="py-4 pl-6 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Assignment</th>
+                        <th className="py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Submitted</th>
+                        <th className="py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                        <th className="py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right pr-6">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50 font-sans">
+                      {submittedAssignments.map((sub) => (
+                        <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-4 pl-6 text-left">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-xl shrink-0 ${sub.status === 'Graded' ? 'bg-emerald-50 text-emerald-600' : 'bg-purple-50 text-[#4700b3]'}`}>
+                                <FiFileText size={16} />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-slate-800 text-xs">{sub.title}</h4>
+                                <p className="text-[10px] text-slate-400 font-medium mt-0.5">{sub.course}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-4 text-xs font-semibold text-slate-500 text-left">
+                            {sub.submittedDate}
+                          </td>
+                          <td className="py-4 text-left">
+                            <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 w-fit ${
+                              sub.status === 'Graded' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-[#4700b3] border border-purple-100'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${sub.status === 'Graded' ? 'bg-emerald-500' : 'bg-[#4700b3]'}`}></span>
+                              {sub.status === 'Graded' ? `Graded (${sub.grade})` : 'Awaiting Grade'}
+                            </span>
+                          </td>
+                          <td className="py-4 text-right pr-6">
+                            <button 
+                              onClick={() => setViewingSubmission(sub)}
+                              className="text-[#4700b3] hover:text-[#3d0099] font-bold text-xs bg-transparent border-none cursor-pointer flex items-center gap-1 ml-auto"
+                            >
+                              <FiEye size={12} /> Details
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </section>
-          */}
 
         </div>
 
