@@ -7,7 +7,6 @@ import {
   FiClock, 
   // FiCheckCircle, 
   FiUserCheck,
-  FiFileText,
   FiCalendar,
   FiLayers,
   FiX,
@@ -50,7 +49,6 @@ const StudentCourses: React.FC = () => {
   const [suggestedCourses, setSuggestedCourses] = useState<Course[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
   const [courseBatches, setCourseBatches] = useState<Record<string, any[]>>({});
-  const [courseAssignments, setCourseAssignments] = useState<Record<string, any[]>>({});
 
   // Batch selection modal states
   const [enrollCourseModal, setEnrollCourseModal] = useState<Course | null>(null);
@@ -88,7 +86,6 @@ const StudentCourses: React.FC = () => {
               const allCourses = coursesData.courses || [];
 
               const batchMap: Record<string, any[]> = {};
-              const assignMap: Record<string, any[]> = {};
 
               for (const ec of studentData.enrolledCourses) {
                 const matched = allCourses.find((c: any) => 
@@ -103,19 +100,10 @@ const StudentCourses: React.FC = () => {
                   } catch (err) {
                     console.error(`Error fetching batches for ${ec.courseName}:`, err);
                   }
-                  // Fetch assignments for this course
-                  try {
-                    const assignRes = await fetch(`http://localhost:5000/api/batches/course/${matched._id}/assignments`);
-                    const assignData = await assignRes.json();
-                    assignMap[ec.courseName] = assignData;
-                  } catch (err) {
-                    console.error(`Error fetching assignments for ${ec.courseName}:`, err);
-                  }
                 }
               }
 
               setCourseBatches(batchMap);
-              setCourseAssignments(assignMap);
             } catch (err) {
               console.error('Error fetching batch/assignment data:', err);
             }
