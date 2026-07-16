@@ -2,18 +2,16 @@ import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { 
-import {  
-  FiCheckCircle, 
-  FiUploadCloud, 
-  FiEye, 
-  FiAlertCircle, 
-  FiCheck, 
+import {
+  FiCheckCircle,
+  FiUploadCloud,
+  FiEye,
+  FiAlertCircle,
+  FiCheck,
   FiX,
   FiFileText,
   FiClipboard,
   FiAward
-  FiFileText
 } from 'react-icons/fi';
 
 interface PendingAssignment {
