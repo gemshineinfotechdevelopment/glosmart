@@ -10,7 +10,9 @@ const enrolledCourseSchema = new mongoose.Schema({
   progress: { type: Number, default: 0 },
   instructor: { type: String, default: 'TBD' },
   nextSession: { type: String, default: 'Schedule TBD' },
-  lastAccessed: { type: String, default: 'Just Enrolled' }
+  lastAccessed: { type: String, default: 'Just Enrolled' },
+  batchId: { type: String },
+  batchName: { type: String }
 });
 
 const attendanceRecordSchema = new mongoose.Schema({

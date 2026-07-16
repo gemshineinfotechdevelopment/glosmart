@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FiPlus, FiArrowLeft, FiEdit2, FiTrash2, FiClock, FiCalendar } from 'react-icons/fi';
+import { FiPlus, FiArrowLeft, FiEdit2, FiTrash2, FiClock, FiCalendar, FiFileText, FiX } from 'react-icons/fi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { useAuth } from '../../context/AuthContext';
 
@@ -15,6 +15,10 @@ export default function AdminCourseBatchesPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingBatch, setEditingBatch] = useState<any>(null);
   const [teachers, setTeachers] = useState<any[]>([]);
+
+  // Assignment states
+  const [assignmentInputs, setAssignmentInputs] = useState<Record<string, string>>({});
+  const [savingAssignment, setSavingAssignment] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     batchName: '',
@@ -178,6 +182,44 @@ export default function AdminCourseBatchesPage() {
     setShowModal(true);
   };
 
+  // Assignment handlers
+  const handleAddAssignment = async (batchId: string) => {
+    const text = assignmentInputs[batchId]?.trim();
+    if (!text) return;
+
+    setSavingAssignment(batchId);
+    try {
+      const res = await fetch(`http://localhost:5000/api/batches/${batchId}/assignments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: text })
+      });
+      if (res.ok) {
+        setAssignmentInputs(prev => ({ ...prev, [batchId]: '' }));
+        fetchData();
+      } else {
+        alert('Failed to add assignment');
+      }
+    } catch (error) {
+      console.error('Error adding assignment', error);
+    } finally {
+      setSavingAssignment(null);
+    }
+  };
+
+  const handleDeleteAssignment = async (batchId: string, assignmentId: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/batches/${batchId}/assignments/${assignmentId}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Error deleting assignment', error);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-slate-50">
       <AdminSidebar />
@@ -202,7 +244,7 @@ export default function AdminCourseBatchesPage() {
                     {course?.courseCode}
                   </span>
                 </h1>
-                <p className="text-slate-500 mt-1">Manage schedules, instructors, and capacities.</p>
+                <p className="text-slate-500 mt-1">Manage schedules, instructors, and assignments.</p>
               </div>
               {user?.role === 'admin' && (
                 <button 
@@ -214,7 +256,7 @@ export default function AdminCourseBatchesPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {batches.map(batch => (
                 <div key={batch._id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
                   <div className="flex justify-between items-start mb-4">
@@ -240,7 +282,7 @@ export default function AdminCourseBatchesPage() {
                     </span>
                   </div>
 
-                  <div className="space-y-3 mb-6 flex-1">
+                  <div className="space-y-3 mb-4">
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <FiCalendar className="text-slate-400" />
                       {batch.startDate || 'TBD'} to {batch.endDate || 'TBD'}
@@ -254,8 +296,75 @@ export default function AdminCourseBatchesPage() {
                     </div>
                   </div>
 
+                  {/* Assignments Section */}
                   {user?.role === 'admin' && (
-                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-auto">
+                    <div className="border-t border-slate-100 pt-4 mt-auto">
+                      <div className="flex items-center gap-2 mb-3">
+                        <FiFileText className="text-indigo-600" size={16} />
+                        <h4 className="text-sm font-bold text-slate-700">
+                          Assignments
+                          {batch.assignments?.length > 0 && (
+                            <span className="ml-2 text-xs font-normal text-slate-400">({batch.assignments.length})</span>
+                          )}
+                        </h4>
+                      </div>
+
+                      {/* Existing assignments list */}
+                      {batch.assignments?.length > 0 && (
+                        <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
+                          {batch.assignments.map((a: any) => (
+                            <div key={a._id} className="flex items-start justify-between gap-2 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2.5 group">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-slate-700 font-medium leading-snug">{a.title}</p>
+                                <p className="text-[10px] text-slate-400 mt-1">
+                                  {new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteAssignment(batch._id, a._id)}
+                                className="p-1 text-slate-300 hover:text-rose-500 rounded opacity-0 group-hover:opacity-100 transition-all bg-transparent border-none cursor-pointer shrink-0"
+                                title="Delete assignment"
+                              >
+                                <FiX size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Add assignment input */}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Type assignment text..."
+                          value={assignmentInputs[batch._id] || ''}
+                          onChange={(e) => setAssignmentInputs(prev => ({ ...prev, [batch._id]: e.target.value }))}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddAssignment(batch._id);
+                            }
+                          }}
+                          className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                        />
+                        <button
+                          onClick={() => handleAddAssignment(batch._id)}
+                          disabled={!assignmentInputs[batch._id]?.trim() || savingAssignment === batch._id}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border-none cursor-pointer flex items-center gap-1.5 ${
+                            assignmentInputs[batch._id]?.trim()
+                              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                          }`}
+                        >
+                          <FiPlus size={14} />
+                          {savingAssignment === batch._id ? 'Saving...' : 'Add'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {user?.role === 'admin' && (
+                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-4">
                       <button 
                         onClick={() => openEditModal(batch)}
                         className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"

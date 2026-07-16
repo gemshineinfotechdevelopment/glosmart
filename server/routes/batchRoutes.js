@@ -112,4 +112,63 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// POST add assignment to batch
+router.post('/:id/assignments', async (req, res) => {
+  try {
+    const batch = await Batch.findById(req.params.id);
+    if (!batch) {
+      return res.status(404).json({ message: 'Batch not found' });
+    }
+    batch.assignments.push({ title: req.body.title });
+    const updatedBatch = await batch.save();
+    res.status(201).json(updatedBatch);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// DELETE assignment from batch
+router.delete('/:id/assignments/:assignmentId', async (req, res) => {
+  try {
+    const batch = await Batch.findById(req.params.id);
+    if (!batch) {
+      return res.status(404).json({ message: 'Batch not found' });
+    }
+    batch.assignments = batch.assignments.filter(
+      a => a._id.toString() !== req.params.assignmentId
+    );
+    const updatedBatch = await batch.save();
+    res.json(updatedBatch);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// GET all assignments for batches of a specific course
+router.get('/course/:courseId/assignments', async (req, res) => {
+  try {
+    const batches = await Batch.find({ courseId: req.params.courseId }).populate('courseId').lean();
+    const assignments = [];
+    for (const batch of batches) {
+      if (batch.assignments && batch.assignments.length > 0) {
+        const resolvedCourseName = batch.courseId?.courseName || batch.courseName || '';
+        for (const a of batch.assignments) {
+          assignments.push({
+            _id: a._id,
+            title: a.title,
+            createdAt: a.createdAt,
+            batchId: batch._id,
+            batchName: batch.batchName,
+            batchCode: batch.batchCode,
+            courseName: resolvedCourseName
+          });
+        }
+      }
+    }
+    res.json(assignments);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;

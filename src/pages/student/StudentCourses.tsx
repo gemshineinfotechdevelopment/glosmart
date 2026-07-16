@@ -6,7 +6,12 @@ import {
   FiBookOpen, 
   FiClock, 
   // FiCheckCircle, 
-  FiPlus, 
+  FiUserCheck,
+  FiFileText,
+  FiCalendar,
+  FiLayers,
+  FiX,
+  FiPlus,
   FiAward
 } from 'react-icons/fi';
 
@@ -24,7 +29,6 @@ interface Course {
 }
 
 interface EnrolledCourse extends Course {
-  progress: number;
   instructor: string;
   nextSession: string;
   lastAccessed: string;
@@ -44,6 +48,17 @@ const StudentCourses: React.FC = () => {
   const [studentAvatar, setStudentAvatar] = useState('https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [suggestedCourses, setSuggestedCourses] = useState<Course[]>([]);
+  const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
+  const [courseBatches, setCourseBatches] = useState<Record<string, any[]>>({});
+  const [courseAssignments, setCourseAssignments] = useState<Record<string, any[]>>({});
+
+  // Batch selection modal states
+  const [enrollCourseModal, setEnrollCourseModal] = useState<Course | null>(null);
+  const [enrollBatches, setEnrollBatches] = useState<any[]>([]);
+  const [loadingBatches, setLoadingBatches] = useState(false);
+
+  // Expanded enrolled course state
+  const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
 
   // Fetch student and courses from DB
   useEffect(() => {
@@ -61,6 +76,49 @@ const StudentCourses: React.FC = () => {
 
           if (studentData.enrolledCourses) {
             setEnrolledCourses(studentData.enrolledCourses);
+          }
+          if (studentData.attendanceRecords) {
+            setAttendanceRecords(studentData.attendanceRecords);
+          }
+          // Fetch batch & assignment data for enrolled courses
+          if (studentData.enrolledCourses && studentData.enrolledCourses.length > 0) {
+            try {
+              const coursesRes = await fetch('http://localhost:5000/api/courses');
+              const coursesData = await coursesRes.json();
+              const allCourses = coursesData.courses || [];
+
+              const batchMap: Record<string, any[]> = {};
+              const assignMap: Record<string, any[]> = {};
+
+              for (const ec of studentData.enrolledCourses) {
+                const matched = allCourses.find((c: any) => 
+                  c.courseName.toLowerCase() === ec.courseName.toLowerCase()
+                );
+                if (matched) {
+                  // Fetch batches for this course
+                  try {
+                    const batchRes = await fetch(`http://localhost:5000/api/batches/course/${matched._id}`);
+                    const batchData = await batchRes.json();
+                    batchMap[ec.courseName] = batchData;
+                  } catch (err) {
+                    console.error(`Error fetching batches for ${ec.courseName}:`, err);
+                  }
+                  // Fetch assignments for this course
+                  try {
+                    const assignRes = await fetch(`http://localhost:5000/api/batches/course/${matched._id}/assignments`);
+                    const assignData = await assignRes.json();
+                    assignMap[ec.courseName] = assignData;
+                  } catch (err) {
+                    console.error(`Error fetching assignments for ${ec.courseName}:`, err);
+                  }
+                }
+              }
+
+              setCourseBatches(batchMap);
+              setCourseAssignments(assignMap);
+            } catch (err) {
+              console.error('Error fetching batch/assignment data:', err);
+            }
           }
         }
       } catch (error) {
@@ -100,9 +158,26 @@ const StudentCourses: React.FC = () => {
     }
   }, [enrolledCourses, studentId]);
 
-  // Handle enrollment: redirect to fees and payments page for fee payment first
-  const handleEnroll = (course: Course) => {
-    navigate('/student/fees', { state: { pendingEnrollment: course } });
+  // Handle enrollment: open modal to select batch
+  const handleEnrollClick = async (course: Course) => {
+    setEnrollCourseModal(course);
+    setLoadingBatches(true);
+    try {
+      const courseIdentifier = course._id || (course as any).courseId;
+      const res = await fetch(`http://localhost:5000/api/batches/course/${courseIdentifier}`);
+      if (res.ok) {
+        const data = await res.json();
+        setEnrollBatches(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch batches', error);
+    } finally {
+      setLoadingBatches(false);
+    }
+  };
+
+  const handleBatchSelect = (course: Course, batch: any) => {
+    navigate('/student/fees', { state: { pendingEnrollment: course, pendingBatch: batch } });
   };
 
   // Static fallback suggested courses if database does not return any suggestions
@@ -152,7 +227,7 @@ const StudentCourses: React.FC = () => {
         <header className="flex justify-between items-center px-6 lg:px-10 py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
           <div>
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">My Courses</h1>
-            <p className="text-slate-500 text-[14px] mt-0.5">Manage your active learning modules and curriculum progress</p>
+            <p className="text-slate-500 text-[14px] mt-0.5">Manage your active learning modules and enrolled courses</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -194,7 +269,7 @@ const StudentCourses: React.FC = () => {
           <section className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Active Learning Progress</h2>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Enrolled Courses</h2>
                 <p className="text-slate-400 text-xs mt-0.5">Your currently enrolled academy courses</p>
               </div>
               <span className="bg-[#4700b3]/10 text-[#4700b3] text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">
@@ -213,7 +288,14 @@ const StudentCourses: React.FC = () => {
                 return (
                   <div 
                     key={course._id} 
-                    className="bg-white rounded-[2rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] overflow-hidden flex flex-col group hover:shadow-[0_12px_40px_rgba(0,0,0,0.03)] transition-shadow duration-300"
+                    className="bg-white rounded-[2rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] overflow-hidden flex flex-col group hover:shadow-[0_12px_40px_rgba(0,0,0,0.03)] transition-shadow duration-300 cursor-pointer"
+                    onClick={() => {
+                      if ((course as any).batchId || (course as any).batchName) {
+                        setExpandedCourseId(expandedCourseId === course._id ? null : course._id);
+                      } else {
+                        handleEnrollClick(course as any);
+                      }
+                    }}
                   >
                     {/* Thumbnail banner */}
                     <div className="relative h-44 w-full bg-slate-100 overflow-hidden shrink-0">
@@ -249,27 +331,104 @@ const StudentCourses: React.FC = () => {
                       {/* Instructor details */}
                       <div className="flex items-center gap-3 mb-6 bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
                         <div className="w-8 h-8 rounded-full bg-[#eef2ff] flex items-center justify-center text-[#4700b3] shrink-0 font-bold text-xs uppercase">
-                          {course.instructor.charAt(0)}
+                          {course.instructor ? course.instructor.charAt(0) : 'T'}
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Instructor</p>
-                          <p className="text-xs font-extrabold text-slate-700 mt-1 leading-none">{course.instructor}</p>
+                          <p className="text-xs font-extrabold text-slate-700 mt-1 leading-none">{course.instructor || 'TBD'}</p>
                         </div>
+                        {(!((course as any).batchId || (course as any).batchName)) && (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleEnrollClick(course as any); }}
+                            className="bg-[#4700b3] hover:bg-[#3d0099] text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                          >
+                            View Batches
+                          </button>
+                        )}
                       </div>
 
-                      {/* Progress section */}
-                      <div className="space-y-2 mb-6">
-                        <div className="flex justify-between items-center text-xs font-bold">
-                          <span className="text-slate-500 uppercase tracking-wider text-[10px]">Course Progress</span>
-                          <span className="text-[#4700b3] font-black">{course.progress}%</span>
+                      {/* Expanded Section (Purchased Batch Info & Assignments) */}
+                      {expandedCourseId === course._id && (
+                        <div className="pt-4 border-t border-slate-100/50 mb-6 animate-fade-in">
+                          {/* Batch info */}
+                          {(() => {
+                            let myBatches = courseBatches[course.courseName] || [];
+                            if ((course as any).batchId) {
+                              myBatches = myBatches.filter(b => b._id === (course as any).batchId);
+                            } else if ((course as any).batchName) {
+                              myBatches = myBatches.filter(b => b.batchName === (course as any).batchName);
+                            }
+                            if (myBatches.length === 0) return null;
+                            
+                            return (
+                              <div className="mb-4">
+                                <div className="flex items-center gap-1.5 mb-2">
+                                  <FiLayers size={13} className="text-[#4700b3]" />
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Enrolled Batch</span>
+                                </div>
+                                <div className="space-y-2">
+                                  {myBatches.map((batch: any) => (
+                                  <div key={batch._id} className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2">
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-xs font-bold text-slate-700">{batch.batchName}</span>
+                                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                        batch.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600' :
+                                        batch.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' :
+                                        'bg-slate-100 text-slate-500'
+                                      }`}>{batch.status}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400 font-medium">
+                                      {batch.startDate && (
+                                        <span className="flex items-center gap-1">
+                                          <FiCalendar size={10} />
+                                          {batch.startDate} – {batch.endDate}
+                                        </span>
+                                      )}
+                                      {batch.startTime && (
+                                        <span className="flex items-center gap-1">
+                                          <FiClock size={10} />
+                                          {batch.startTime} - {batch.endTime}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })()}
+
+
                         </div>
-                        <div className="w-full bg-slate-100 rounded-full h-2">
-                          <div 
-                            className="bg-[#4700b3] h-2 rounded-full transition-all duration-500" 
-                            style={{ width: `${course.progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
+                      )}
+
+                      {/* Attendance section */}
+                      {(() => {
+                        const courseRecords = attendanceRecords.filter((r: any) =>
+                          r.activity && r.activity.toLowerCase() === course.courseName.toLowerCase()
+                        );
+                        const totalSessions = courseRecords.length;
+                        const presentCount = courseRecords.filter((r: any) =>
+                          r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late'
+                        ).length;
+                        const attendanceRate = totalSessions > 0 ? Math.round((presentCount / totalSessions) * 100) : 0;
+                        return (
+                          <div className="flex items-center gap-3 mb-6 bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
+                            <div className="p-2 bg-purple-50 text-[#4700b3] rounded-xl shrink-0">
+                              <FiUserCheck size={16} className="stroke-[2.5]" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Attendance</p>
+                              <p className="text-xs font-extrabold text-slate-700 mt-1 leading-none">
+                                {totalSessions > 0
+                                  ? <>{attendanceRate}% <span className="text-slate-400 font-semibold">({presentCount}/{totalSessions} sessions)</span></>
+                                  : <span className="text-slate-400 font-semibold">No sessions yet</span>
+                                }
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       {/* Footer schedule */}
                       <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between gap-4">
@@ -306,7 +465,8 @@ const StudentCourses: React.FC = () => {
                 {displayedSuggestions.map((course: Course) => (
                   <div 
                     key={course._id} 
-                    className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-300"
+                    className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                    onClick={() => handleEnrollClick(course)}
                   >
                     <div className="relative h-40 bg-slate-50 shrink-0">
                       {course.thumbnailImage ? (
@@ -337,7 +497,7 @@ const StudentCourses: React.FC = () => {
                       </div>
 
                       <button 
-                        onClick={() => handleEnroll(course)}
+                        onClick={(e) => { e.stopPropagation(); handleEnrollClick(course); }}
                         className="w-full bg-[#e6e6fa] hover:bg-[#d8d8f6] text-[#4700b3] font-bold rounded-xl py-2.5 mt-4 transition-colors border-none cursor-pointer flex items-center justify-center gap-1.5 text-xs"
                       >
                         <FiPlus size={14} className="stroke-[2.5]" /> Enroll in Course
@@ -352,6 +512,77 @@ const StudentCourses: React.FC = () => {
         </div>
 
       </main>
+
+      {/* Batch Selection Modal */}
+      {enrollCourseModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+              <div>
+                <h3 className="font-bold text-slate-800">Select a Batch</h3>
+                <p className="text-xs text-slate-500 mt-1">{enrollCourseModal.courseName}</p>
+              </div>
+              <button 
+                onClick={() => setEnrollCourseModal(null)}
+                className="p-2 bg-white text-slate-400 hover:text-slate-600 rounded-full border border-slate-200 cursor-pointer"
+              >
+                <FiX size={16} />
+              </button>
+            </div>
+            
+            <div className="p-5 overflow-y-auto">
+              {loadingBatches ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4700b3]"></div>
+                </div>
+              ) : enrollBatches.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-slate-500 text-sm">No batches available for this course yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {enrollBatches.map(batch => (
+                    <div key={batch._id} className="border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:border-purple-200 transition-colors">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="text-xs font-bold text-slate-400 uppercase">{batch.batchCode}</span>
+                          <h4 className="font-bold text-slate-800 text-sm mt-0.5">{batch.batchName}</h4>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                          batch.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600' :
+                          batch.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' :
+                          'bg-slate-100 text-slate-500'
+                        }`}>
+                          {batch.status}
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-600">
+                        {batch.instructor && (
+                          <span className="flex items-center gap-1"><FiUserCheck size={12} className="text-slate-400"/> {batch.instructor}</span>
+                        )}
+                        {batch.startDate && (
+                          <span className="flex items-center gap-1"><FiCalendar size={12} className="text-slate-400"/> {batch.startDate}</span>
+                        )}
+                        {batch.startTime && (
+                          <span className="flex items-center gap-1"><FiClock size={12} className="text-slate-400"/> {batch.startTime} - {batch.endTime}</span>
+                        )}
+                      </div>
+                      
+                      <button 
+                        onClick={() => handleBatchSelect(enrollCourseModal, batch)}
+                        className="mt-2 w-full bg-[#4700b3] hover:bg-[#3d0099] text-white font-bold py-2 rounded-lg text-xs cursor-pointer transition-colors border-none"
+                      >
+                        Select & Pay
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
