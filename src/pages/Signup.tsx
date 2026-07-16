@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { FiCheck } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import loginImg from '../assets/login.png';
 import crayonImg from '../assets/crayon.png';
 
@@ -13,8 +12,6 @@ const Signup: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -35,8 +32,7 @@ const Signup: React.FC = () => {
       const data = await res.json();
       
       if (res.ok) {
-        login(data);
-        navigate('/student/courses', { state: { fromRestricted: true } });
+        navigate('/login', { state: { signupSuccess: true } });
       } else {
         setError(data.message || 'Signup failed');
       }

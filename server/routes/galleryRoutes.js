@@ -72,8 +72,14 @@ router.get('/', async (req, res) => {
     const totalPages = Math.ceil(totalImages / limit);
     const skip = (page - 1) * limit;
 
+    const sortBy = req.query.sortBy;
+    let sortOption = { order: 1, createdAt: -1 };
+    if (sortBy === 'newest') {
+      sortOption = { createdAt: -1 };
+    }
+
     const images = await Gallery.find(filter)
-      .sort({ order: 1, createdAt: -1 })
+      .sort(sortOption)
       .skip(skip)
       .limit(limit);
 

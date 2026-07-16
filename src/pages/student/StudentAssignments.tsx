@@ -3,7 +3,6 @@ import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
-import {  
   FiCheckCircle, 
   FiUploadCloud, 
   FiEye, 
@@ -13,7 +12,6 @@ import {
   FiFileText,
   FiClipboard,
   FiAward
-  FiFileText
 } from 'react-icons/fi';
 
 interface PendingAssignment {
