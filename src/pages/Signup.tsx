@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { FiCheck } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import loginImg from '../assets/login.png';
 import crayonImg from '../assets/crayon.png';
 
@@ -11,10 +12,37 @@ const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Signup attempt:', { fullName, phoneNumber, email, password, confirmPassword });
+    setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    try {
+      const res = await fetch('http://127.0.0.1:5000/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, phoneNumber, email, password })
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        login(data);
+        navigate('/student/courses', { state: { fromRestricted: true } });
+      } else {
+        setError(data.message || 'Signup failed');
+      }
+    } catch (err) {
+      setError('An error occurred during signup');
+    }
   };
 
   return (
@@ -92,6 +120,12 @@ const Signup: React.FC = () => {
               <span className="text-xs font-semibold text-slate-400">OR</span>
               <div className="flex-1 h-px bg-slate-200"></div>
             </div>
+
+            {error && (
+              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4 text-center font-semibold">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleSignup} className="flex flex-col gap-4">
               

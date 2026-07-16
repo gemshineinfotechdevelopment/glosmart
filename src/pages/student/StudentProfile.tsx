@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
+import { useAuth } from '../../context/AuthContext';
 import { FiEdit2, FiX, FiCheck, FiCheckCircle } from 'react-icons/fi';
 
 interface ProfileData {
@@ -14,9 +15,11 @@ interface ProfileData {
 }
 
 const StudentProfile: React.FC = () => {
+  const { user } = useAuth();
+
   // State for student details
   const [profile, setProfile] = useState<ProfileData>({
-    name: 'Sarah Jenkins',
+    name: 'Student User',
     studentId: 'GS-2024-8832',
     grade: '5th Grade',
     age: '10 yrs',
@@ -40,12 +43,13 @@ const StudentProfile: React.FC = () => {
 
   // Fetch Student data on mount
   useEffect(() => {
-    fetch('http://localhost:5000/api/students/first')
+    const profileId = user?.profileId || 'first';
+    fetch(`http://localhost:5000/api/students/${profileId}`)
       .then(res => res.json())
       .then(data => {
         if (data) {
           const loadedProfile = {
-            name: data.name || 'Sarah Jenkins',
+            name: data.name || 'Student User',
             studentId: data._id,
             grade: data.grade || '5th Grade',
             age: data.age || '10 yrs',
@@ -63,7 +67,7 @@ const StudentProfile: React.FC = () => {
         }
       })
       .catch(err => console.error('Error fetching profile:', err));
-  }, []);
+  }, [user]);
 
   // Handle Edit Submit
   const handleSaveProfile = (e: React.FormEvent) => {

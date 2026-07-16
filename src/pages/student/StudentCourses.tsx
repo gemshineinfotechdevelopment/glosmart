@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { 
   FiBookOpen, 
   FiClock, 
@@ -31,25 +32,26 @@ interface EnrolledCourse extends Course {
 
 const StudentCourses: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   // const [showToast, setShowToast] = useState(false);
   // const [toastMessage, setToastMessage] = useState('');
   
   const [studentId, setStudentId] = useState<string>('');
-  const [studentName, setStudentName] = useState('Sarah Jenkins');
+  const [studentName, setStudentName] = useState('Student User');
   const [studentGrade, setStudentGrade] = useState('5th Grade');
   const [studentAvatar, setStudentAvatar] = useState('https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [suggestedCourses, setSuggestedCourses] = useState<Course[]>([]);
 
-
-
   // Fetch student and courses from DB
   useEffect(() => {
     const loadData = async () => {
       try {
+        const profileId = user?.profileId || 'first';
         // 1. Fetch Student first
-        const studentRes = await fetch('http://localhost:5000/api/students/first');
+        const studentRes = await fetch(`http://localhost:5000/api/students/${profileId}`);
         if (studentRes.ok) {
           const studentData = await studentRes.json();
           setStudentId(studentData._id);
@@ -67,7 +69,7 @@ const StudentCourses: React.FC = () => {
     };
 
     loadData();
-  }, []);
+  }, [user]);
 
   // Fetch suggested courses when enrolledCourses updates
   useEffect(() => {
@@ -169,6 +171,12 @@ const StudentCourses: React.FC = () => {
 
         {/* Content Container */}
         <div className="px-6 lg:px-10 mt-8 space-y-10 flex-1">
+          {location.state?.fromRestricted && (
+            <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs font-semibold flex items-center gap-3 shadow-sm">
+              <span className="text-amber-500 text-sm">⚠️</span>
+              <span>Please purchase a course to unlock access to the dashboard, assignments, attendance, and profile pages.</span>
+            </div>
+          )}
           
           {/* Toast Notification commented out */}
           {/*

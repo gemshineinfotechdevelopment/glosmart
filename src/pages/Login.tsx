@@ -17,7 +17,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch('http://127.0.0.1:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -27,6 +27,18 @@ const Login: React.FC = () => {
       if (res.ok) {
         login(data);
         if (data.role === 'student') {
+          try {
+            const studentRes = await fetch(`http://127.0.0.1:5000/api/students/${data.profileId}`);
+            if (studentRes.ok) {
+              const studentData = await studentRes.json();
+              if (!studentData.enrolledCourses || studentData.enrolledCourses.length === 0) {
+                navigate('/student/courses', { state: { fromRestricted: true } });
+                return;
+              }
+            }
+          } catch (err) {
+            console.error('Error checking student enrollment on login:', err);
+          }
           navigate('/student/dashboard');
         } else {
           navigate('/admin');
