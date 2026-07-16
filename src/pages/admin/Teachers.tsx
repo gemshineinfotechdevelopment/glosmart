@@ -1,9 +1,45 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   FiSearch, FiFilter, FiPlus, 
-  FiEdit2, FiTrash2, FiMail, FiPhone, FiUpload
+  FiEdit2, FiTrash2, FiMail, FiPhone, FiUpload, FiUser,
+  FiZoomIn, FiZoomOut, FiAlertTriangle
 } from 'react-icons/fi';
+import Cropper from 'react-easy-crop';
+import type { Area } from 'react-easy-crop';
 import AdminSidebar from '../../components/admin/AdminSidebar';
+
+const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
+
+// ─── Helper: create cropped image blob ───────────────────────────────────────
+async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
+  const image = new Image();
+  image.crossOrigin = 'anonymous';
+  image.src = imageSrc;
+
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = reject;
+  });
+
+  const canvas = document.createElement('canvas');
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height,
+    0, 0, pixelCrop.width, pixelCrop.height,
+  );
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error('Canvas toBlob failed'));
+    }, 'image/jpeg', 0.92);
+  });
+}
 
 interface Teacher {
   _id: string;
@@ -25,6 +61,7 @@ const Teachers: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: '',
     phone: '',
     subject: '',
     qualification: '',
@@ -32,8 +69,96 @@ const Teachers: React.FC = () => {
     status: 'Active',
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!imageFile) {
+      setShowCropper(false);
+      setCroppedAreaPixels(null);
+      if (editingTeacherId) {
+        const editingTeacher = teachers.find(t => t._id === editingTeacherId);
+        setPreviewUrl(editingTeacher?.avatar || null);
+      } else {
+        setPreviewUrl(null);
+      }
+      return;
+    }
+  }, [imageFile, editingTeacherId, teachers]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  const onCropComplete = useCallback((_: Area, croppedPixels: Area) => {
+    setCroppedAreaPixels(croppedPixels);
+  }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const errors: string[] = [];
+
+      // Validate file type
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        errors.push('Format must be JPG, JPEG, or PNG.');
+      }
+
+      // Validate file size (1MB)
+      if (file.size > MAX_FILE_SIZE) {
+        errors.push(`File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds the 1MB limit.`);
+      }
+
+      // If type/size already failed, reject immediately (no need to check dimensions)
+      if (errors.length > 0 && !ALLOWED_TYPES.includes(file.type)) {
+        setValidationError(`Image doesn't meet the requirements:\n• ${errors.join('\n• ')}`);
+        e.target.value = '';
+        return;
+      }
+
+      // Validate image dimensions (must be 1200×1600)
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        if (img.naturalWidth !== 1200 || img.naturalHeight !== 1600) {
+          errors.push(`Dimensions must be 1200×1600px (yours: ${img.naturalWidth}×${img.naturalHeight}px).`);
+        }
+
+        URL.revokeObjectURL(url);
+
+        if (errors.length > 0) {
+          setValidationError(`Image doesn't meet the requirements:\n• ${errors.join('\n• ')}`);
+          e.target.value = '';
+          return;
+        }
+
+        // All checks passed — show the cropper
+        setValidationError(null);
+        setImageFile(file);
+        const pUrl = URL.createObjectURL(file);
+        setPreviewUrl(pUrl);
+        setShowCropper(true);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        setValidationError('Could not read the image file. Please try another image.');
+        e.target.value = '';
+      };
+      img.src = url;
+    }
+  };
 
   useEffect(() => {
     fetchTeachers();
@@ -53,6 +178,7 @@ const Teachers: React.FC = () => {
     setFormData({
       name: '',
       email: '',
+      password: '',
       phone: '',
       subject: '',
       qualification: '',
@@ -61,10 +187,23 @@ const Teachers: React.FC = () => {
     });
     setImageFile(null);
     setEditingTeacherId(null);
+    setShowCropper(false);
+    setCroppedAreaPixels(null);
+    setValidationError(null);
   };
 
   const openAddModal = () => {
     resetForm();
+    setFormData({
+      name: '',
+      email: '',
+      password: 'teacher@glosmart', // Pre-populated temporary password
+      phone: '',
+      subject: '',
+      qualification: '',
+      experience: '',
+      status: 'Active',
+    });
     setIsModalOpen(true);
   };
 
@@ -72,6 +211,7 @@ const Teachers: React.FC = () => {
     setFormData({
       name: teacher.name,
       email: teacher.email,
+      password: '', // Not editing password here
       phone: teacher.phone || '',
       subject: teacher.subject,
       qualification: teacher.qualification || '',
@@ -108,8 +248,22 @@ const Teachers: React.FC = () => {
     data.append('qualification', formData.qualification);
     data.append('experience', formData.experience);
     data.append('status', formData.status);
+    if (!editingTeacherId) {
+      data.append('password', formData.password);
+    }
+
     if (imageFile) {
-      data.append('image', imageFile);
+      if (croppedAreaPixels && previewUrl) {
+        try {
+          const croppedBlob = await getCroppedImg(previewUrl, croppedAreaPixels);
+          data.append('image', croppedBlob, 'cropped-image.jpg');
+        } catch (err) {
+          console.error("Failed to crop image", err);
+          data.append('image', imageFile);
+        }
+      } else {
+        data.append('image', imageFile);
+      }
     }
 
     try {
@@ -190,7 +344,13 @@ const Teachers: React.FC = () => {
           {teachers.map((teacher) => (
             <div key={teacher._id} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
               <div className="flex justify-between items-start mb-6">
-                <img src={teacher.avatar || `https://i.pravatar.cc/150?u=${teacher._id}`} alt={teacher.name} className="w-16 h-16 rounded-2xl object-cover shadow-sm" />
+                {teacher.avatar ? (
+                  <img src={teacher.avatar} alt={teacher.name} className="w-16 h-16 rounded-2xl object-cover shadow-sm" />
+                ) : (
+                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-100 shadow-sm">
+                    <FiUser size={28} />
+                  </div>
+                )}
                 <span className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${teacher.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${teacher.status === 'Active' ? 'bg-green-600' : 'bg-slate-400'}`}></span> {teacher.status || 'Active'}
                 </span>
@@ -239,28 +399,126 @@ const Teachers: React.FC = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="flex flex-col gap-2 mb-4">
                     <label className="block text-sm font-bold text-slate-700">Teacher Photo</label>
-                    <div 
-                      className="border-2 border-dashed border-slate-300 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 transition-colors"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <FiUpload className="text-slate-400 mb-2" size={24} />
-                      <p className="text-sm font-medium text-slate-600">
-                        {imageFile ? imageFile.name : 'Click to upload photo'}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-1">JPEG, PNG, JPG allowed</p>
-                    </div>
                     <input 
                       type="file" 
-                      accept="image/jpeg, image/png, image/jpg"
+                      accept=".jpg,.jpeg,.png"
                       ref={fileInputRef}
                       className="hidden"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          setImageFile(e.target.files[0]);
-                        }
-                      }}
+                      onChange={handleFileChange}
                     />
+
+                    {showCropper && previewUrl ? (
+                      <div className="flex flex-col gap-3">
+                        {/* Cropper area */}
+                        <div className="relative w-full h-56 bg-slate-900 rounded-xl overflow-hidden">
+                          <Cropper
+                            image={previewUrl}
+                            crop={crop}
+                            zoom={zoom}
+                            aspect={3 / 4}
+                            onCropChange={setCrop}
+                            onZoomChange={setZoom}
+                            onCropComplete={onCropComplete}
+                          />
+                        </div>
+
+                        {/* Zoom controls */}
+                        <div className="flex items-center gap-3 px-1">
+                          <FiZoomOut size={16} className="text-slate-400" />
+                          <input
+                            type="range"
+                            min={1}
+                            max={3}
+                            step={0.1}
+                            value={zoom}
+                            onChange={(e) => setZoom(Number(e.target.value))}
+                            className="flex-1 accent-[#6247df]"
+                          />
+                          <FiZoomIn size={16} className="text-slate-400" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowCropper(false);
+                              setPreviewUrl(null);
+                              setImageFile(null);
+                              setCroppedAreaPixels(null);
+                              setValidationError(null);
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                              }
+                            }}
+                            className="text-xs font-bold text-slate-500 hover:text-red-500 ml-2"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div 
+                        className="border-2 border-dashed border-slate-300 rounded-xl p-5 flex flex-col sm:flex-row items-center gap-5 hover:bg-slate-50 transition-colors cursor-pointer"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        {previewUrl ? (
+                          <div className="relative w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 shadow-sm shrink-0 bg-slate-50">
+                            <img 
+                              src={previewUrl} 
+                              alt="Teacher Preview" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div 
+                            className="w-24 h-24 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center text-slate-400 shrink-0"
+                          >
+                            <FiUser size={32} />
+                          </div>
+                        )}
+                        
+                        <div className="flex-1 text-center sm:text-left min-w-0">
+                          <p className="text-sm font-bold text-slate-700 leading-normal truncate max-w-[280px] mx-auto sm:mx-0">
+                            {imageFile ? imageFile.name : (editingTeacherId && previewUrl ? 'Current Avatar' : 'No photo selected')}
+                          </p>
+                          <p className="text-xs text-slate-400 mt-1">JPG, JPEG or PNG only (MAX. 1MB · 1200×1600px)</p>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              fileInputRef.current?.click();
+                            }}
+                            className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors"
+                          >
+                            <FiUpload size={14} /> {previewUrl ? 'Change Photo' : 'Upload Photo'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Validation warning — shown below the file picker */}
+                  {validationError && (
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl animate-[shake_0.4s_ease-in-out]">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                          <FiAlertTriangle size={18} className="text-amber-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-extrabold text-amber-800 mb-1.5">Image doesn't meet the requirements</h4>
+                          <ul className="space-y-1">
+                            {validationError.split('\n').filter(line => line.startsWith('•')).map((line, idx) => (
+                              <li key={idx} className="flex items-start gap-2 text-sm text-amber-700 font-medium">
+                                <span className="text-amber-500 mt-0.5">✕</span>
+                                <span>{line.replace('• ', '')}</span>
+                              </li>
+                            ))}
+                            {!validationError.includes('•') && (
+                              <li className="text-sm text-amber-700 font-medium">{validationError}</li>
+                            )}
+                          </ul>
+                          <p className="text-xs text-amber-500 font-semibold mt-2.5">Required: JPG/JPEG/PNG · Max 1MB · 1200×1600px</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -285,6 +543,19 @@ const Teachers: React.FC = () => {
                         placeholder="john@example.com"
                       />
                     </div>
+                    {!editingTeacherId && (
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Temporary Password</label>
+                        <input 
+                          required
+                          type="text" 
+                          value={formData.password}
+                          onChange={e => setFormData({...formData, password: e.target.value})}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#6247df] focus:border-transparent transition-all"
+                          placeholder="Enter temporary password"
+                        />
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-bold text-slate-700 mb-2">Phone Number</label>
                       <input 
@@ -349,6 +620,16 @@ const Teachers: React.FC = () => {
           </div>
         )}
       </main>
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          15% { transform: translateX(-6px); }
+          30% { transform: translateX(5px); }
+          45% { transform: translateX(-4px); }
+          60% { transform: translateX(3px); }
+          75% { transform: translateX(-2px); }
+        }
+      `}</style>
     </div>
   );
 };

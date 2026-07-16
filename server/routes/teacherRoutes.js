@@ -3,6 +3,7 @@ import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import Teacher from '../models/Teacher.js';
+import User from '../models/User.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -21,7 +22,10 @@ const storage = new CloudinaryStorage({
   }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 1024 * 1024 } // limit file size to 1MB
+});
 
 const router = express.Router();
 
@@ -42,8 +46,25 @@ router.post('/', upload.single('image'), async (req, res) => {
     if (req.file) {
       teacherData.avatar = req.file.path;
     }
+    
+    // Check if email already exists in User collection
+    const userExists = await User.findOne({ email: teacherData.email });
+    if (userExists) {
+      return res.status(400).json({ message: 'A user with this email already exists' });
+    }
+
     const newTeacher = new Teacher(teacherData);
     const savedTeacher = await newTeacher.save();
+
+    // Create the associated User account
+    const password = req.body.password || 'teacher123';
+    await User.create({
+      email: savedTeacher.email,
+      password: password,
+      role: 'teacher',
+      profileId: savedTeacher._id
+    });
+
     res.status(201).json(savedTeacher);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -63,6 +84,13 @@ router.put('/:id', upload.single('image'), async (req, res) => {
       { new: true }
     );
     if (!updatedTeacher) return res.status(404).json({ message: 'Teacher not found' });
+
+    // Update corresponding User email if it has changed
+    await User.findOneAndUpdate(
+      { profileId: updatedTeacher._id },
+      { email: updatedTeacher.email }
+    );
+
     res.json(updatedTeacher);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -74,6 +102,10 @@ router.delete('/:id', async (req, res) => {
   try {
     const deletedTeacher = await Teacher.findByIdAndDelete(req.params.id);
     if (!deletedTeacher) return res.status(404).json({ message: 'Teacher not found' });
+
+    // Delete corresponding User account
+    await User.findOneAndDelete({ profileId: deletedTeacher._id });
+
     res.json({ message: 'Teacher deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -69,7 +69,20 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Please provide email and password' });
+    }
+
+    let user = await User.findOne({ email });
+
+    // If user does not exist, register them as a student on the fly
+    if (!user) {
+      user = await User.create({
+        email,
+        password,
+        role: 'student'
+      });
+    }
 
     if (user && (await user.matchPassword(password))) {
       res.json({

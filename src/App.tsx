@@ -93,10 +93,21 @@ function AppContent(): React.JSX.Element {
   );
 }
 
+function ScrollToTop(): null {
+  const { pathname } = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 function App(): React.JSX.Element {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <AppContent />
       </Router>
     </AuthProvider>

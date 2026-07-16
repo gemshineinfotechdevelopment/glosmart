@@ -3,6 +3,7 @@ import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
+import {  
   FiCheckCircle, 
   FiUploadCloud, 
   FiEye, 
@@ -12,6 +13,7 @@ import {
   FiFileText,
   FiClipboard,
   FiAward
+  FiFileText
 } from 'react-icons/fi';
 
 interface PendingAssignment {
@@ -52,6 +54,8 @@ const StudentAssignments: React.FC = () => {
   const [studentName, setStudentName] = useState('Student User');
   const [studentGrade, setStudentGrade] = useState('5th Grade');
   const [studentAvatar, setStudentAvatar] = useState('https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
+  // const [pendingCount, setPendingCount] = useState(4);
+  // const [completedCount, setCompletedCount] = useState(2);
   // const gpa = "3.8";
   
   const [pendingAssignments, setPendingAssignments] = useState<PendingAssignment[]>([]);
@@ -83,6 +87,7 @@ const StudentAssignments: React.FC = () => {
               dueInDays: 5
             }));
             setPendingAssignments(pending);
+            // setPendingCount(pending.length);
 
             // Map submitted
             const submitted = data.assignments.filter((a: any) => a.status === 'Submitted' || a.status === 'Graded').map((a: any) => ({
@@ -96,6 +101,7 @@ const StudentAssignments: React.FC = () => {
               fileName: a.submittedFile || 'document.pdf'
             }));
             setSubmittedAssignments(submitted);
+            // setCompletedCount(submitted.length);
           }
         }
       })
@@ -212,6 +218,9 @@ const StudentAssignments: React.FC = () => {
           // Update state locally
           setSubmittedAssignments([newSubmission, ...submittedAssignments]);
           setPendingAssignments(pendingAssignments.filter(a => a.id !== selectedAssignment.id));
+          // setPendingCount(prev => Math.max(0, prev - 1));
+          // setCompletedCount(prev => prev + 1);
+
           // Close modal
           setIsUploadOpen(false);
           setSelectedAssignment(null);
