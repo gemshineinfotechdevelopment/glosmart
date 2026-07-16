@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { FiDownload, FiCheckCircle, FiAlertCircle, FiCreditCard } from 'react-icons/fi';
 
 interface ReceiptRow {
@@ -15,6 +16,7 @@ interface ReceiptRow {
 const StudentFees: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, refreshEnrollment } = useAuth();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -23,7 +25,7 @@ const StudentFees: React.FC = () => {
   const [pendingEnrollment, setPendingEnrollment] = useState<any>(location.state?.pendingEnrollment || null);
   const [paying, setPaying] = useState(false);
 
-  const [studentName, setStudentName] = useState('Sarah Jenkins');
+  const [studentName, setStudentName] = useState('Student User');
   const [studentGrade, setStudentGrade] = useState('5th Grade');
   const [studentAvatar, setStudentAvatar] = useState('https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
   const [receipts, setReceipts] = useState<ReceiptRow[]>([]);
@@ -64,14 +66,15 @@ const StudentFees: React.FC = () => {
   ];
 
   useEffect(() => {
+    const profileId = user?.profileId || 'first';
     // 1. Fetch student
-    fetch('http://localhost:5000/api/students/first')
+    fetch(`http://localhost:5000/api/students/${profileId}`)
       .then(res => res.json())
       .then(studentData => {
         if (studentData) {
           setStudentId(studentData._id);
           setEnrolledCourses(studentData.enrolledCourses || []);
-          const name = studentData.name || 'Sarah Jenkins';
+          const name = studentData.name || 'Student User';
           setStudentName(name);
           setStudentGrade(studentData.grade || '5th Grade');
           setStudentAvatar(studentData.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
@@ -91,7 +94,7 @@ const StudentFees: React.FC = () => {
                   method: p.mode || 'UPI',
                   status: p.status as any
                 })));
-              } else {
+              } else if (name === 'Sarah Jenkins') {
                 setReceipts(defaultReceipts);
                 // Seed database payments for this student
                 for (const receipt of defaultReceipts) {
@@ -113,12 +116,14 @@ const StudentFees: React.FC = () => {
                     console.error('Error seeding payment record:', e);
                   }
                 }
+              } else {
+                setReceipts([]);
               }
             });
         }
       })
       .catch(err => console.error('Error loading payments:', err));
-  }, []);
+  }, [user]);
 
   // Handle Payment Transaction & Enrollment Completion
   const handlePayment = async () => {
@@ -173,6 +178,7 @@ const StudentFees: React.FC = () => {
 
       // 3. Update states
       setEnrolledCourses(updatedCourses);
+      await refreshEnrollment();
       
       const newReceipt: ReceiptRow = {
         invoiceNo,

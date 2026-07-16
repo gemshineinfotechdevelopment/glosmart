@@ -232,7 +232,7 @@ export default function AdminCreateCoursePage() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">Course Fee (₹)</label>
               </div>
 
-              <div>
+              <div className="hidden">
                 <label className="block text-sm font-medium text-slate-700 mb-1">Max Students</label>
                 <input 
                   type="number" 
