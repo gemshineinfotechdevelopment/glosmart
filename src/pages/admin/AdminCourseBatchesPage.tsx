@@ -465,9 +465,9 @@ export default function AdminCourseBatchesPage() {
                   <input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
 
-                <div className="hidden">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Max Capacity</label>
-                  <input type="number" name="capacity" value={formData.capacity} onChange={handleInputChange} min="1" className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" />
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Max Capacity *</label>
+                  <input required type="number" name="capacity" value={formData.capacity} onChange={handleInputChange} min="1" className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
                 
                 <div>
