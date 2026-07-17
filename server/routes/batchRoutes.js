@@ -1,6 +1,7 @@
 import express from 'express';
 import Batch from '../models/Batch.js';
 import Course from '../models/Course.js';
+import Student from '../models/Student.js';
 
 const router = express.Router();
 
@@ -166,6 +167,71 @@ router.get('/course/:courseId/assignments', async (req, res) => {
       }
     }
     res.json(assignments);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST mark attendance for a student
+router.post('/:id/attendance', async (req, res) => {
+  try {
+    const batch = await Batch.findById(req.params.id);
+    if (!batch) {
+      return res.status(404).json({ message: 'Batch not found' });
+    }
+    
+    if (!batch.attendanceEnabled) {
+      return res.status(403).json({ message: 'Attendance is not currently enabled for this batch' });
+    }
+
+    const { studentId } = req.body;
+    if (!studentId) {
+      return res.status(400).json({ message: 'Student ID is required' });
+    }
+
+    // Check if attendance already marked for today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const alreadyMarked = batch.attendanceRecords.some(record => {
+      const recordDate = new Date(record.date);
+      recordDate.setHours(0, 0, 0, 0);
+      return recordDate.getTime() === today.getTime() && record.studentId.toString() === studentId;
+    });
+
+    if (alreadyMarked) {
+      return res.status(400).json({ message: 'Attendance already marked for today' });
+    }
+
+    batch.attendanceRecords.push({
+      date: new Date(),
+      studentId
+    });
+
+    const updatedBatch = await batch.save();
+
+    // Update the student model as well
+    const student = await Student.findById(studentId);
+    if (student) {
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+      
+      student.attendanceRecords.push({
+        date: formattedDate,
+        status: 'present',
+        activity: batch.courseName || (batch.courseId ? batch.courseId.courseName : 'Class')
+      });
+      
+      const totalRecords = student.attendanceRecords.length;
+      const presentRecords = student.attendanceRecords.filter(r => r.status === 'present').length;
+      student.attendanceRate = Math.round((presentRecords / totalRecords) * 100);
+
+      await student.save();
+    }
+
+    res.status(201).json({ message: 'Attendance marked successfully', updatedBatch });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

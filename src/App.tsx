@@ -23,6 +23,7 @@ import BatchDetails from './pages/admin/BatchDetails';
 import AdminGalleryPage from './pages/admin/AdminGalleryPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminNotificationsPage from './pages/admin/AdminNotificationsPage';
+import AdminAttendancePage from './pages/admin/AdminAttendancePage';
 
 // Student Pages
 import StudentProfile from './pages/student/StudentProfile';
@@ -73,6 +74,7 @@ function AppContent(): React.JSX.Element {
           <Route path="/admin/gallery" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminGalleryPage /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminSettingsPage /></ProtectedRoute>} />
           <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminNotificationsPage /></ProtectedRoute>} />
+          <Route path="/admin/attendance" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminAttendancePage /></ProtectedRoute>} />
 
           {/* Student Routes */}
           <Route path="/student/profile" element={<ProtectedRoute allowedRoles={['student']}><StudentProfile /></ProtectedRoute>} />

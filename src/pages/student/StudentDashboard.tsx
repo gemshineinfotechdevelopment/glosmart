@@ -38,18 +38,16 @@ const StudentDashboard: React.FC = () => {
       .then(res => res.json())
       .then(data => {
         if (data) {
-          let finalAttendance = '0%';
+          let finalAttendance = '0 Days';
           if (data.name === 'Sarah Jenkins') {
-            finalAttendance = (data.attendanceRate || 100) + '%';
+            finalAttendance = '114 Days';
           } else {
             const records = data.attendanceRecords || [];
             if (records.length > 0) {
               const presentOrLate = records.filter((r: any) => 
                 r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late'
               ).length;
-              finalAttendance = Math.round((presentOrLate / records.length) * 100) + '%';
-            } else {
-              finalAttendance = '0%';
+              finalAttendance = presentOrLate + ' Days';
             }
           }
 

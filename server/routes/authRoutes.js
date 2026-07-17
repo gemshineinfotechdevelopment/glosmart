@@ -2,7 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Student from '../models/Student.js';
-
+import Teacher from '../models/Teacher.js';
 const router = express.Router();
 
 const generateToken = (id, role) => {
@@ -85,11 +85,23 @@ router.post('/login', async (req, res) => {
     }
 
     if (user && (await user.matchPassword(password))) {
+      let name = '';
+      if (user.role === 'teacher' && user.profileId) {
+        const teacher = await Teacher.findById(user.profileId);
+        if (teacher) name = teacher.name;
+      } else if (user.role === 'student' && user.profileId) {
+        const student = await Student.findById(user.profileId);
+        if (student) name = student.name;
+      } else {
+        name = user.role === 'admin' ? 'Admin User' : 'Unknown';
+      }
+
       res.json({
         _id: user._id,
         email: user.email,
         role: user.role,
         profileId: user.profileId,
+        name: name,
         token: generateToken(user._id, user.role),
       });
     } else {

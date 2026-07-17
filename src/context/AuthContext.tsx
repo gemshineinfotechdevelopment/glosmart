@@ -6,6 +6,7 @@ interface User {
   role: 'admin' | 'teacher' | 'student';
   profileId?: string;
   token: string;
+  name?: string;
 }
 
 interface AuthContextType {
