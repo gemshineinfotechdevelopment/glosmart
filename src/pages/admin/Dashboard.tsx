@@ -103,158 +103,162 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Middle Section: Chart & Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 mb-8">
+        {user?.role !== 'teacher' && (
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 mb-8">
 
-          {/* Chart Card */}
-          <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col h-[400px]">
-            <div className="flex justify-between items-start mb-8">
-              <div>
-                <h3 className="text-xl font-bold text-[#1c1c28]">Student Growth</h3>
-                <p className="text-sm text-slate-500">Overview of registrations over the last 6 months</p>
+            {/* Chart Card */}
+            <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col h-[400px]">
+              <div className="flex justify-between items-start mb-8">
+                <div>
+                  <h3 className="text-xl font-bold text-[#1c1c28]">Student Growth</h3>
+                  <p className="text-sm text-slate-500">Overview of registrations over the last 6 months</p>
+                </div>
+                <button className="bg-slate-50 text-slate-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors">
+                  Last 6 Months
+                </button>
               </div>
-              <button className="bg-slate-50 text-slate-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors">
-                Last 6 Months
+
+              {/* CSS/SVG Area Chart Mockup */}
+              <div className="flex-1 relative w-full mt-4">
+                {/* Horizontal Grid lines */}
+                <div className="absolute inset-0 flex flex-col justify-between z-0">
+                  <div className="w-full h-px bg-slate-100"></div>
+                  <div className="w-full h-px bg-slate-100"></div>
+                  <div className="w-full h-px bg-slate-100"></div>
+                  <div className="w-full h-px bg-slate-100"></div>
+                </div>
+
+                {/* SVG Curve */}
+                <div className="absolute inset-0 z-10 top-0 bottom-0 left-0 right-0 h-full w-full">
+                  <svg viewBox="0 0 800 200" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+                    <defs>
+                      <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#6247df" stopOpacity="0.2" />
+                        <stop offset="100%" stopColor="#6247df" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M 0 150 C 100 80, 200 120, 300 130 C 400 140, 500 20, 600 20 C 700 20, 750 40, 800 50 L 800 200 L 0 200 Z" fill="url(#areaGradient)" />
+                    <path d="M 0 150 C 100 80, 200 120, 300 130 C 400 140, 500 20, 600 20 C 700 20, 750 40, 800 50" fill="none" stroke="#6247df" strokeWidth="4" strokeLinecap="round" />
+                  </svg>
+                </div>
+
+                {/* X-Axis Labels */}
+                <div className="absolute -bottom-8 left-0 right-0 flex justify-between text-xs font-semibold text-slate-400 px-2 z-20">
+                  <span>Jan</span>
+                  <span>Feb</span>
+                  <span>Mar</span>
+                  <span>Apr</span>
+                  <span>May</span>
+                  <span>Jun</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Activity Card */}
+            <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
+              <h3 className="text-xl font-bold text-[#1c1c28] mb-6">Recent Activities</h3>
+
+              <div className="flex flex-col gap-6 flex-1 relative">
+                {/* Timeline Line */}
+                <div className="absolute left-6 top-6 bottom-6 w-px bg-slate-100 z-0"></div>
+
+                {/* Item 1 */}
+                <div className="flex gap-4 relative z-10 items-start">
+                  <div className="w-12 h-12 rounded-full bg-purple-100 text-[#6247df] flex items-center justify-center shrink-0 border-4 border-white">
+                    <FiUsers size={18} />
+                  </div>
+                  <div className="pt-1">
+                    <h4 className="font-bold text-[#1c1c28] text-sm">New Student Joined</h4>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">Mia Thompson enrolled in "Color Magic 101"</p>
+                    <span className="text-[10px] font-bold text-slate-400 mt-2 block">2 mins ago</span>
+                  </div>
+                </div>
+
+                {/* Item 2 */}
+                <div className="flex gap-4 relative z-10 items-start">
+                  <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center shrink-0 border-4 border-white">
+                    <MdCurrencyRupee size={18} />
+                  </div>
+                  <div className="pt-1">
+                    <h4 className="font-bold text-[#1c1c28] text-sm">Fee Paid</h4>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">Invoice #3421 paid by Noah's parents (₹120)</p>
+                    <span className="text-[10px] font-bold text-slate-400 mt-2 block">45 mins ago</span>
+                  </div>
+                </div>
+
+                {/* Item 3 */}
+                <div className="flex gap-4 relative z-10 items-start">
+                  <div className="w-12 h-12 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center shrink-0 border-4 border-white">
+                    <FiBookOpen size={18} />
+                  </div>
+                  <div className="pt-1">
+                    <h4 className="font-bold text-[#1c1c28] text-sm">New Course Added</h4>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">"Digital Illustration for Teens" is now live</p>
+                    <span className="text-[10px] font-bold text-slate-400 mt-2 block">2 hours ago</span>
+                  </div>
+                </div>
+              </div>
+
+              <button className="w-full mt-6 py-3 border border-slate-200 rounded-xl text-[#6247df] font-bold text-sm hover:bg-slate-50 transition-colors">
+                View All Activity
               </button>
             </div>
-
-            {/* CSS/SVG Area Chart Mockup */}
-            <div className="flex-1 relative w-full mt-4">
-              {/* Horizontal Grid lines */}
-              <div className="absolute inset-0 flex flex-col justify-between z-0">
-                <div className="w-full h-px bg-slate-100"></div>
-                <div className="w-full h-px bg-slate-100"></div>
-                <div className="w-full h-px bg-slate-100"></div>
-                <div className="w-full h-px bg-slate-100"></div>
-              </div>
-
-              {/* SVG Curve */}
-              <div className="absolute inset-0 z-10 top-0 bottom-0 left-0 right-0 h-full w-full">
-                <svg viewBox="0 0 800 200" preserveAspectRatio="none" className="w-full h-full overflow-visible">
-                  <defs>
-                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6247df" stopOpacity="0.2" />
-                      <stop offset="100%" stopColor="#6247df" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M 0 150 C 100 80, 200 120, 300 130 C 400 140, 500 20, 600 20 C 700 20, 750 40, 800 50 L 800 200 L 0 200 Z" fill="url(#areaGradient)" />
-                  <path d="M 0 150 C 100 80, 200 120, 300 130 C 400 140, 500 20, 600 20 C 700 20, 750 40, 800 50" fill="none" stroke="#6247df" strokeWidth="4" strokeLinecap="round" />
-                </svg>
-              </div>
-
-              {/* X-Axis Labels */}
-              <div className="absolute -bottom-8 left-0 right-0 flex justify-between text-xs font-semibold text-slate-400 px-2 z-20">
-                <span>Jan</span>
-                <span>Feb</span>
-                <span>Mar</span>
-                <span>Apr</span>
-                <span>May</span>
-                <span>Jun</span>
-              </div>
-            </div>
           </div>
-
-          {/* Activity Card */}
-          <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
-            <h3 className="text-xl font-bold text-[#1c1c28] mb-6">Recent Activities</h3>
-
-            <div className="flex flex-col gap-6 flex-1 relative">
-              {/* Timeline Line */}
-              <div className="absolute left-6 top-6 bottom-6 w-px bg-slate-100 z-0"></div>
-
-              {/* Item 1 */}
-              <div className="flex gap-4 relative z-10 items-start">
-                <div className="w-12 h-12 rounded-full bg-purple-100 text-[#6247df] flex items-center justify-center shrink-0 border-4 border-white">
-                  <FiUsers size={18} />
-                </div>
-                <div className="pt-1">
-                  <h4 className="font-bold text-[#1c1c28] text-sm">New Student Joined</h4>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">Mia Thompson enrolled in "Color Magic 101"</p>
-                  <span className="text-[10px] font-bold text-slate-400 mt-2 block">2 mins ago</span>
-                </div>
-              </div>
-
-              {/* Item 2 */}
-              <div className="flex gap-4 relative z-10 items-start">
-                <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center shrink-0 border-4 border-white">
-                  <MdCurrencyRupee size={18} />
-                </div>
-                <div className="pt-1">
-                  <h4 className="font-bold text-[#1c1c28] text-sm">Fee Paid</h4>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">Invoice #3421 paid by Noah's parents (₹120)</p>
-                  <span className="text-[10px] font-bold text-slate-400 mt-2 block">45 mins ago</span>
-                </div>
-              </div>
-
-              {/* Item 3 */}
-              <div className="flex gap-4 relative z-10 items-start">
-                <div className="w-12 h-12 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center shrink-0 border-4 border-white">
-                  <FiBookOpen size={18} />
-                </div>
-                <div className="pt-1">
-                  <h4 className="font-bold text-[#1c1c28] text-sm">New Course Added</h4>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">"Digital Illustration for Teens" is now live</p>
-                  <span className="text-[10px] font-bold text-slate-400 mt-2 block">2 hours ago</span>
-                </div>
-              </div>
-            </div>
-
-            <button className="w-full mt-6 py-3 border border-slate-200 rounded-xl text-[#6247df] font-bold text-sm hover:bg-slate-50 transition-colors">
-              View All Activity
-            </button>
-          </div>
-        </div>
+        )}
 
         {/* Bottom Section: Revenue & Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+        <div className={`grid grid-cols-1 ${user?.role !== 'teacher' ? 'lg:grid-cols-[2fr_1fr]' : ''} gap-6`}>
 
           {/* Revenue Bar Chart */}
-          <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col h-[350px]">
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-xl font-bold text-[#1c1c28]">Revenue Comparison</h3>
-              <div className="flex gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#a36319]"></div>
-                  <span className="text-xs font-semibold text-slate-600">This Month</span>
+          {user?.role !== 'teacher' && (
+            <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col h-[350px]">
+              <div className="flex justify-between items-center mb-8">
+                <h3 className="text-xl font-bold text-[#1c1c28]">Revenue Comparison</h3>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[#a36319]"></div>
+                    <span className="text-xs font-semibold text-slate-600">This Month</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[#e3dbe7]"></div>
+                    <span className="text-xs font-semibold text-slate-600">Last Month</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#e3dbe7]"></div>
-                  <span className="text-xs font-semibold text-slate-600">Last Month</span>
+              </div>
+
+              {/* CSS Bar Chart */}
+              <div className="flex-1 flex items-end justify-around pb-6 mt-4 relative">
+                {/* Bars Week 1 */}
+                <div className="flex items-end gap-2 h-full">
+                  <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[40%]"></div>
+                  <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[50%]"></div>
+                </div>
+                {/* Bars Week 2 */}
+                <div className="flex items-end gap-2 h-full">
+                  <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[60%]"></div>
+                  <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[75%]"></div>
+                </div>
+                {/* Bars Week 3 */}
+                <div className="flex items-end gap-2 h-full">
+                  <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[45%]"></div>
+                  <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[40%]"></div>
+                </div>
+                {/* Bars Week 4 */}
+                <div className="flex items-end gap-2 h-full">
+                  <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[70%]"></div>
+                  <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[85%]"></div>
+                </div>
+
+                {/* X-Axis Labels */}
+                <div className="absolute -bottom-1 left-0 right-0 flex justify-around text-xs font-semibold text-slate-400">
+                  <span>Week 1</span>
+                  <span>Week 2</span>
+                  <span>Week 3</span>
+                  <span>Week 4</span>
                 </div>
               </div>
             </div>
-
-            {/* CSS Bar Chart */}
-            <div className="flex-1 flex items-end justify-around pb-6 mt-4 relative">
-              {/* Bars Week 1 */}
-              <div className="flex items-end gap-2 h-full">
-                <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[40%]"></div>
-                <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[50%]"></div>
-              </div>
-              {/* Bars Week 2 */}
-              <div className="flex items-end gap-2 h-full">
-                <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[60%]"></div>
-                <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[75%]"></div>
-              </div>
-              {/* Bars Week 3 */}
-              <div className="flex items-end gap-2 h-full">
-                <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[45%]"></div>
-                <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[40%]"></div>
-              </div>
-              {/* Bars Week 4 */}
-              <div className="flex items-end gap-2 h-full">
-                <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[70%]"></div>
-                <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[85%]"></div>
-              </div>
-
-              {/* X-Axis Labels */}
-              <div className="absolute -bottom-1 left-0 right-0 flex justify-around text-xs font-semibold text-slate-400">
-                <span>Week 1</span>
-                <span>Week 2</span>
-                <span>Week 3</span>
-                <span>Week 4</span>
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Quick Actions */}
           <div className="flex flex-col gap-4">
