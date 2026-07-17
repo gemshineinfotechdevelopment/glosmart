@@ -12,6 +12,15 @@ const Students: React.FC = () => {
   const [batches, setBatches] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'UPCOMING'>('ALL');
+
+  const isStudentInBatch = (student: any, batch: any) => {
+    if (!batch || !batch._id) return false;
+    const sBatchId = student.batchId?._id || student.batchId;
+    return (sBatchId?.toString() === batch._id.toString()) || 
+           (student.batch === batch.batchName);
+  };
 
   // Modal display state
   const [showAddModal, setShowAddModal] = useState(false);
@@ -83,11 +92,7 @@ const Students: React.FC = () => {
         setShowAddModal(false);
         resetForm();
         alert('Student registered successfully!');
-        // Refresh batches list to update the enrollment count
-        fetch('http://localhost:5000/api/batches')
-          .then(res => res.json())
-          .then(batchesData => setBatches(batchesData))
-          .catch(err => console.error("Error refreshing batches:", err));
+        fetchData();
       })
       .catch(err => {
         console.error("Error creating student:", err);
@@ -163,6 +168,28 @@ const Students: React.FC = () => {
     fetchData();
   }, []);
 
+  const filteredBatches = batches.filter(batch => {
+    const query = searchQuery.toLowerCase();
+    const batchName = (batch.batchName || '').toLowerCase();
+    const courseName = (batch.courseId?.courseName || batch.courseName || '').toLowerCase();
+    const instructor = (batch.instructor || '').toLowerCase();
+    const matchesSearch = batchName.includes(query) || courseName.includes(query) || instructor.includes(query);
+
+    let matchesStatus = true;
+    if (statusFilter === 'ACTIVE') {
+      matchesStatus = batch.status === 'ACTIVE';
+    } else if (statusFilter === 'UPCOMING') {
+      matchesStatus = batch.status === 'UPCOMING' || batch.status === 'INACTIVE' || !batch.status;
+    }
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalCapacity = batches.reduce((acc, b) => acc + (b.capacity || 30), 0);
+  const totalEnrolled = batches.reduce((acc, b) => acc + (b.enrolledStudents || 0), 0);
+  const occupancyPercentage = totalCapacity > 0 ? Math.round((totalEnrolled / totalCapacity) * 100) : 0;
+  const strokeDashoffset = 251.2 - (251.2 * occupancyPercentage) / 100;
+
   return (
     <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800">
       
@@ -184,6 +211,8 @@ const Students: React.FC = () => {
                 type="text" 
                 placeholder="Search Batch..." 
                 className="w-full bg-slate-50 border-none rounded-full py-2.5 pl-11 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-100 placeholder:text-slate-400"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             
@@ -219,13 +248,34 @@ const Students: React.FC = () => {
           <div className="flex flex-wrap items-center gap-4">
             {/* Tabs */}
             <div className="bg-slate-100/80 p-1 rounded-xl flex items-center shadow-inner">
-              <button className="bg-white text-[#6247df] px-6 py-2.5 rounded-lg font-bold text-sm shadow-[0_2px_10px_rgb(0,0,0,0.04)]">
+              <button 
+                onClick={() => setStatusFilter('ALL')}
+                className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${
+                  statusFilter === 'ALL'
+                    ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]'
+                    : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                }`}
+              >
                 All
               </button>
-              <button className="text-slate-500 hover:text-slate-700 px-6 py-2.5 rounded-lg font-bold text-sm transition-colors">
+              <button 
+                onClick={() => setStatusFilter('ACTIVE')}
+                className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${
+                  statusFilter === 'ACTIVE'
+                    ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]'
+                    : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                }`}
+              >
                 Active
               </button>
-              <button className="text-slate-500 hover:text-slate-700 px-6 py-2.5 rounded-lg font-bold text-sm transition-colors">
+              <button 
+                onClick={() => setStatusFilter('UPCOMING')}
+                className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${
+                  statusFilter === 'UPCOMING'
+                    ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]'
+                    : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                }`}
+              >
                 Upcoming
               </button>
             </div>
@@ -246,70 +296,73 @@ const Students: React.FC = () => {
         {/* Batch Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           
-          {batches.map((batch, index) => (
-            <div key={batch._id || index} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
-              <div className="flex justify-between items-start mb-6">
-                <div className={`w-12 h-12 rounded-2xl ${batch.statusColor || 'bg-orange-50 text-[#b67323]'} flex items-center justify-center`}>
-                  <FiBookOpen size={20} />
-                </div>
-                <span className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${batch.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-[#d97706]'}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${batch.status === 'ACTIVE' ? 'bg-green-600' : 'bg-[#d97706]'}`}></span> {batch.status || 'Upcoming'}
-                </span>
-              </div>
-              
-              <h3 className="text-xl font-extrabold text-[#1c1c28] mb-1">{batch.batchName}</h3>
-              <p className="text-slate-500 font-medium text-sm mb-6">Course: {batch.courseId?.courseName || batch.courseName}</p>
-              
-              <div className="flex items-center gap-3 mb-8">
-                <img src={batch.instructorAvatar || "https://i.pravatar.cc/150?img=5"} alt="Instructor" className="w-10 h-10 rounded-full object-cover" />
-                <div>
-                  <p className="text-sm font-bold text-[#1c1c28]">{batch.instructor}</p>
-                  <p className="text-[11px] font-medium text-slate-500">Instructor</p>
-                </div>
-              </div>
-              
-              <div className="mt-auto">
-                <div className="flex justify-between items-end mb-2">
-                  <span className="text-xs font-bold text-slate-500">Enrollment: {batch.enrolledStudents || 0}/{batch.capacity || 30}</span>
-                  <span className="text-sm font-extrabold text-[#6247df]">{batch.progressText || '0%'}</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6">
-                  <div className={`h-full rounded-full ${batch.progressBg || 'bg-[#6247df]'} ${batch.progressWidth || 'w-0'}`}></div>
+          {filteredBatches.map((batch, index) => {
+            const enrollmentPercentage = Math.round(((batch.enrolledStudents || 0) / (batch.capacity || 30)) * 100);
+            return (
+              <div key={batch._id || index} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
+                <div className="flex justify-between items-start mb-6">
+                  <div className={`w-12 h-12 rounded-2xl ${batch.statusColor || 'bg-orange-50 text-[#b67323]'} flex items-center justify-center`}>
+                    <FiBookOpen size={20} />
+                  </div>
+                  <span className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${batch.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-[#d97706]'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${batch.status === 'ACTIVE' ? 'bg-green-600' : 'bg-[#d97706]'}`}></span> {batch.status || 'Upcoming'}
+                  </span>
                 </div>
                 
-                <div className="flex justify-between items-center pt-5 border-t border-slate-100">
-                  <span className="text-[11px] font-bold text-slate-400">{batch.progressLabel || 'Status'}</span>
-                  <Link to={`/admin/students/${batch._id}`} className="text-[#6247df] text-sm font-bold flex items-center gap-1 hover:text-[#5035c9] no-underline">
-                    View Details <FiArrowRight size={16} />
-                  </Link>
+                <h3 className="text-xl font-extrabold text-[#1c1c28] mb-1">{batch.batchName}</h3>
+                <p className="text-slate-500 font-medium text-sm mb-6">Course: {batch.courseId?.courseName || batch.courseName}</p>
+                
+                <div className="flex items-center gap-3 mb-8">
+                  <img src={batch.instructorAvatar || "https://i.pravatar.cc/150?img=5"} alt="Instructor" className="w-10 h-10 rounded-full object-cover" />
+                  <div>
+                    <p className="text-sm font-bold text-[#1c1c28]">{batch.instructor}</p>
+                    <p className="text-[11px] font-medium text-slate-500">Instructor</p>
+                  </div>
                 </div>
-              </div>
+                
+                <div className="mt-auto">
+                  <div className="flex justify-between items-end mb-2">
+                    <span className="text-xs font-bold text-slate-500">Enrollment: {batch.enrolledStudents || 0}/{batch.capacity || 30}</span>
+                    <span className="text-sm font-extrabold text-[#6247df]">{enrollmentPercentage}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6">
+                    <div className={`h-full rounded-full ${batch.progressBg || 'bg-[#6247df]'}`} style={{ width: `${Math.min(enrollmentPercentage, 100)}%` }}></div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-5 border-t border-slate-100">
+                    <span className="text-[11px] font-bold text-slate-400">{batch.status === 'ACTIVE' ? 'Ongoing' : 'Upcoming'}</span>
+                    <Link to={`/admin/students/${batch._id}`} className="text-[#6247df] text-sm font-bold flex items-center gap-1 hover:text-[#5035c9] no-underline">
+                      View Details <FiArrowRight size={16} />
+                    </Link>
+                  </div>
+                </div>
 
-              {/* Students List for this Batch */}
-              <div className="mt-6 pt-6 border-t border-slate-100">
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-sm font-bold text-[#1c1c28]">Students List</h4>
-                </div>
-                
-                <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                  {students.filter(s => s.batchId === batch._id || s.batch === batch.batchName).length > 0 ? (
-                    students.filter(s => s.batchId === batch._id || s.batch === batch.batchName).map(student => (
-                      <div key={student._id || student.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
-                        <img src={student.avatar || "https://i.pravatar.cc/150?img=12"} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-[#1c1c28] truncate">{student.name}</p>
-                          <p className="text-[10px] text-slate-500 truncate">{student.email || student.phone}</p>
+                {/* Students List for this Batch */}
+                <div className="mt-6 pt-6 border-t border-slate-100">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-sm font-bold text-[#1c1c28]">Students List</h4>
+                  </div>
+                  
+                  <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                    {students.filter(s => isStudentInBatch(s, batch)).length > 0 ? (
+                      students.filter(s => isStudentInBatch(s, batch)).map(student => (
+                        <div key={student._id || student.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+                          <img src={student.avatar || "https://i.pravatar.cc/150?img=12"} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-[#1c1c28] truncate">{student.name}</p>
+                            <p className="text-[10px] text-slate-500 truncate">{student.email || student.phone}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-slate-400 italic text-center py-4">No students enrolled yet.</p>
-                  )}
+                      ))
+                    ) : (
+                      <p className="text-sm text-slate-400 italic text-center py-4">No students enrolled yet.</p>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-            </div>
-          ))}
+              </div>
+            );
+          })}
 
         </div>
 
@@ -328,7 +381,7 @@ const Students: React.FC = () => {
                 {/* Stat 1 */}
                 <div className="bg-[#f8f5ff] p-4 rounded-2xl flex-1 border border-purple-50">
                   <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-1">TOTAL<br/>STUDENTS</p>
-                  <h4 className="text-4xl font-black text-[#6247df]">248</h4>
+                  <h4 className="text-4xl font-black text-[#6247df]">{students.length}</h4>
                 </div>
                 {/* Stat 2 */}
                 <div className="bg-[#fdf9f4] p-4 rounded-2xl flex-1 border border-orange-50">
@@ -359,12 +412,12 @@ const Students: React.FC = () => {
                   stroke="#6247df" 
                   strokeWidth="12" 
                   strokeDasharray="251.2" 
-                  strokeDashoffset="75.36" 
+                  strokeDashoffset={strokeDashoffset} 
                   strokeLinecap="round" 
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-black text-[#1c1c28]">70%</span>
+                <span className="text-3xl font-black text-[#1c1c28]">{occupancyPercentage}%</span>
                 <span className="text-[9px] font-bold text-slate-400 tracking-widest mt-1">FULL CAPACITY</span>
               </div>
             </div>

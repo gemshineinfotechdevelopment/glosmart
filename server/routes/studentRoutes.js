@@ -234,4 +234,31 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// DELETE student by ID
+router.delete('/:id', async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    
+    // Decrement enrollment count in Batch when student is deleted
+    if (student.batchId || student.batch) {
+      const query = student.batchId ? { _id: student.batchId } : { batchName: student.batch };
+      await Batch.findOneAndUpdate(
+        query,
+        { 
+          $inc: { enrolledStudents: -1 },
+          $pull: { students: student._id }
+        }
+      );
+    }
+    
+    await Student.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Student deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;

@@ -5,9 +5,11 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   FiBookOpen, 
   FiClock, 
-  // FiCheckCircle, 
   FiPlus, 
-  FiAward
+  FiAward,
+  FiX,
+  FiUser,
+  FiCalendar
 } from 'react-icons/fi';
 
 interface Course {
@@ -28,6 +30,9 @@ interface EnrolledCourse extends Course {
   instructor: string;
   nextSession: string;
   lastAccessed: string;
+  batchId?: string;
+  batchName?: string;
+  courseId?: string;
 }
 
 const StudentCourses: React.FC = () => {
@@ -42,8 +47,14 @@ const StudentCourses: React.FC = () => {
   const [studentName, setStudentName] = useState('Student User');
   const [studentGrade, setStudentGrade] = useState('5th Grade');
   const [studentAvatar, setStudentAvatar] = useState('https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
+  const [studentBatchName, setStudentBatchName] = useState<string>('');
+  const [studentCourseId, setStudentCourseId] = useState<string>('');
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [suggestedCourses, setSuggestedCourses] = useState<Course[]>([]);
+  const [selectedCourseForModal, setSelectedCourseForModal] = useState<Course | null>(null);
+  const [modalBatches, setModalBatches] = useState<any[]>([]);
+  const [loadingBatches, setLoadingBatches] = useState(false);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
 
   // Fetch student and courses from DB
   useEffect(() => {
@@ -58,6 +69,8 @@ const StudentCourses: React.FC = () => {
           if (studentData.name) setStudentName(studentData.name);
           if (studentData.grade) setStudentGrade(studentData.grade);
           if (studentData.avatar) setStudentAvatar(studentData.avatar);
+          if (studentData.batch) setStudentBatchName(studentData.batch);
+          if (studentData.courseId) setStudentCourseId(studentData.courseId?._id || studentData.courseId);
 
           if (studentData.enrolledCourses) {
             setEnrolledCourses(studentData.enrolledCourses);
@@ -100,9 +113,30 @@ const StudentCourses: React.FC = () => {
     }
   }, [enrolledCourses, studentId]);
 
-  // Handle enrollment: redirect to fees and payments page for fee payment first
-  const handleEnroll = (course: Course) => {
-    navigate('/student/fees', { state: { pendingEnrollment: course } });
+  // Handle enrollment: open batch selection modal and fetch course batches
+  const handleEnroll = async (course: Course) => {
+    setSelectedCourseForModal(course);
+    setIsBatchModalOpen(true);
+    setLoadingBatches(true);
+    try {
+      const res = await fetch(`http://localhost:5000/api/batches/course/${course._id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setModalBatches(data || []);
+      } else {
+        setModalBatches([]);
+      }
+    } catch (err) {
+      console.error("Error fetching batches for course:", err);
+      setModalBatches([]);
+    } finally {
+      setLoadingBatches(false);
+    }
+  };
+
+  const handleSelectBatchAndProceed = (course: Course, batch: any) => {
+    setIsBatchModalOpen(false);
+    navigate('/student/fees', { state: { pendingEnrollment: course, selectedBatch: batch } });
   };
 
   // Static fallback suggested courses if database does not return any suggestions
@@ -210,6 +244,9 @@ const StudentCourses: React.FC = () => {
                 if (course.skillLevel === 'Intermediate') levelColor = "bg-orange-100 text-orange-850";
                 if (course.skillLevel === 'Advanced') levelColor = "bg-purple-100 text-purple-900";
 
+                const activeBatchName = course.batchName || 
+                  ((studentBatchName && (studentCourseId === course.courseId || studentCourseId === course._id)) ? studentBatchName : '');
+
                 return (
                   <div 
                     key={course._id} 
@@ -242,9 +279,21 @@ const StudentCourses: React.FC = () => {
                       <h3 className="font-extrabold text-[17px] text-slate-900 mb-2 leading-tight tracking-tight min-h-[44px]">
                         {course.courseName}
                       </h3>
-                      <p className="text-slate-500 text-xs font-medium line-clamp-2 leading-relaxed mb-6">
+                      <p className="text-slate-500 text-xs font-medium line-clamp-2 leading-relaxed mb-4">
                         {course.description}
                       </p>
+
+                      {/* Purchased Batch Details */}
+                      {activeBatchName && (
+                        <div className="mb-4 p-3 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-[11px] font-semibold text-slate-700 flex flex-col gap-1">
+                          <span className="text-[9px] font-bold text-slate-450 uppercase tracking-wider">Purchased Batch</span>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="w-1.5 h-1.5 bg-[#4700b3] rounded-full"></span>
+                            <span className="font-extrabold text-slate-800">{activeBatchName}</span>
+                          </div>
+                          <span className="text-slate-500 font-medium">{course.nextSession}</span>
+                        </div>
+                      )}
 
                       {/* Instructor details */}
                       <div className="flex items-center gap-3 mb-6 bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
@@ -350,6 +399,141 @@ const StudentCourses: React.FC = () => {
           </section>
 
         </div>
+
+        {/* Modal: Select Batch */}
+        {isBatchModalOpen && selectedCourseForModal && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-[650px] overflow-hidden border border-slate-100 flex flex-col max-h-[85vh]">
+              {/* Modal Header */}
+              <div className="p-6 bg-[#4700b3] text-white flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <FiBookOpen size={20} />
+                  <h3 className="text-lg font-extrabold tracking-tight">Select Batch Schedule</h3>
+                </div>
+                <button 
+                  onClick={() => {
+                    setIsBatchModalOpen(false);
+                    setSelectedCourseForModal(null);
+                    setModalBatches([]);
+                  }}
+                  className="bg-transparent border-none text-white/80 hover:text-white cursor-pointer"
+                >
+                  <FiX size={20} />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 space-y-6 overflow-y-auto text-left flex-1 bg-[#F8FAFC]">
+                <div>
+                  <span className="text-[10px] font-bold text-[#4700b3] bg-[#4700b3]/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    {selectedCourseForModal.courseCode}
+                  </span>
+                  <h4 className="font-black text-slate-800 text-lg mt-2 leading-tight">
+                    {selectedCourseForModal.courseName}
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                    Select a batch timing that fits your schedule. You can purchase this course by enrolling in one of its active sessions below.
+                  </p>
+                </div>
+
+                {loadingBatches ? (
+                  <div className="flex flex-col justify-center items-center py-12 gap-3 bg-white rounded-2xl border border-slate-100 p-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4700b3]"></div>
+                    <span className="text-xs font-semibold text-slate-400">Loading available schedules...</span>
+                  </div>
+                ) : modalBatches.length === 0 ? (
+                  <div className="py-10 text-center text-slate-500 bg-white rounded-2xl border border-slate-100 p-8">
+                    <FiCalendar size={36} className="mx-auto text-slate-300 mb-3" />
+                    <p className="font-extrabold text-sm text-slate-700">No active batches available</p>
+                    <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">There are no batches scheduled for this course at the moment. Please contact the administrator to request a session.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {modalBatches.map((batch) => {
+                      const seatsLeft = batch.availableSeats !== undefined ? batch.availableSeats : (batch.capacity - (batch.enrolledStudents || 0));
+                      const isFull = seatsLeft <= 0;
+                      
+                      // Seat color coding
+                      let seatColorClass = "text-emerald-600 bg-emerald-50 border-emerald-100";
+                      if (seatsLeft <= 5) seatColorClass = "text-orange-600 bg-orange-50 border-orange-100";
+                      if (isFull) seatColorClass = "text-red-600 bg-red-50 border-red-100";
+
+                      return (
+                        <div 
+                          key={batch._id} 
+                          className={`bg-white rounded-2xl p-5 border shadow-sm transition-all duration-300 flex flex-col sm:flex-row justify-between sm:items-center gap-4 ${
+                            isFull ? 'opacity-70 border-slate-100' : 'border-slate-100 hover:border-purple-200 hover:shadow-md'
+                          }`}
+                        >
+                          <div className="space-y-3 flex-1">
+                            {/* Batch Info */}
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-extrabold text-slate-900 text-sm">{batch.batchName}</span>
+                              <span className={`px-2 py-0.5 text-[9px] font-extrabold border rounded-md uppercase tracking-wider ${seatColorClass}`}>
+                                {isFull ? 'Full' : `${seatsLeft} seats left`}
+                              </span>
+                            </div>
+
+                            {/* Schedule details */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-500 font-medium">
+                              <div className="flex items-center gap-1.5">
+                                <FiCalendar className="text-slate-400 shrink-0" size={14} />
+                                <span>{batch.days ? batch.days.join(', ') : 'Days TBD'}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <FiClock className="text-slate-400 shrink-0" size={14} />
+                                <span>{batch.startTime && batch.endTime ? `${batch.startTime} - ${batch.endTime}` : 'Time TBD'}</span>
+                              </div>
+                            </div>
+
+                            {/* Instructor info */}
+                            <div className="flex items-center gap-2 pt-1">
+                              <FiUser className="text-slate-400" size={14} />
+                              <span className="text-[11px] font-bold text-slate-500">Instructor: <span className="text-slate-700 font-extrabold">{batch.instructor || 'TBD'}</span></span>
+                            </div>
+                          </div>
+
+                          {/* Action & Fee */}
+                          <div className="flex sm:flex-col items-end justify-between sm:justify-center border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100 shrink-0 sm:pl-4 sm:border-l border-slate-100 gap-3">
+                            <div className="text-left sm:text-right">
+                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Fee / Price</p>
+                              <h5 className="text-base font-black text-slate-900">₹{batch.batchFee || '4,500'}</h5>
+                            </div>
+                            <button
+                              disabled={isFull}
+                              onClick={() => handleSelectBatchAndProceed(selectedCourseForModal, batch)}
+                              className={`py-2 px-4 rounded-xl font-bold text-xs border-none cursor-pointer transition-all ${
+                                isFull 
+                                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                                  : 'bg-[#4700b3] hover:bg-[#3d0099] text-white shadow-sm hover:shadow shadow-purple-200'
+                              }`}
+                            >
+                              Enroll Batch
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button 
+                  onClick={() => {
+                    setIsBatchModalOpen(false);
+                    setSelectedCourseForModal(null);
+                    setModalBatches([]);
+                  }}
+                  className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2.5 px-6 rounded-xl font-bold transition-all cursor-pointer text-xs"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </main>
     </div>

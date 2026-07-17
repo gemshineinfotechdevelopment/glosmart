@@ -23,6 +23,7 @@ const StudentFees: React.FC = () => {
   const [studentId, setStudentId] = useState('');
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [pendingEnrollment, setPendingEnrollment] = useState<any>(location.state?.pendingEnrollment || null);
+  const [pendingBatch, setPendingBatch] = useState<any>(location.state?.selectedBatch || null);
   const [paying, setPaying] = useState(false);
 
   const [studentName, setStudentName] = useState('Student User');
@@ -133,7 +134,10 @@ const StudentFees: React.FC = () => {
 
     try {
       const invoiceNo = `#INV-${Math.floor(1000 + Math.random() * 9000)}`;
-      const amount = "₹4,500";
+      const amount = pendingBatch?.batchFee ? `₹${pendingBatch.batchFee}` : "₹4,500";
+      const description = pendingBatch 
+        ? `${pendingEnrollment.courseName} - Batch: ${pendingBatch.batchName}`
+        : `${pendingEnrollment.courseName} - Course Enrollment Fee`;
       
       // 1. Save payment receipt to backend
       const paymentRes = await fetch('http://localhost:5000/api/payments', {
@@ -143,7 +147,7 @@ const StudentFees: React.FC = () => {
           invoiceNo,
           studentName,
           avatar: studentAvatar,
-          course: `${pendingEnrollment.courseName} - Course Enrollment Fee`,
+          course: description,
           amount,
           mode: 'UPI',
           status: 'Successful'
@@ -161,17 +165,33 @@ const StudentFees: React.FC = () => {
         skillLevel: pendingEnrollment.skillLevel,
         thumbnailImage: pendingEnrollment.thumbnailImage,
         progress: 0,
-        instructor: 'TBD (Assigning)',
-        nextSession: 'Schedule TBD',
-        lastAccessed: 'Just Enrolled'
+        instructor: pendingBatch?.instructor || 'TBD (Assigning)',
+        nextSession: pendingBatch?.days 
+          ? `${pendingBatch.days.join(', ')} • ${pendingBatch.startTime} - ${pendingBatch.endTime}`
+          : 'Schedule TBD',
+        lastAccessed: 'Just Enrolled',
+        batchId: pendingBatch?._id || '',
+        batchName: pendingBatch?.batchName || ''
       };
 
       const updatedCourses = [...enrolledCourses, newEnrolled];
       
+      const updatePayload: any = { enrolledCourses: updatedCourses };
+      if (pendingBatch) {
+        updatePayload.batchId = pendingBatch._id;
+        updatePayload.batch = pendingBatch.batchName;
+        updatePayload.courseId = pendingEnrollment._id;
+        updatePayload.course = pendingEnrollment.courseName;
+        updatePayload.teacher = pendingBatch.instructor || 'TBD (Assigning)';
+        updatePayload.schedule = pendingBatch.days 
+          ? `${pendingBatch.days.join(', ')} • ${pendingBatch.startTime} - ${pendingBatch.endTime}`
+          : pendingBatch.batchName;
+      }
+
       const studentRes = await fetch(`http://localhost:5000/api/students/${studentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enrolledCourses: updatedCourses })
+        body: JSON.stringify(updatePayload)
       });
 
       if (!studentRes.ok) throw new Error('Enrollment update failed');
@@ -182,7 +202,7 @@ const StudentFees: React.FC = () => {
       
       const newReceipt: ReceiptRow = {
         invoiceNo,
-        item: `${pendingEnrollment.courseName} - Course Enrollment Fee`,
+        item: description,
         amount,
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         method: 'UPI',
@@ -195,6 +215,7 @@ const StudentFees: React.FC = () => {
       setTimeout(() => setShowToast(false), 5000);
 
       setPendingEnrollment(null);
+      setPendingBatch(null);
       window.history.replaceState({}, document.title);
       
     } catch (err) {
@@ -253,7 +274,6 @@ const StudentFees: React.FC = () => {
               <span className="font-semibold text-sm">{toastMessage}</span>
             </div>
           )}
-
           {/* Pending Enrollment Payment Alert */}
           {pendingEnrollment && (
             <div className="bg-gradient-to-r from-purple-500/10 via-indigo-500/5 to-transparent rounded-[24px] border border-purple-200 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_12px_40px_rgba(71,0,179,0.04)] animate-fade-in text-left">
@@ -268,7 +288,16 @@ const StudentFees: React.FC = () => {
                   <h3 className="text-lg font-black text-slate-900 mt-2">
                     {pendingEnrollment.courseName}
                   </h3>
-                  <p className="text-slate-500 text-xs mt-1 max-w-[500px]">
+                  {pendingBatch && (
+                    <div className="mt-2 text-xs font-bold text-[#4700b3] bg-[#4700b3]/5 px-3.5 py-2 rounded-2xl w-fit flex flex-col gap-1 border border-purple-100">
+                      <span>Selected Batch: {pendingBatch.batchName}</span>
+                      <span className="text-slate-500 font-medium">
+                        Schedule: {pendingBatch.days ? pendingBatch.days.join(', ') : 'Days TBD'} • {pendingBatch.startTime && pendingBatch.endTime ? `${pendingBatch.startTime} - ${pendingBatch.endTime}` : 'Time TBD'}
+                      </span>
+                      {pendingBatch.instructor && <span className="text-slate-500 font-medium">Instructor: {pendingBatch.instructor}</span>}
+                    </div>
+                  )}
+                  <p className="text-slate-500 text-xs mt-3 max-w-[500px]">
                     To complete your enrollment and gain instant access to class lectures, assignments, and materials, please pay the course fee.
                   </p>
                 </div>
@@ -277,7 +306,7 @@ const StudentFees: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto shrink-0">
                 <div className="text-center sm:text-right">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Enrollment Fee</p>
-                  <h2 className="text-2xl font-black text-slate-950">₹4,500</h2>
+                  <h2 className="text-2xl font-black text-slate-950">₹{pendingBatch?.batchFee || '4,500'}</h2>
                 </div>
                 
                 <button
@@ -298,7 +327,10 @@ const StudentFees: React.FC = () => {
                 </button>
 
                 <button
-                  onClick={() => setPendingEnrollment(null)}
+                  onClick={() => {
+                    setPendingEnrollment(null);
+                    setPendingBatch(null);
+                  }}
                   disabled={paying}
                   className="w-full sm:w-auto bg-slate-50 hover:bg-slate-100 text-slate-500 font-bold px-4 py-3.5 rounded-xl border border-slate-200 cursor-pointer text-xs transition-colors"
                 >
