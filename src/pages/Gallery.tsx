@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import bgImage from '../assets/background-home.jpeg';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -16,6 +17,7 @@ const getImageUrl = (path: string) => {
 };
 
 export default function Gallery() {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('All Media');
   const [visibleCount, setVisibleCount] = useState(8);
   const [artworks, setArtworks] = useState<any[]>([]);
@@ -336,7 +338,10 @@ export default function Gallery() {
             Enroll today and let your child explore the magic of colors, shapes, and boundless imagination at Luminous Academy.
           </p>
           <div className="flex justify-center gap-5 flex-wrap">
-            <button className="bg-white text-[#00738e] font-bold px-8 py-3.5 rounded-full text-base cursor-pointer hover:-translate-y-0.5 transition-transform shadow-md">
+            <button 
+              onClick={() => navigate('/courses')}
+              className="bg-white text-[#00738e] font-bold px-8 py-3.5 rounded-full text-base cursor-pointer hover:-translate-y-0.5 transition-transform shadow-md"
+            >
               Join the Academy
             </button>
             <button className="bg-transparent text-white border-2 border-white font-bold px-8 py-3 rounded-full text-base cursor-pointer hover:bg-white/10 hover:-translate-y-0.5 transition-all shadow-md">

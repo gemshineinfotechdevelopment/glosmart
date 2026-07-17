@@ -79,7 +79,7 @@ export const FeesPayments: React.FC = () => {
   const filteredPayments = payments.filter(payment => {
     // Filter by tab
     if (activeFilter !== 'All' && payment.status !== activeFilter) return false;
-    
+
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -89,19 +89,19 @@ export const FeesPayments: React.FC = () => {
         payment.course.toLowerCase().includes(query)
       );
     }
-    
+
     return true;
   });
 
   return (
     <div className="flex min-h-screen bg-[#f8f9fd] font-sans text-slate-800">
-      
+
       {/* Sidebar */}
       <AdminSidebar />
 
       {/* Main Content Area */}
       <main className="flex-1 p-6 md:p-8 overflow-y-auto flex flex-col gap-6 max-w-7xl mx-auto w-full box-border">
-        
+
         {/* Top Search Bar */}
         <div className="relative w-full">
           <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
@@ -205,18 +205,17 @@ export const FeesPayments: React.FC = () => {
                   <button
                     key={tab}
                     onClick={() => setActiveFilter(tab)}
-                    className={`px-4 py-2 border-none rounded-lg font-bold text-xs cursor-pointer transition-all ${
-                      activeFilter === tab
+                    className={`px-4 py-2 border-none rounded-lg font-bold text-xs cursor-pointer transition-all ${activeFilter === tab
                         ? 'bg-white text-[#6247df] shadow-sm'
                         : 'bg-transparent text-slate-400 hover:text-slate-600'
-                    }`}
+                      }`}
                   >
                     {tab}
                   </button>
                 ))}
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <button className="bg-transparent border border-slate-200 text-slate-400 hover:text-slate-600 w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all">
                 <FiFilter size={16} />
@@ -271,11 +270,10 @@ export const FeesPayments: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`inline-flex px-3 py-1.5 rounded-full text-[11px] font-extrabold ${
-                        row.status === 'Successful' ? 'bg-[#f0fdf4] text-green-600' :
-                        row.status === 'Pending' ? 'bg-[#fffbeb] text-amber-500' :
-                        'bg-[#fef2f2] text-red-500'
-                      }`}>
+                      <span className={`inline-flex px-3 py-1.5 rounded-full text-[11px] font-extrabold ${row.status === 'Successful' ? 'bg-[#f0fdf4] text-green-600' :
+                          row.status === 'Pending' ? 'bg-[#fffbeb] text-amber-500' :
+                            'bg-[#fef2f2] text-red-500'
+                        }`}>
                         {row.status}
                       </span>
                     </td>
@@ -367,10 +365,10 @@ export const FeesPayments: React.FC = () => {
           </div>
 
           {/* Automate Billing CTA Box */}
+          {/* 
           <div className="bg-gradient-to-br from-[#7c4dff] to-[#6200ee] rounded-[24px] p-6 md:p-8 text-white shadow-lg relative overflow-hidden flex flex-col justify-between gap-6 shrink-0">
-            {/* Background elements */}
             <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-            
+
             <div className="flex flex-col gap-3 relative z-10">
               <h3 className="font-fredoka text-2xl font-bold tracking-tight">Automate Billing</h3>
               <p className="text-slate-100/90 text-sm leading-relaxed max-w-sm">Schedule monthly tuition invoices for all enrolled students automatically.</p>
@@ -378,17 +376,16 @@ export const FeesPayments: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row gap-3 relative z-10 w-full">
               <button className="flex-1 bg-white hover:bg-slate-50 text-[#6247df] border-none py-3.5 rounded-xl font-bold text-xs cursor-pointer transition-all shadow-md">
-                Enable Aùto-Pay
+                Enable Auto-Pay
               </button>
               <button className="flex-1 bg-transparent hover:bg-white/10 text-white border-2 border-white py-3 rounded-xl font-bold text-xs cursor-pointer transition-all">
-                Configùre Rùles
+                Configure Rules
               </button>
             </div>
           </div>
+          */}
         </div>
-
       </main>
-
     </div>
   );
 };

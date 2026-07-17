@@ -13,6 +13,12 @@ const Students: React.FC = () => {
   const [courses, setCourses] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
 
+  // Filter states
+  const [activeTab, setActiveTab] = useState<'All' | 'ACTIVE' | 'UPCOMING'>('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [courseFilter, setCourseFilter] = useState('');
+
   // Modal display state
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -163,6 +169,29 @@ const Students: React.FC = () => {
     fetchData();
   }, []);
 
+  const displayedBatches = batches.filter(batch => {
+    // Tab filter
+    const status = batch.status || 'UPCOMING';
+    if (activeTab === 'ACTIVE' && status !== 'ACTIVE') return false;
+    if (activeTab === 'UPCOMING' && status !== 'UPCOMING') return false;
+
+    // Search filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchName = batch.batchName?.toLowerCase().includes(q);
+      const matchCourse = (batch.courseId?.courseName || batch.courseName)?.toLowerCase().includes(q);
+      if (!matchName && !matchCourse) return false;
+    }
+
+    // Course filter
+    if (courseFilter) {
+      const cId = batch.courseId?._id || batch.courseId;
+      if (cId !== courseFilter) return false;
+    }
+
+    return true;
+  });
+
   return (
     <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800">
       
@@ -183,6 +212,8 @@ const Students: React.FC = () => {
               <input 
                 type="text" 
                 placeholder="Search Batch..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-slate-50 border-none rounded-full py-2.5 pl-11 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-100 placeholder:text-slate-400"
               />
             </div>
@@ -219,20 +250,53 @@ const Students: React.FC = () => {
           <div className="flex flex-wrap items-center gap-4">
             {/* Tabs */}
             <div className="bg-slate-100/80 p-1 rounded-xl flex items-center shadow-inner">
-              <button className="bg-white text-[#6247df] px-6 py-2.5 rounded-lg font-bold text-sm shadow-[0_2px_10px_rgb(0,0,0,0.04)]">
+              <button 
+                onClick={() => setActiveTab('All')}
+                className={`${activeTab === 'All' ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]' : 'text-slate-500 hover:text-slate-700'} px-6 py-2.5 rounded-lg font-bold text-sm transition-colors cursor-pointer border-none`}
+              >
                 All
               </button>
-              <button className="text-slate-500 hover:text-slate-700 px-6 py-2.5 rounded-lg font-bold text-sm transition-colors">
+              <button 
+                onClick={() => setActiveTab('ACTIVE')}
+                className={`${activeTab === 'ACTIVE' ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]' : 'text-slate-500 hover:text-slate-700'} px-6 py-2.5 rounded-lg font-bold text-sm transition-colors cursor-pointer border-none`}
+              >
                 Active
               </button>
-              <button className="text-slate-500 hover:text-slate-700 px-6 py-2.5 rounded-lg font-bold text-sm transition-colors">
+              <button 
+                onClick={() => setActiveTab('UPCOMING')}
+                className={`${activeTab === 'UPCOMING' ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]' : 'text-slate-500 hover:text-slate-700'} px-6 py-2.5 rounded-lg font-bold text-sm transition-colors cursor-pointer border-none`}
+              >
                 Upcoming
               </button>
             </div>
             
-            <button className="flex items-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
-              <FiFilter size={16} /> Filter
-            </button>
+            {showFilters ? (
+              <div className="flex items-center gap-2">
+                <select 
+                  value={courseFilter}
+                  onChange={(e) => setCourseFilter(e.target.value)}
+                  className="bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 outline-none cursor-pointer"
+                >
+                  <option value="">All Courses</option>
+                  {courses.map(c => (
+                    <option key={c._id} value={c._id}>{c.courseName}</option>
+                  ))}
+                </select>
+                <button 
+                  onClick={() => { setShowFilters(false); setCourseFilter(''); }}
+                  className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors cursor-pointer border-none"
+                >
+                  <FiX size={16} />
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowFilters(true)}
+                className="flex items-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
+              >
+                <FiFilter size={16} /> Filter
+              </button>
+            )}
             
             <button 
               onClick={() => setShowAddModal(true)}
@@ -246,7 +310,7 @@ const Students: React.FC = () => {
         {/* Batch Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           
-          {batches.map((batch, index) => (
+          {displayedBatches.map((batch, index) => (
             <div key={batch._id || index} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
               <div className="flex justify-between items-start mb-6">
                 <div className={`w-12 h-12 rounded-2xl ${batch.statusColor || 'bg-orange-50 text-[#b67323]'} flex items-center justify-center`}>
@@ -269,42 +333,11 @@ const Students: React.FC = () => {
               </div>
               
               <div className="mt-auto">
-                <div className="flex justify-between items-end mb-2">
-                  <span className="text-xs font-bold text-slate-500">Enrollment: {batch.enrolledStudents || 0}/{batch.capacity || 30}</span>
-                  <span className="text-sm font-extrabold text-[#6247df]">{batch.progressText || '0%'}</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6">
-                  <div className={`h-full rounded-full ${batch.progressBg || 'bg-[#6247df]'} ${batch.progressWidth || 'w-0'}`}></div>
-                </div>
-                
                 <div className="flex justify-between items-center pt-5 border-t border-slate-100">
                   <span className="text-[11px] font-bold text-slate-400">{batch.progressLabel || 'Status'}</span>
                   <Link to={`/admin/students/${batch._id}`} className="text-[#6247df] text-sm font-bold flex items-center gap-1 hover:text-[#5035c9] no-underline">
                     View Details <FiArrowRight size={16} />
                   </Link>
-                </div>
-              </div>
-
-              {/* Students List for this Batch */}
-              <div className="mt-6 pt-6 border-t border-slate-100">
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-sm font-bold text-[#1c1c28]">Students List</h4>
-                </div>
-                
-                <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                  {students.filter(s => s.batchId === batch._id || s.batch === batch.batchName).length > 0 ? (
-                    students.filter(s => s.batchId === batch._id || s.batch === batch.batchName).map(student => (
-                      <div key={student._id || student.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
-                        <img src={student.avatar || "https://i.pravatar.cc/150?img=12"} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-[#1c1c28] truncate">{student.name}</p>
-                          <p className="text-[10px] text-slate-500 truncate">{student.email || student.phone}</p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-slate-400 italic text-center py-4">No students enrolled yet.</p>
-                  )}
                 </div>
               </div>
 
