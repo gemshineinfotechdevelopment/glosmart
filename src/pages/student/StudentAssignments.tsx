@@ -3,10 +3,17 @@ import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
-  FiFileText,
-  FiClipboard,
   FiBookOpen,
   FiCalendar
+  FiCheckCircle, 
+  FiUploadCloud, 
+  FiEye, 
+  FiAlertCircle, 
+  FiCheck, 
+  FiX,
+  FiFileText,
+  FiClipboard,
+  FiAward
 } from 'react-icons/fi';
 
 interface Assignment {

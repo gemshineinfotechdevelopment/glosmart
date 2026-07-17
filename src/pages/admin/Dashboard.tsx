@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FiUsers, FiBookOpen, FiUserCheck,
   FiCalendar as FiCal,
 } from 'react-icons/fi';
 import { MdCurrencyRupee } from 'react-icons/md';
 import AdminSidebar from '../../components/admin/AdminSidebar';
+import { useAuth } from '../../context/AuthContext';
 
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [stats, setStats] = useState<any>({});
 
@@ -256,7 +260,7 @@ const Dashboard: React.FC = () => {
           <div className="flex flex-col gap-4">
             <h3 className="text-xl font-bold text-[#1c1c28] mb-2">Quick Actions</h3>
 
-            <button className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center gap-5 hover:border-purple-200 hover:shadow-md transition-all text-left group">
+            <button onClick={() => navigate('/admin/students')} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center gap-5 hover:border-purple-200 hover:shadow-md transition-all text-left group">
               <div className="w-12 h-12 rounded-xl bg-purple-100 text-[#6247df] flex items-center justify-center group-hover:scale-110 transition-transform">
                 <FiUsers size={20} />
               </div>
@@ -266,25 +270,29 @@ const Dashboard: React.FC = () => {
               </div>
             </button>
 
-            <button className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center gap-5 hover:border-cyan-200 hover:shadow-md transition-all text-left group">
-              <div className="w-12 h-12 rounded-xl bg-cyan-100 text-cyan-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <FiBookOpen size={20} />
-              </div>
-              <div>
-                <h4 className="font-bold text-[#1c1c28]">Create Course</h4>
-                <p className="text-xs text-slate-500 mt-1">Design a new curriculum</p>
-              </div>
-            </button>
+            {user?.role === 'admin' && (
+              <>
+                <button onClick={() => navigate('/admin/courses/new')} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center gap-5 hover:border-cyan-200 hover:shadow-md transition-all text-left group">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-100 text-cyan-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <FiBookOpen size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-[#1c1c28]">Create Course</h4>
+                    <p className="text-xs text-slate-500 mt-1">Design a new curriculum</p>
+                  </div>
+                </button>
 
-            <button className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center gap-5 hover:border-orange-200 hover:shadow-md transition-all text-left group">
-              <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <MdCurrencyRupee size={20} />
-              </div>
-              <div>
-                <h4 className="font-bold text-[#1c1c28]">Collect Fees</h4>
-                <p className="text-xs text-slate-500 mt-1">Manage pending payments</p>
-              </div>
-            </button>
+                <button onClick={() => navigate('/admin/fees')} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center gap-5 hover:border-orange-200 hover:shadow-md transition-all text-left group">
+                  <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <MdCurrencyRupee size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-[#1c1c28]">Collect Fees</h4>
+                    <p className="text-xs text-slate-500 mt-1">Manage pending payments</p>
+                  </div>
+                </button>
+              </>
+            )}
 
           </div>
         </div>
