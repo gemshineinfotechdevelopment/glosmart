@@ -11,7 +11,8 @@ import {
   FiLayers,
   FiX,
   FiPlus,
-  FiAward
+  FiAward,
+  FiVideo
 } from 'react-icons/fi';
 
 interface Course {
@@ -203,6 +204,26 @@ const StudentCourses: React.FC = () => {
     ? suggestedCourses 
     : fallbackSuggestions.filter(f => !enrolledCourses.map(e => e.courseName.toLowerCase()).includes(f.courseName.toLowerCase()));
 
+  // Check if a batch class is currently live
+  const isBatchLive = (batch: any): boolean => {
+    if (!batch.zoomLink || batch.status !== 'ACTIVE') return false;
+    if (!batch.days || batch.days.length === 0 || !batch.startTime || !batch.endTime) return false;
+
+    const now = new Date();
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const todayName = dayNames[now.getDay()];
+
+    if (!batch.days.includes(todayName)) return false;
+
+    const [startH, startM] = batch.startTime.split(':').map(Number);
+    const [endH, endM] = batch.endTime.split(':').map(Number);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+
+    return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+  };
+
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
       {/* Left Sidebar */}
@@ -356,14 +377,25 @@ const StudentCourses: React.FC = () => {
                                 </div>
                                 <div className="space-y-2">
                                   {myBatches.map((batch: any) => (
-                                  <div key={batch._id} className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2">
+                                  <div key={batch._id} className={`border rounded-xl px-3 py-2 ${isBatchLive(batch) ? 'bg-emerald-50/50 border-emerald-200' : 'bg-slate-50 border-slate-100'}`}>
                                     <div className="flex justify-between items-center">
                                       <span className="text-xs font-bold text-slate-700">{batch.batchName}</span>
-                                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                                        batch.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600' :
-                                        batch.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' :
-                                        'bg-slate-100 text-slate-500'
-                                      }`}>{batch.status}</span>
+                                      <div className="flex items-center gap-1.5">
+                                        {isBatchLive(batch) && (
+                                          <span className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                            <span className="relative flex h-1.5 w-1.5">
+                                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                                            </span>
+                                            Live
+                                          </span>
+                                        )}
+                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                          batch.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600' :
+                                          batch.status === 'UPCOMING' ? 'bg-blue-50 text-blue-600' :
+                                          'bg-slate-100 text-slate-500'
+                                        }`}>{batch.status}</span>
+                                      </div>
                                     </div>
                                     <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400 font-medium">
                                       {batch.startDate && (
@@ -379,6 +411,23 @@ const StudentCourses: React.FC = () => {
                                         </span>
                                       )}
                                     </div>
+                                    {/* Zoom Join Button */}
+                                    {batch.zoomLink && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          window.open(batch.zoomLink, '_blank', 'noopener,noreferrer');
+                                        }}
+                                        className={`mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${
+                                          isBatchLive(batch)
+                                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-200'
+                                            : 'bg-[#4700b3] hover:bg-[#3d0099] text-white shadow-sm'
+                                        }`}
+                                      >
+                                        <FiVideo size={13} />
+                                        {isBatchLive(batch) ? 'Join Live Class' : 'Join Zoom Meeting'}
+                                      </button>
+                                    )}
                                   </div>
                                   ))}
                                 </div>
