@@ -20,6 +20,10 @@ const batchSchema = new mongoose.Schema({
   status: { type: String, enum: ['ACTIVE', 'UPCOMING', 'COMPLETED', 'WEEKEND', 'INACTIVE'], default: 'UPCOMING' },
   statusColor: { type: String, default: "bg-teal-500" },
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
+  assignments: [{
+    title: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+  }],
   // Keeping these for backwards compatibility with existing UI temporarily if needed
   courseName: { type: String },
   category: { type: String },

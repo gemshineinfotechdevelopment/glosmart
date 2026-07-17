@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { Check, Star, X, Calendar, Clock, Users } from 'lucide-react';
 
 // Images
@@ -7,6 +9,8 @@ import course4 from '../assets/course4.png';
 import crayon from '../assets/crayon.png';
 
 export default function Course() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
@@ -304,7 +308,21 @@ export default function Course() {
                         </div>
                       </div>
 
-                      <button className="w-full mt-4 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors">
+                      <button 
+                        onClick={() => {
+                          if (user && user.role === 'student') {
+                            navigate('/student/courses', { state: { pendingEnrollment: selectedCourse } });
+                          } else {
+                            navigate('/login', { 
+                              state: { 
+                                redirectTo: '/student/courses', 
+                                pendingEnrollment: selectedCourse 
+                              } 
+                            });
+                          }
+                        }}
+                        className="w-full mt-4 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors"
+                      >
                         Enroll Now
                       </button>
                     </div>

@@ -119,9 +119,9 @@ const StudentDashboard: React.FC = () => {
         },
         ...student.enrolledCourses.slice(0, -1).map((c: any, idx: number) => ({
           id: `log-${idx + 2}`,
-          action: 'Progress Update',
-          detail: `${c.progress}% completed in ${c.courseName}`,
-          time: 'Active'
+          action: 'Course Active',
+          detail: `Currently enrolled in ${c.courseName}`,
+          time: 'Ongoing'
         }))
       ]
     : [

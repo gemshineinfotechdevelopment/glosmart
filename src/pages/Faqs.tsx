@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import bgImage from '../assets/background-home.jpeg';
 import { 
   FiStar, 
@@ -7,7 +8,6 @@ import {
   FiUsers, 
   FiAward, 
   FiMail, 
-  FiMessageSquare, 
   FiChevronDown, 
   FiChevronUp,
   FiSearch,
@@ -344,21 +344,14 @@ export const Faqs: React.FC = () => {
             Can't find the answer you're looking for? Our team of friendly mentors is here to help you guide your child's creative journey.
           </p>
           
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 relative z-10">
-            <a
-              href="mailto:glosmart@gmail.com"
-              className="inline-flex items-center gap-2 bg-[#d2ff55] hover:bg-[#c2ef45] text-[#0b3142] font-extrabold px-6 py-3.5 rounded-full text-[15px] transition-all duration-300 shadow-md shadow-lime-950/10 hover:-translate-y-0.5 no-underline w-full sm:w-auto justify-center"
+          <div className="flex justify-center items-center relative z-10">
+            <Link
+              to="/contact"
+              className="inline-flex items-center gap-2.5 bg-[#d2ff55] hover:bg-[#c2ef45] text-[#0b3142] font-extrabold px-8 py-3.5 rounded-full text-[15px] transition-all duration-300 shadow-md shadow-lime-950/10 hover:-translate-y-0.5 no-underline w-full sm:w-auto justify-center"
             >
               <FiMail className="w-4 h-4" />
               Contact Support
-            </a>
-            <button
-              onClick={() => alert('Chat interface is coming soon!')}
-              className="inline-flex items-center gap-2 bg-transparent hover:bg-white/10 text-white font-extrabold px-6 py-3.5 rounded-full text-[15px] border-2 border-white/90 transition-all duration-300 hover:-translate-y-0.5 w-full sm:w-auto justify-center cursor-pointer"
-            >
-              <FiMessageSquare className="w-4 h-4" />
-              Chat with a Mentor
-            </button>
+            </Link>
           </div>
         </div>
       </main>

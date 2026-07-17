@@ -12,8 +12,6 @@ const Students: React.FC = () => {
   const [batches, setBatches] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'UPCOMING'>('ALL');
 
   const isStudentInBatch = (student: any, batch: any) => {
     if (!batch || !batch._id) return false;
@@ -21,6 +19,12 @@ const Students: React.FC = () => {
     return (sBatchId?.toString() === batch._id.toString()) || 
            (student.batch === batch.batchName);
   };
+
+  // Filter states
+  const [activeTab, setActiveTab] = useState<'All' | 'ACTIVE' | 'UPCOMING'>('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [courseFilter, setCourseFilter] = useState('');
 
   // Modal display state
   const [showAddModal, setShowAddModal] = useState(false);
@@ -168,28 +172,34 @@ const Students: React.FC = () => {
     fetchData();
   }, []);
 
-  const filteredBatches = batches.filter(batch => {
-    const query = searchQuery.toLowerCase();
-    const batchName = (batch.batchName || '').toLowerCase();
-    const courseName = (batch.courseId?.courseName || batch.courseName || '').toLowerCase();
-    const instructor = (batch.instructor || '').toLowerCase();
-    const matchesSearch = batchName.includes(query) || courseName.includes(query) || instructor.includes(query);
+  const displayedBatches = batches.filter(batch => {
+    // Tab filter
+    const status = batch.status || 'UPCOMING';
+    if (activeTab === 'ACTIVE' && status !== 'ACTIVE') return false;
+    if (activeTab === 'UPCOMING' && status !== 'UPCOMING') return false;
 
-    let matchesStatus = true;
-    if (statusFilter === 'ACTIVE') {
-      matchesStatus = batch.status === 'ACTIVE';
-    } else if (statusFilter === 'UPCOMING') {
-      matchesStatus = batch.status === 'UPCOMING' || batch.status === 'INACTIVE' || !batch.status;
+    // Search filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchName = (batch.batchName || '').toLowerCase().includes(q);
+      const matchCourse = (batch.courseId?.courseName || batch.courseName || '').toLowerCase().includes(q);
+      const matchInstructor = (batch.instructor || '').toLowerCase().includes(q);
+      if (!matchName && !matchCourse && !matchInstructor) return false;
     }
 
-    return matchesSearch && matchesStatus;
+    // Course filter
+    if (courseFilter) {
+      const cId = batch.courseId?._id || batch.courseId;
+      if (cId !== courseFilter) return false;
+    }
+
+    return true;
   });
 
   const totalCapacity = batches.reduce((acc, b) => acc + (b.capacity || 30), 0);
   const totalEnrolled = batches.reduce((acc, b) => acc + (b.enrolledStudents || 0), 0);
   const occupancyPercentage = totalCapacity > 0 ? Math.round((totalEnrolled / totalCapacity) * 100) : 0;
   const strokeDashoffset = 251.2 - (251.2 * occupancyPercentage) / 100;
-
   return (
     <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800">
       
@@ -210,9 +220,9 @@ const Students: React.FC = () => {
               <input 
                 type="text" 
                 placeholder="Search Batch..." 
-                className="w-full bg-slate-50 border-none rounded-full py-2.5 pl-11 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-100 placeholder:text-slate-400"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-50 border-none rounded-full py-2.5 pl-11 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-100 placeholder:text-slate-400"
               />
             </div>
             
@@ -249,9 +259,9 @@ const Students: React.FC = () => {
             {/* Tabs */}
             <div className="bg-slate-100/80 p-1 rounded-xl flex items-center shadow-inner">
               <button 
-                onClick={() => setStatusFilter('ALL')}
+                onClick={() => setActiveTab('All')}
                 className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${
-                  statusFilter === 'ALL'
+                  activeTab === 'All'
                     ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]'
                     : 'text-slate-500 hover:text-slate-700 bg-transparent'
                 }`}
@@ -259,9 +269,9 @@ const Students: React.FC = () => {
                 All
               </button>
               <button 
-                onClick={() => setStatusFilter('ACTIVE')}
+                onClick={() => setActiveTab('ACTIVE')}
                 className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${
-                  statusFilter === 'ACTIVE'
+                  activeTab === 'ACTIVE'
                     ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]'
                     : 'text-slate-500 hover:text-slate-700 bg-transparent'
                 }`}
@@ -269,9 +279,9 @@ const Students: React.FC = () => {
                 Active
               </button>
               <button 
-                onClick={() => setStatusFilter('UPCOMING')}
+                onClick={() => setActiveTab('UPCOMING')}
                 className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${
-                  statusFilter === 'UPCOMING'
+                  activeTab === 'UPCOMING'
                     ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]'
                     : 'text-slate-500 hover:text-slate-700 bg-transparent'
                 }`}
@@ -280,9 +290,33 @@ const Students: React.FC = () => {
               </button>
             </div>
             
-            <button className="flex items-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
-              <FiFilter size={16} /> Filter
-            </button>
+            {showFilters ? (
+              <div className="flex items-center gap-2">
+                <select 
+                  value={courseFilter}
+                  onChange={(e) => setCourseFilter(e.target.value)}
+                  className="bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 outline-none cursor-pointer"
+                >
+                  <option value="">All Courses</option>
+                  {courses.map(c => (
+                    <option key={c._id} value={c._id}>{c.courseName}</option>
+                  ))}
+                </select>
+                <button 
+                  onClick={() => { setShowFilters(false); setCourseFilter(''); }}
+                  className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors cursor-pointer border-none"
+                >
+                  <FiX size={16} />
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowFilters(true)}
+                className="flex items-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
+              >
+                <FiFilter size={16} /> Filter
+              </button>
+            )}
             
             <button 
               onClick={() => setShowAddModal(true)}
@@ -296,7 +330,7 @@ const Students: React.FC = () => {
         {/* Batch Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           
-          {filteredBatches.map((batch, index) => {
+          {displayedBatches.map((batch, index) => {
             const enrollmentPercentage = Math.round(((batch.enrolledStudents || 0) / (batch.capacity || 30)) * 100);
             return (
               <div key={batch._id || index} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">

@@ -23,7 +23,7 @@ const StudentFees: React.FC = () => {
   const [studentId, setStudentId] = useState('');
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [pendingEnrollment, setPendingEnrollment] = useState<any>(location.state?.pendingEnrollment || null);
-  const [pendingBatch, setPendingBatch] = useState<any>(location.state?.selectedBatch || null);
+  const [pendingBatch, setPendingBatch] = useState<any>(location.state?.pendingBatch || null);
   const [paying, setPaying] = useState(false);
 
   const [studentName, setStudentName] = useState('Student User');
@@ -128,13 +128,14 @@ const StudentFees: React.FC = () => {
 
   // Handle Payment Transaction & Enrollment Completion
   const handlePayment = async () => {
-    if (!pendingEnrollment || !studentId) return;
+    if (!pendingEnrollment || !pendingBatch || !studentId) return;
 
     setPaying(true);
 
     try {
       const invoiceNo = `#INV-${Math.floor(1000 + Math.random() * 9000)}`;
-      const amount = pendingBatch?.batchFee ? `₹${pendingBatch.batchFee}` : "₹4,500";
+      const feeNum = pendingBatch?.batchFee || pendingEnrollment?.courseFee || 4500;
+      const amount = `₹${feeNum.toLocaleString('en-IN')}`;
       const description = pendingBatch 
         ? `${pendingEnrollment.courseName} - Batch: ${pendingBatch.batchName}`
         : `${pendingEnrollment.courseName} - Course Enrollment Fee`;
@@ -210,7 +211,7 @@ const StudentFees: React.FC = () => {
       };
       setReceipts([newReceipt, ...receipts]);
 
-      setToastMessage(`Payment of ${amount} successful! Enrolled in ${pendingEnrollment.courseName}.`);
+      setToastMessage(`Payment of ${amount} successful! Enrolled in ${pendingEnrollment.courseName} (${pendingBatch.batchName}).`);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 5000);
 
@@ -306,7 +307,9 @@ const StudentFees: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto shrink-0">
                 <div className="text-center sm:text-right">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Enrollment Fee</p>
-                  <h2 className="text-2xl font-black text-slate-950">₹{pendingBatch?.batchFee || '4,500'}</h2>
+                  <h2 className="text-2xl font-black text-slate-950">
+                    ₹{(pendingBatch?.batchFee || pendingEnrollment?.courseFee || 4500).toLocaleString('en-IN')}
+                  </h2>
                 </div>
                 
                 <button
