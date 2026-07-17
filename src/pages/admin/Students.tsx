@@ -2,18 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { 
   FiSearch, FiCalendar, FiFilter, FiPlus, 
   FiArrowRight, FiVideo,
-  FiUserPlus, FiX, FiSave, FiBookOpen
+  FiUserPlus, FiX, FiSave, FiBookOpen,
+  FiCheck, FiTrash2
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
+import { useAuth } from '../../context/AuthContext';
 
 const Students: React.FC = () => {
+  const { user } = useAuth();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [batches, setBatches] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
 
   const isStudentInBatch = (student: any, batch: any) => {
+    if (student.approvalStatus === 'PENDING') return false;
     if (!batch || !batch._id) return false;
     const sBatchId = student.batchId?._id || student.batchId;
     return (sBatchId?.toString() === batch._id.toString()) || 
@@ -21,7 +25,7 @@ const Students: React.FC = () => {
   };
 
   // Filter states
-  const [activeTab, setActiveTab] = useState<'All' | 'ACTIVE' | 'UPCOMING'>('All');
+  const [activeTab, setActiveTab] = useState<'All' | 'ACTIVE' | 'UPCOMING' | 'PENDING'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [courseFilter, setCourseFilter] = useState('');
@@ -72,6 +76,7 @@ const Students: React.FC = () => {
       gender: gender === 'Select Gender' ? 'Male' : gender,
       joiningDate: formatDateString(joiningDate),
       feeStatus: feeStatus,
+      approvalStatus: user?.role === 'teacher' ? 'PENDING' : 'APPROVED',
       batchEnd: '28 Aug 2026',
       remainingDays: 12,
       attendanceRate: 100,
@@ -95,7 +100,7 @@ const Students: React.FC = () => {
       .then(() => {
         setShowAddModal(false);
         resetForm();
-        alert('Student registered successfully!');
+        alert(user?.role === 'teacher' ? 'Student registration submitted! Waiting for Admin approval.' : 'Student registered successfully!');
         fetchData();
       })
       .catch(err => {
@@ -104,6 +109,41 @@ const Students: React.FC = () => {
         resetForm();
       });
   };
+  const handleApproveStudent = async (studentId: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/students/${studentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approvalStatus: 'APPROVED' })
+      });
+      if (res.ok) {
+        alert('Student registration approved successfully!');
+        fetchData();
+      } else {
+        alert('Failed to approve student registration.');
+      }
+    } catch (err) {
+      console.error('Error approving student:', err);
+    }
+  };
+
+  const handleRejectStudent = async (studentId: string) => {
+    if (!confirm('Are you sure you want to reject and delete this registration request?')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/students/${studentId}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        alert('Student registration rejected and request removed.');
+        fetchData();
+      } else {
+        alert('Failed to reject registration.');
+      }
+    } catch (err) {
+      console.error('Error rejecting student:', err);
+    }
+  };
+
 
   const filteredBatchesForSelectedCourse = batches.filter(b => b.courseId?._id === selectedCourseId || b.courseId === selectedCourseId);
 
@@ -288,6 +328,18 @@ const Students: React.FC = () => {
               >
                 Upcoming
               </button>
+              {user?.role === 'admin' && (
+                <button 
+                  onClick={() => setActiveTab('PENDING')}
+                  className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${
+                    activeTab === 'PENDING'
+                      ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]'
+                      : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                  }`}
+                >
+                  Pending Approvals
+                </button>
+              )}
             </div>
             
             {showFilters ? (
@@ -328,77 +380,144 @@ const Students: React.FC = () => {
         </div>
 
         {/* Batch Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          
-          {displayedBatches.map((batch, index) => {
-            const enrollmentPercentage = Math.round(((batch.enrolledStudents || 0) / (batch.capacity || 30)) * 100);
-            return (
-              <div key={batch._id || index} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
-                <div className="flex justify-between items-start mb-6">
-                  <div className={`w-12 h-12 rounded-2xl ${batch.statusColor || 'bg-orange-50 text-[#b67323]'} flex items-center justify-center`}>
-                    <FiBookOpen size={20} />
-                  </div>
-                  <span className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${batch.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-[#d97706]'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${batch.status === 'ACTIVE' ? 'bg-green-600' : 'bg-[#d97706]'}`}></span> {batch.status || 'Upcoming'}
-                  </span>
-                </div>
-                
-                <h3 className="text-xl font-extrabold text-[#1c1c28] mb-1">{batch.batchName}</h3>
-                <p className="text-slate-500 font-medium text-sm mb-6">Course: {batch.courseId?.courseName || batch.courseName}</p>
-                
-                <div className="flex items-center gap-3 mb-8">
-                  <img src={batch.instructorAvatar || "https://i.pravatar.cc/150?img=5"} alt="Instructor" className="w-10 h-10 rounded-full object-cover" />
-                  <div>
-                    <p className="text-sm font-bold text-[#1c1c28]">{batch.instructor}</p>
-                    <p className="text-[11px] font-medium text-slate-500">Instructor</p>
-                  </div>
-                </div>
-                
-                <div className="mt-auto">
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="text-xs font-bold text-slate-500">Enrollment: {batch.enrolledStudents || 0}/{batch.capacity || 30}</span>
-                    <span className="text-sm font-extrabold text-[#6247df]">{enrollmentPercentage}%</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6">
-                    <div className={`h-full rounded-full ${batch.progressBg || 'bg-[#6247df]'}`} style={{ width: `${Math.min(enrollmentPercentage, 100)}%` }}></div>
+        {activeTab !== 'PENDING' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {displayedBatches.map((batch, index) => {
+              const enrollmentPercentage = Math.round(((batch.enrolledStudents || 0) / (batch.capacity || 30)) * 100);
+              return (
+                <div key={batch._id || index} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className={`w-12 h-12 rounded-2xl ${batch.statusColor || 'bg-orange-50 text-[#b67323]'} flex items-center justify-center`}>
+                      <FiBookOpen size={20} />
+                    </div>
+                    <span className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${batch.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-[#d97706]'}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${batch.status === 'ACTIVE' ? 'bg-green-600' : 'bg-[#d97706]'}`}></span> {batch.status || 'Upcoming'}
+                    </span>
                   </div>
                   
-                  <div className="flex justify-between items-center pt-5 border-t border-slate-100">
-                    <span className="text-[11px] font-bold text-slate-400">{batch.status === 'ACTIVE' ? 'Ongoing' : 'Upcoming'}</span>
-                    <Link to={`/admin/students/${batch._id}`} className="text-[#6247df] text-sm font-bold flex items-center gap-1 hover:text-[#5035c9] no-underline">
-                      View Details <FiArrowRight size={16} />
-                    </Link>
+                  <h3 className="text-xl font-extrabold text-[#1c1c28] mb-1">{batch.batchName}</h3>
+                  <p className="text-slate-500 font-medium text-sm mb-6">Course: {batch.courseId?.courseName || batch.courseName}</p>
+                  
+                  <div className="flex items-center gap-3 mb-8">
+                    <img src={batch.instructorAvatar || "https://i.pravatar.cc/150?img=5"} alt="Instructor" className="w-10 h-10 rounded-full object-cover" />
+                    <div>
+                      <p className="text-sm font-bold text-[#1c1c28]">{batch.instructor}</p>
+                      <p className="text-[11px] font-medium text-slate-500">Instructor</p>
+                    </div>
                   </div>
-                </div>
+                  
+                  <div className="mt-auto">
+                    <div className="flex justify-between items-end mb-2">
+                      <span className="text-xs font-bold text-slate-500">Enrollment: {batch.enrolledStudents || 0}/{batch.capacity || 30}</span>
+                      <span className="text-sm font-extrabold text-[#6247df]">{enrollmentPercentage}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6">
+                      <div className={`h-full rounded-full ${batch.progressBg || 'bg-[#6247df]'}`} style={{ width: `${Math.min(enrollmentPercentage, 100)}%` }}></div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center pt-5 border-t border-slate-100">
+                      <span className="text-[11px] font-bold text-slate-400">{batch.status === 'ACTIVE' ? 'Ongoing' : 'Upcoming'}</span>
+                      <Link to={`/admin/students/${batch._id}`} className="text-[#6247df] text-sm font-bold flex items-center gap-1 hover:text-[#5035c9] no-underline">
+                        View Details <FiArrowRight size={16} />
+                      </Link>
+                    </div>
+                  </div>
 
-                {/* Students List for this Batch */}
-                <div className="mt-6 pt-6 border-t border-slate-100">
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-sm font-bold text-[#1c1c28]">Students List</h4>
-                  </div>
-                  
-                  <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                    {students.filter(s => isStudentInBatch(s, batch)).length > 0 ? (
-                      students.filter(s => isStudentInBatch(s, batch)).map(student => (
-                        <div key={student._id || student.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
-                          <img src={student.avatar || "https://i.pravatar.cc/150?img=12"} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-[#1c1c28] truncate">{student.name}</p>
-                            <p className="text-[10px] text-slate-500 truncate">{student.email || student.phone}</p>
+                  {/* Students List for this Batch */}
+                  <div className="mt-6 pt-6 border-t border-slate-100">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="text-sm font-bold text-[#1c1c28]">Students List</h4>
+                    </div>
+                    
+                    <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                      {students.filter(s => isStudentInBatch(s, batch)).length > 0 ? (
+                        students.filter(s => isStudentInBatch(s, batch)).map(student => (
+                          <div key={student._id || student.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+                            <img src={student.avatar || "https://i.pravatar.cc/150?img=12"} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-[#1c1c28] truncate">{student.name}</p>
+                              <p className="text-[10px] text-slate-500 truncate">{student.email || student.phone}</p>
+                            </div>
                           </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-slate-400 italic text-center py-4">No students enrolled yet.</p>
-                    )}
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-400 italic text-center py-4">No students enrolled yet.</p>
+                      )}
+                    </div>
                   </div>
+
                 </div>
-
-              </div>
-            );
-          })}
-
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 mb-8 overflow-x-auto">
+            <h3 className="text-xl font-extrabold text-[#1c1c28] mb-6">Pending Student Registrations</h3>
+            <table className="w-full text-left border-collapse min-w-[700px]">
+              <thead>
+                <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                  <th className="pb-4 font-semibold">Student</th>
+                  <th className="pb-4 font-semibold">Age / Gender</th>
+                  <th className="pb-4 font-semibold">Requested Course</th>
+                  <th className="pb-4 font-semibold">Requested Batch</th>
+                  <th className="pb-4 font-semibold">Phone</th>
+                  <th className="pb-4 font-semibold text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {students.filter(s => s.approvalStatus === 'PENDING').length > 0 ? (
+                  students.filter(s => s.approvalStatus === 'PENDING').map(student => (
+                    <tr key={student._id} className="text-slate-700 text-sm hover:bg-slate-50/50 transition-colors">
+                      <td className="py-4 flex items-center gap-3">
+                        <img src={student.avatar || "https://i.pravatar.cc/150?img=12"} alt={student.name} className="w-10 h-10 rounded-full object-cover" />
+                        <div>
+                          <p className="font-bold text-[#1c1c28]">{student.name}</p>
+                          <p className="text-xs text-slate-400">{student.email}</p>
+                        </div>
+                      </td>
+                      <td className="py-4 font-medium text-slate-500">
+                        {student.age} yrs / {student.gender}
+                      </td>
+                      <td className="py-4 font-bold text-[#1c1c28]">
+                        {student.course || 'Not selected'}
+                      </td>
+                      <td className="py-4 font-semibold text-slate-500">
+                        {student.batch || 'Not selected'}
+                      </td>
+                      <td className="py-4 text-slate-500 font-medium">
+                        {student.phone}
+                      </td>
+                      <td className="py-4">
+                        <div className="flex items-center justify-center gap-3">
+                          <button
+                            onClick={() => handleApproveStudent(student._id)}
+                            className="w-9 h-9 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 flex items-center justify-center transition-colors border-none cursor-pointer"
+                            title="Approve student"
+                          >
+                            <FiCheck size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleRejectStudent(student._id)}
+                            className="w-9 h-9 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 flex items-center justify-center transition-colors border-none cursor-pointer"
+                            title="Reject registration"
+                          >
+                            <FiTrash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-slate-400 italic font-medium">
+                      No pending student registrations at the moment.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Bottom Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
