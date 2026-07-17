@@ -12,7 +12,7 @@ const API_BASE = 'http://localhost:5000';
 const AdminSidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const currentPath = location.pathname;
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -36,8 +36,10 @@ const AdminSidebar: React.FC = () => {
     { name: 'Dashboard', path: '/admin', icon: <FiGrid size={20} /> },
     { name: 'Students', path: '/admin/students', icon: <FiUsers size={20} /> },
     { name: 'Courses', path: '/admin/courses', icon: <FiBookOpen size={20} /> },
-    { name: 'Teachers', path: '/admin/teachers', icon: <FiUserCheck size={20} /> },
-    { name: 'Fees & Payments', path: '/admin/fees', icon: <MdCurrencyRupee size={20} /> },
+    ...(user?.role === 'admin' ? [
+      { name: 'Teachers', path: '/admin/teachers', icon: <FiUserCheck size={20} /> },
+      { name: 'Fees & Payments', path: '/admin/fees', icon: <MdCurrencyRupee size={20} /> }
+    ] : []),
     { name: 'Gallery', path: '/admin/gallery', icon: <FiImage size={20} /> },
     { name: 'Notifications', path: '/admin/notifications', icon: <FiBell size={20} /> },
     { name: 'Settings', path: '/admin/settings', icon: <FiSettings size={20} /> },

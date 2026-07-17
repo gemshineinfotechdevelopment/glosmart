@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiCheck } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import loginImg from '../assets/login.png';
 import crayonImg from '../assets/crayon.png';
@@ -12,6 +12,8 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const signupSuccess = location.state?.signupSuccess;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +29,10 @@ const Login: React.FC = () => {
       if (res.ok) {
         login(data);
         if (data.role === 'student') {
+          if (location.state?.redirectTo) {
+            navigate(location.state.redirectTo, { state: { pendingEnrollment: location.state.pendingEnrollment } });
+            return;
+          }
           try {
             const studentRes = await fetch(`http://127.0.0.1:5000/api/students/${data.profileId}`);
             if (studentRes.ok) {
@@ -123,6 +129,12 @@ const Login: React.FC = () => {
               <h2 className="text-3xl font-extrabold text-[#112a36] mb-2">Welcome Back!</h2>
               <p className="text-slate-500 text-sm">Ready to ignite your next masterpiece?</p>
             </div>
+
+            {signupSuccess && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm p-4 rounded-xl mb-6 text-center font-semibold">
+                Account created successfully! Please log in with your email and password.
+              </div>
+            )}
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 text-sm text-yellow-800">
               <p className="font-bold mb-2">Demo Credentials:</p>

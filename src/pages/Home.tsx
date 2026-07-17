@@ -21,12 +21,29 @@ const mockArtwork4 = "https://images.unsplash.com/photo-1579783902614-a3fb3927b6
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const [courses, setCourses] = useState<any[]>([]);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/courses')
       .then(res => res.json())
       .then(data => setCourses(data.courses || []))
       .catch(error => console.error('Error fetching courses', error));
+
+    fetch('http://localhost:5000/api/gallery?sortBy=newest&limit=4')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.images && data.images.length > 0) {
+          const urls = data.images.map((img: any) => {
+            const path = img.imageUrl || '';
+            if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/images/')) {
+              return path;
+            }
+            return `http://localhost:5000${path}`;
+          });
+          setGalleryImages(urls);
+        }
+      })
+      .catch(error => console.error('Error fetching gallery images', error));
   }, []);
 
   return (
@@ -253,54 +270,6 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 6. Leaderboard Section */}
-      <section className="py-12 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-[#fffcf7] rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-orange-50 relative overflow-hidden">
-            {/* Background decors */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-100 rounded-full mix-blend-multiply opacity-50 -translate-y-1/2 translate-x-1/2"></div>
-
-            <div className="flex justify-between items-center mb-8 relative z-10">
-              <div>
-                <h3 className="text-2xl font-extrabold text-[#1A254C]">Academy Leaderboard</h3>
-                <p className="text-slate-500 text-sm mt-1">Top creators this month across all groups.</p>
-              </div>
-              <button className="text-[#005577] text-sm font-bold flex items-center gap-1 hover:underline">
-                View full <FiChevronDown />
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-4 relative z-10">
-              {/* Row 1 */}
-              <div className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-slate-100">
-                <div className="w-8 font-bold text-slate-400 text-center">#1</div>
-                <img src={mockAvatar1} alt="Bella" className="w-12 h-12 rounded-full border-2 border-green-200" />
-                <div className="flex-1">
-                  <div className="font-bold text-[#1A254C]">Bella</div>
-                </div>
-                <div className="hidden sm:block">
-                  <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Intermediate</span>
-                </div>
-                <div className="font-bold text-[#005577] text-lg">12,400 Pt</div>
-              </div>
-
-              {/* Row 2 */}
-              <div className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-slate-100">
-                <div className="w-8 font-bold text-slate-400 text-center">#2</div>
-                <img src={mockAvatar2} alt="John" className="w-12 h-12 rounded-full border-2 border-blue-200" />
-                <div className="flex-1">
-                  <div className="font-bold text-[#1A254C]">John</div>
-                </div>
-                <div className="hidden sm:block">
-                  <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">Beginner</span>
-                </div>
-                <div className="font-bold text-[#005577] text-lg">10,000 Pt</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* 7. Why Families Love Us */}
       <section className="py-24 px-6">
         <div className="max-w-6xl mx-auto bg-[#1A254C] rounded-[3rem] p-12 lg:p-20 text-white text-center relative overflow-hidden">
@@ -344,7 +313,7 @@ const Home: React.FC = () => {
         <p className="text-slate-500 mb-12">Discover our top community masterpieces</p>
 
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[mockArtwork1, mockArtwork2, mockArtwork3, mockArtwork4].map((src, i) => (
+          {[...galleryImages, mockArtwork1, mockArtwork2, mockArtwork3, mockArtwork4].slice(0, 4).map((src, i) => (
             <div key={i} className="aspect-square rounded-3xl overflow-hidden shadow-lg border-4 border-white transform hover:scale-105 transition-transform duration-300">
               <img src={src} alt="Artwork" className="w-full h-full object-cover" />
             </div>

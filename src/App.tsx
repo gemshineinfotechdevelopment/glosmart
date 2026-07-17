@@ -66,8 +66,8 @@ function AppContent(): React.JSX.Element {
           <Route path="/admin/courses/new" element={<ProtectedRoute allowedRoles={['admin']}><AdminCreateCoursePage /></ProtectedRoute>} />
           <Route path="/admin/courses/edit/:id" element={<ProtectedRoute allowedRoles={['admin']}><AdminCreateCoursePage /></ProtectedRoute>} />
           <Route path="/admin/courses/:id/batches" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminCourseBatchesPage /></ProtectedRoute>} />
-          <Route path="/admin/teachers" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><Teachers /></ProtectedRoute>} />
-          <Route path="/admin/fees" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><FeesPayments /></ProtectedRoute>} />
+          <Route path="/admin/teachers" element={<ProtectedRoute allowedRoles={['admin']}><Teachers /></ProtectedRoute>} />
+          <Route path="/admin/fees" element={<ProtectedRoute allowedRoles={['admin']}><FeesPayments /></ProtectedRoute>} />
           <Route path="/admin/students" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><Students /></ProtectedRoute>} />
           <Route path="/admin/students/:batchId" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><BatchDetails /></ProtectedRoute>} />
           <Route path="/admin/gallery" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminGalleryPage /></ProtectedRoute>} />
