@@ -35,6 +35,8 @@ const Students: React.FC = () => {
 
   // Form input states
   const [studentName, setStudentName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('Select Gender');
   const [phone, setPhone] = useState('');
@@ -64,13 +66,22 @@ const Students: React.FC = () => {
       alert('Please enter the student\'s name.');
       return;
     }
+    if (!email.trim()) {
+      alert('Please enter the email address.');
+      return;
+    }
+    if (!password.trim() || password.length < 6) {
+      alert('Please enter an initial password of at least 6 characters.');
+      return;
+    }
 
     const courseObj = courses.find(c => c._id === selectedCourseId);
     const batchObj = batches.find(b => b._id === selectedBatchId);
 
     const newStudent = {
       name: studentName,
-      email: phone || '+1(555) 000-0000',
+      email: email,
+      password: password,
       phone: phone || '+1(555) 000-0000',
       age: parseInt(age) || 15,
       gender: gender === 'Select Gender' ? 'Male' : gender,
@@ -149,6 +160,8 @@ const Students: React.FC = () => {
 
   const resetForm = () => {
     setStudentName('');
+    setEmail('');
+    setPassword('');
     setAge('');
     setGender('Select Gender');
     setPhone('');
@@ -659,6 +672,32 @@ const Students: React.FC = () => {
                       value={studentName}
                       onChange={(e) => setStudentName(e.target.value)}
                     />
+                  </div>
+
+                  {/* Email & Initial Password Row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Email ID</label>
+                      <input
+                        type="email"
+                        placeholder="student@example.com"
+                        className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm font-sans"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Initial Password</label>
+                      <input
+                        type="password"
+                        placeholder="Minimum 6 characters"
+                        className="w-full px-4 py-3 bg-[#F9FAFB] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm font-sans"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
 
                   {/* Age & Gender Row */}

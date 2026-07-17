@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Student from '../models/Student.js';
 import Batch from '../models/Batch.js';
 import Course from '../models/Course.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 
@@ -159,8 +160,27 @@ router.get('/:id', async (req, res) => {
 // POST new student
 router.post('/', async (req, res) => {
   try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required for manual student creation.' });
+    }
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'A user already exists with this email address.' });
+    }
+
     const newStudent = new Student(req.body);
     const savedStudent = await newStudent.save();
+
+    // Create User record linked to Student
+    const newUser = new User({
+      email: savedStudent.email,
+      password: password,
+      role: 'student',
+      profileId: savedStudent._id
+    });
+    await newUser.save();
 
     // Increment students count in Batch when student is enrolled in a batch (and approved!)
     if (savedStudent.approvalStatus !== 'PENDING' && (savedStudent.batchId || savedStudent.batch)) {
@@ -272,6 +292,7 @@ router.delete('/:id', async (req, res) => {
       );
     }
     
+    await User.deleteMany({ profileId: student._id });
     await Student.findByIdAndDelete(req.params.id);
     res.json({ message: 'Student deleted successfully' });
   } catch (error) {
