@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   FiCheck, 
-  FiX, 
   FiChevronLeft, 
   FiChevronRight,
   FiBook,
@@ -25,9 +24,7 @@ const StudentAttendance: React.FC = () => {
   // Calendar month state
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   
-  const [attendanceRate, setAttendanceRate] = useState(100);
   const [totalPresent, setTotalPresent] = useState(0);
-  const [totalAbsent, setTotalAbsent] = useState(0);
   const [totalSessions, setTotalSessions] = useState(0);
   const [studentName, setStudentName] = useState('Student User');
   const [studentGrade, setStudentGrade] = useState('5th Grade');
@@ -118,30 +115,18 @@ const StudentAttendance: React.FC = () => {
       filteredRecords = attendanceRecords.filter((r: any) => r.activity && r.activity.toLowerCase() === selectedBatch.toLowerCase());
     }
 
-    let rate = 0;
     let presentCount = 0;
-    let absentCount = 0;
     let sessionsCount = 0;
 
     if (studentName === 'Sarah Jenkins' && selectedBatch === 'All') {
-      rate = 100;
       presentCount = 114;
-      absentCount = 2;
       sessionsCount = 118;
     } else {
       sessionsCount = filteredRecords.length;
       presentCount = filteredRecords.filter((r: any) => r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late').length;
-      absentCount = filteredRecords.filter((r: any) => r.status.toLowerCase() === 'absent').length;
-      if (sessionsCount > 0) {
-        rate = Math.round((presentCount / sessionsCount) * 100);
-      } else {
-        rate = 100; // Default to 100% when no sessions have happened yet
-      }
     }
 
-    setAttendanceRate(rate);
     setTotalPresent(presentCount);
-    setTotalAbsent(absentCount);
     setTotalSessions(sessionsCount);
   }, [selectedBatch, attendanceRecords, studentName]);
 
@@ -365,23 +350,64 @@ const StudentAttendance: React.FC = () => {
                 )}
               </div>
 
-              {/* First Row: 1 Metric Card */}
+              {/* Metric Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <div className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between">
-                  <div>
-                    <p className="text-[10px] font-extrabold text-slate-400 tracking-widest uppercase mb-1">Total Days Attended</p>
-                    <div className="flex items-baseline gap-2 mt-2">
-                      <span className="text-4xl font-black text-[#1c1c28] tracking-tight">{totalPresent}</span>
-                      <span className="text-sm font-bold text-[#6247df]">Days</span>
+                {enrolledCourses.length > 0 ? (
+                  enrolledCourses
+                    .filter((c: any) => selectedBatch === 'All' || (c.batchName || c.courseName) === selectedBatch)
+                    .map((c: any, index: number) => {
+                      const batchName = c.batchName || c.courseName;
+                      let presentCount = 0;
+                      
+                      if (studentName === 'Sarah Jenkins') {
+                        if (batchName === 'Pencil Drawing - Advanced' || batchName === 'Pencil Drawing') presentCount = 42;
+                        else if (batchName === 'Digital Art - Pro') presentCount = 38;
+                        else if (batchName === 'Watercolor Basics') presentCount = 34;
+                        else presentCount = 30;
+                      } else {
+                        presentCount = attendanceRecords.filter((r: any) => 
+                          r.activity && r.activity.toLowerCase() === batchName.toLowerCase() &&
+                          (r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late')
+                        ).length;
+                      }
+
+                      return (
+                        <div key={index} className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between">
+                          <div>
+                            <p className="text-[10px] font-extrabold text-slate-400 tracking-widest uppercase mb-1 line-clamp-1" title={batchName}>
+                              {batchName}
+                            </p>
+                            <div className="flex items-baseline gap-2 mt-2">
+                              <span className="text-4xl font-black text-[#1c1c28] tracking-tight">{presentCount}</span>
+                              <span className="text-sm font-bold text-[#6247df]">{presentCount === 1 || presentCount === 0 ? 'Day' : 'Days'}</span>
+                            </div>
+                          </div>
+                          <div className="mt-4 pt-4 border-t border-slate-50 flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
+                              <FiCheck size={12} className="text-[#6247df] stroke-[3]" />
+                            </div>
+                            <p className="text-xs font-bold text-slate-500 leading-tight">Keep up the great work</p>
+                          </div>
+                        </div>
+                      );
+                    })
+                ) : (
+                  <div className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <p className="text-[10px] font-extrabold text-slate-400 tracking-widest uppercase mb-1">Total Days Attended</p>
+                      <div className="flex items-baseline gap-2 mt-2">
+                        <span className="text-4xl font-black text-[#1c1c28] tracking-tight">{totalPresent}</span>
+                        <span className="text-sm font-bold text-[#6247df]">{totalPresent === 1 || totalPresent === 0 ? 'Day' : 'Days'}</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-slate-50 flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
+                        <FiCheck size={12} className="text-[#6247df] stroke-[3]" />
+                      </div>
+                      <p className="text-xs font-bold text-slate-500 leading-tight">Keep up the great work</p>
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-slate-50 flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
-                      <FiCheck size={12} className="text-[#6247df] stroke-[3]" />
-                    </div>
-                    <p className="text-xs font-bold text-slate-500 leading-tight">Keep up the great work</p>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Second Row: Calendar */}

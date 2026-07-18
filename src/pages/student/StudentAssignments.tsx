@@ -4,16 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   FiBookOpen,
-  FiCalendar,
-  FiCheckCircle, 
-  FiUploadCloud, 
-  FiEye, 
-  FiAlertCircle, 
-  FiCheck, 
-  FiX,
+  FiCalendar,  
   FiFileText,
   FiClipboard,
-  FiAward
 } from 'react-icons/fi';
 
 interface Assignment {
