@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FiUsers, FiBookOpen, FiUserCheck,
+  FiUsers, FiBookOpen,
   FiCalendar as FiCal,
 } from 'react-icons/fi';
 import { MdCurrencyRupee } from 'react-icons/md';
@@ -52,7 +52,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
           <div className="bg-white p-6 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
             <div className="flex justify-between items-start mb-6">
@@ -64,15 +64,6 @@ const Dashboard: React.FC = () => {
             <h3 className="text-4xl font-black text-[#1c1c28] mb-4">{stats.totalStudents || 0}</h3>
           </div>
 
-          <div className="bg-white p-6 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
-            <div className="flex justify-between items-start mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-green-100 text-green-600 flex items-center justify-center">
-                <FiUserCheck size={24} />
-              </div>
-            </div>
-            <p className="text-slate-500 font-semibold text-sm mb-1">Available Seats</p>
-            <h3 className="text-4xl font-black text-green-600 mb-4">{stats.availableSeats || 0}</h3>
-          </div>
 
           <div className="bg-white p-6 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
             <div className="flex justify-between items-start mb-6">
