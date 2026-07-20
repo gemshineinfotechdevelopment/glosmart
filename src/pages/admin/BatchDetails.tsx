@@ -264,12 +264,16 @@ const BatchDetails: React.FC = () => {
 
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-[#1c1c28] leading-tight">Admin User</p>
-                <p className="text-[10px] font-bold text-slate-400 tracking-wider">DIRECTOR</p>
+                <p className="text-sm font-bold text-[#1c1c28] leading-tight">
+                  {user?.name ? user.name : (user?.role === 'teacher' ? 'Tutor User' : 'Admin User')}
+                </p>
+                <p className="text-[10px] font-bold text-slate-400 tracking-wider">
+                  {user?.role === 'teacher' ? 'TUTOR' : 'DIRECTOR'}
+                </p>
               </div>
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop"
-                alt="Admin Profile"
+                alt="Profile"
                 className="w-10 h-10 rounded-full object-cover border border-slate-100 shadow-sm"
               />
             </div>
@@ -323,7 +327,7 @@ const BatchDetails: React.FC = () => {
               </button>
             </div>
 
-            {(user?.role === 'admin' || (user?.role === 'teacher' && currentBatch?.instructor === user?.name)) && (
+            {(user?.role === 'admin' || user?.role === 'teacher') && (
               <button
                 onClick={handleToggleAttendance}
                 disabled={activeSession && user?.role === 'teacher' && activeSession.enabledByRole === 'admin'}

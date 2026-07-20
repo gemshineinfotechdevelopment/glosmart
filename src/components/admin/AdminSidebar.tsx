@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   FiGrid, FiUsers, FiBookOpen, FiUserCheck,
-  FiBell, FiSettings, FiLogOut, FiImage
+  FiBell, FiSettings, FiLogOut, FiImage, FiFileText
 } from 'react-icons/fi';
 import { MdCurrencyRupee } from 'react-icons/md';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -41,6 +41,7 @@ const AdminSidebar: React.FC = () => {
       { name: 'Fees & Payments', path: '/admin/fees', icon: <MdCurrencyRupee size={20} /> }
     ] : []),
     { name: 'Gallery', path: '/admin/gallery', icon: <FiImage size={20} /> },
+    { name: 'Tutor Reports', path: '/admin/tutor-reports', icon: <FiFileText size={20} /> },
     { name: 'Attendance', path: '/admin/attendance', icon: <FiUserCheck size={20} /> },
     { name: 'Notifications', path: '/admin/notifications', icon: <FiBell size={20} /> },
     { name: 'Settings', path: '/admin/settings', icon: <FiSettings size={20} /> },
@@ -58,7 +59,9 @@ const AdminSidebar: React.FC = () => {
           </div>
           <div>
             <h1 className="font-bold text-[#1c1c28] text-xl leading-tight">GloSmart Art</h1>
-            <p className="text-xs text-slate-500 font-medium">Academy Admin</p>
+            <p className="text-xs text-slate-500 font-medium">
+              {user?.role === 'teacher' ? 'Academy Tutor' : 'Academy Admin'}
+            </p>
           </div>
         </div>
 

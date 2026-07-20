@@ -14,12 +14,20 @@ import {
   FiCreditCard,
   FiImage,
   FiStar,
-  FiVideo
+  FiVideo,
+  FiLink
 } from 'react-icons/fi';
 
 const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Ticking clock — updates every minute so time-based banners refresh automatically
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Student state
   const [student, setStudent] = useState({
@@ -32,9 +40,13 @@ const StudentDashboard: React.FC = () => {
   });
 
   useEffect(() => {
-    const profileId = user?.profileId || 'first';
+    const profileId = user?.profileId;
+    if (!profileId) return; // no valid ID — skip fetch, show defaults
     fetch(`http://127.0.0.1:5000/api/students/${profileId}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         if (data) {
           let finalAttendance = '0 Days';
@@ -43,7 +55,7 @@ const StudentDashboard: React.FC = () => {
           } else {
             const records = data.attendanceRecords || [];
             if (records.length > 0) {
-              const presentOrLate = records.filter((r: any) => 
+              const presentOrLate = records.filter((r: any) =>
                 r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late'
               ).length;
               finalAttendance = presentOrLate + ' Days';
@@ -67,60 +79,32 @@ const StudentDashboard: React.FC = () => {
   const [liveBatches, setLiveBatches] = useState<any[]>([]);
 
   useEffect(() => {
-    if (student.enrolledCourses.length === 0) return;
-
     const fetchBatches = async () => {
       try {
-        const coursesRes = await fetch('http://localhost:5000/api/courses');
-        const coursesData = await coursesRes.json();
-        const allCourses = coursesData.courses || [];
+        const batchRes = await fetch('http://localhost:5000/api/batches', { cache: 'no-store' });
+        if (!batchRes.ok) return;
+        const allBatches = await batchRes.json();
 
-        const allBatches: any[] = [];
-        for (const ec of student.enrolledCourses) {
-          const matched = allCourses.find((c: any) =>
-            c.courseName.toLowerCase() === ec.courseName.toLowerCase()
-          );
-          if (matched) {
-            try {
-              const batchRes = await fetch(`http://localhost:5000/api/batches/course/${matched._id}`);
-              const batchData = await batchRes.json();
-              for (const b of batchData) {
-                if (b.zoomLink) {
-                  allBatches.push({ ...b, courseName: ec.courseName });
-                }
-              }
-            } catch (err) {
-              console.error(`Error fetching batches for ${ec.courseName}:`, err);
-            }
-          }
-        }
-        setLiveBatches(allBatches);
+        // ONLY include batches where Zoom link is explicitly activated by teacher/admin (isZoomActive === true)
+        const activeBatches = allBatches.filter(
+          (b: any) => b.zoomLink && b.isZoomActive === true && b.status === 'ACTIVE'
+        );
+
+        setLiveBatches(activeBatches);
       } catch (err) {
         console.error('Error fetching batch data for live check:', err);
       }
     };
 
     fetchBatches();
+    const interval = setInterval(fetchBatches, 10000);
+    return () => clearInterval(interval);
   }, [student.enrolledCourses]);
 
-  // Check if a batch class is currently live
+
+  // Check if a batch class is currently live — ONLY true if explicitly activated (isZoomActive === true)
   const isBatchLive = (batch: any): boolean => {
-    if (!batch.zoomLink || batch.status !== 'ACTIVE') return false;
-    if (!batch.days || batch.days.length === 0 || !batch.startTime || !batch.endTime) return false;
-
-    const now = new Date();
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const todayName = dayNames[now.getDay()];
-
-    if (!batch.days.includes(todayName)) return false;
-
-    const [startH, startM] = batch.startTime.split(':').map(Number);
-    const [endH, endM] = batch.endTime.split(':').map(Number);
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
-
-    return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+    return Boolean(batch.zoomLink && batch.isZoomActive === true && batch.status === 'ACTIVE');
   };
 
   const currentLiveBatches = liveBatches.filter(isBatchLive);
@@ -500,6 +484,7 @@ const StudentDashboard: React.FC = () => {
           ) : (
             // REGULAR USER DASHBOARD CONTENT
             <>
+
               {/* Live Class Banner */}
               {currentLiveBatches.length > 0 && (
                 <div className="space-y-3">
@@ -521,7 +506,7 @@ const StudentDashboard: React.FC = () => {
                             <span className="text-sm font-extrabold tracking-tight">Class is Live Now!</span>
                           </div>
                           <p className="text-emerald-100 text-xs font-semibold mt-0.5">
-                            {batch.courseName} — {batch.batchName} ({batch.startTime} - {batch.endTime})
+                            {batch.courseName} — {batch.batchName} · Live Session Active
                           </p>
                         </div>
                       </div>

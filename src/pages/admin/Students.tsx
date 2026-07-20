@@ -288,12 +288,16 @@ const Students: React.FC = () => {
             
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-[#1c1c28] leading-tight">Admin User</p>
-                <p className="text-[10px] font-medium text-slate-500">Administrator</p>
+                <p className="text-sm font-bold text-[#1c1c28] leading-tight">
+                  {user?.name ? user.name : (user?.role === 'teacher' ? 'Tutor User' : 'Admin User')}
+                </p>
+                <p className="text-[10px] font-medium text-slate-500">
+                  {user?.role === 'teacher' ? 'Tutor' : 'Administrator'}
+                </p>
               </div>
               <img 
                 src="https://i.pravatar.cc/150?img=11" 
-                alt="Admin Profile" 
+                alt="Profile" 
                 className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
               />
             </div>
@@ -352,7 +356,7 @@ const Students: React.FC = () => {
               >
                 Inactive
               </button>
-              {user?.role === 'admin' && (
+              {(user?.role === 'admin' || user?.role === 'teacher') && (
                 <button 
                   onClick={() => setActiveTab('PENDING')}
                   className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${
