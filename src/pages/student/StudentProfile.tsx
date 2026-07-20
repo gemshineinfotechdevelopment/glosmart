@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useAuth } from '../../context/AuthContext';
-import { FiEdit2, FiX, FiCheck, FiCheckCircle } from 'react-icons/fi';
+import { FiEdit2, FiX, FiCheck, FiCheckCircle, FiUser } from 'react-icons/fi';
 
 interface ProfileData {
   name: string;
@@ -12,6 +12,7 @@ interface ProfileData {
   contact: string;
   joined: string;
   avatar: string;
+  gender: string;
 }
 
 const StudentProfile: React.FC = () => {
@@ -26,7 +27,8 @@ const StudentProfile: React.FC = () => {
     parent: 'Michael Jenkins',
     contact: '+1 (555) 012-3456',
     joined: 'Jan 12, 2024',
-    avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80'
+    avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
+    gender: 'Male'
   });
 
   // Modal State
@@ -36,6 +38,7 @@ const StudentProfile: React.FC = () => {
   const [editContact, setEditContact] = useState(profile.contact);
   const [editAge, setEditAge] = useState(profile.age);
   const [editGrade, setEditGrade] = useState(profile.grade);
+  const [editGender, setEditGender] = useState(profile.gender);
 
   // Toast State
   const [showToast, setShowToast] = useState(false);
@@ -56,7 +59,8 @@ const StudentProfile: React.FC = () => {
             parent: data.parent || 'Michael Jenkins',
             contact: data.phone || '+1 (555) 012-3456',
             joined: data.joiningDate || 'Jan 12, 2024',
-            avatar: data.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80'
+            avatar: data.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
+            gender: data.gender || 'Male'
           };
           setProfile(loadedProfile);
           setEditName(loadedProfile.name);
@@ -64,6 +68,7 @@ const StudentProfile: React.FC = () => {
           setEditContact(loadedProfile.contact);
           setEditAge(loadedProfile.age);
           setEditGrade(loadedProfile.grade);
+          setEditGender(loadedProfile.gender);
         }
       })
       .catch(err => console.error('Error fetching profile:', err));
@@ -78,7 +83,8 @@ const StudentProfile: React.FC = () => {
       parent: editParent,
       phone: editContact,
       age: editAge,
-      grade: editGrade
+      grade: editGrade,
+      gender: editGender
     };
 
     fetch(`http://localhost:5000/api/students/${profile.studentId}`, {
@@ -99,7 +105,8 @@ const StudentProfile: React.FC = () => {
           parent: data.parent || 'Michael Jenkins',
           contact: data.phone || '+1 (555) 012-3456',
           age: data.age || '10 yrs',
-          grade: data.grade || '5th Grade'
+          grade: data.grade || '5th Grade',
+          gender: data.gender || 'Male'
         });
         setIsEditModalOpen(false);
 
@@ -146,11 +153,9 @@ const StudentProfile: React.FC = () => {
               <p className="text-sm font-bold text-[#111827] leading-none">{profile.name}</p>
               <p className="text-xs text-[#6B7280] mt-1">Student • {profile.grade}</p>
             </div>
-            <img 
-              src={profile.avatar} 
-              alt={profile.name} 
-              className="w-10 h-10 rounded-full object-cover shadow-sm border border-slate-200"
-            />
+            <div className="w-10 h-10 rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center shadow-sm border border-slate-200 shrink-0">
+              <FiUser size={20} />
+            </div>
           </div>
         </div>
 
@@ -158,14 +163,10 @@ const StudentProfile: React.FC = () => {
         <div className="flex-1 flex items-start justify-center mt-2 px-6">
           <div className="bg-white rounded-[2rem] shadow-[0_4px_30px_rgba(0,0,0,0.03)] p-10 w-full max-w-[680px] border border-slate-100/50 flex flex-col items-center">
             
-            {/* Avatar Section */}
+            {/* Profile Icon Section */}
             <div className="relative mb-6">
-              <div className="w-[170px] h-[170px] rounded-full bg-[#f0e8ff] flex items-center justify-center shadow-inner">
-                <img 
-                  src={profile.avatar} 
-                  alt={profile.name} 
-                  className="w-[140px] h-[140px] rounded-full object-cover"
-                />
+              <div className="w-[170px] h-[170px] rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center shadow-inner">
+                <FiUser size={72} />
               </div>
               <div className="absolute bottom-2 right-2 bg-[#4ade80] text-[#064e3b] text-[11px] font-bold px-4 py-1.5 rounded-full border-[3px] border-white uppercase tracking-wider shadow-sm">
                 Active
@@ -182,6 +183,10 @@ const StudentProfile: React.FC = () => {
                 <div className="flex flex-col space-y-2">
                   <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Age / Grade</p>
                   <p className="font-bold text-[#111827] text-base">{profile.age} / {profile.grade}</p>
+                </div>
+                <div className="flex flex-col space-y-2">
+                  <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Gender</p>
+                  <p className="font-bold text-[#111827] text-base">{profile.gender}</p>
                 </div>
                 <div className="flex flex-col space-y-2">
                   <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Parent</p>
@@ -207,6 +212,7 @@ const StudentProfile: React.FC = () => {
                   setEditContact(profile.contact);
                   setEditAge(profile.age);
                   setEditGrade(profile.grade);
+                  setEditGender(profile.gender);
                   setIsEditModalOpen(true);
                 }}
                 className="w-full bg-[#4700b3] text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#3d0099] transition-colors border-none cursor-pointer shadow-md shadow-purple-900/10"
@@ -300,6 +306,21 @@ const StudentProfile: React.FC = () => {
                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-sm font-semibold focus:outline-none focus:border-[#4700b3]"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Gender</label>
+                  <select 
+                    value={editGender}
+                    onChange={(e) => setEditGender(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-sm font-semibold focus:outline-none focus:border-[#4700b3]"
+                    required
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                  </select>
                 </div>
 
                 {/* Form Actions */}

@@ -28,7 +28,6 @@ const StudentAttendance: React.FC = () => {
   const [totalSessions, setTotalSessions] = useState(0);
   const [studentName, setStudentName] = useState('Student User');
   const [studentGrade, setStudentGrade] = useState('5th Grade');
-  const [studentAvatar, setStudentAvatar] = useState('https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
   const [activeBatches, setActiveBatches] = useState<any[]>([]);
@@ -45,7 +44,6 @@ const StudentAttendance: React.FC = () => {
           setAttendanceRecords(records);
           setStudentName(data.name || 'Student User');
           setStudentGrade(data.grade || '5th Grade');
-          setStudentAvatar(data.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
           setEnrolledCourses(data.enrolledCourses || []);
 
           // Fetch active sessions
@@ -216,12 +214,12 @@ const StudentAttendance: React.FC = () => {
               <p className="text-[14px] font-bold text-slate-900 leading-none">{studentName}</p>
               <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • {studentGrade}</p>
             </div>
-            <img 
-              src={studentAvatar} 
-              alt={studentName} 
-              className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm cursor-pointer"
+            <div 
+              className="w-10 h-10 rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center border border-slate-200 shadow-sm cursor-pointer shrink-0"
               onClick={() => navigate('/student/profile')}
-            />
+            >
+              <FiUser size={20} />
+            </div>
           </div>
         </header>
         
