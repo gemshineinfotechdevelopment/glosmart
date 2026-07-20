@@ -25,6 +25,11 @@ const batchSchema = new mongoose.Schema({
     title: { type: String, required: true },
     createdAt: { type: Date, default: Date.now }
   }],
+  attendanceEnabled: { type: Boolean, default: false },
+  attendanceRecords: [{
+    date: { type: Date, required: true },
+    studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true }
+  }],
   // Keeping these for backwards compatibility with existing UI temporarily if needed
   courseName: { type: String },
   category: { type: String },

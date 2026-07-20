@@ -14,7 +14,6 @@ const Students: React.FC = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [batches, setBatches] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
-  const [students, setStudents] = useState<any[]>([]);
 
   const isStudentInBatch = (student: any, batch: any) => {
     if (student.approvalStatus === 'PENDING') return false;
@@ -182,19 +181,16 @@ const Students: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const [coursesRes, batchesRes, studentsRes] = await Promise.all([
+      const [coursesRes, batchesRes] = await Promise.all([
         fetch('http://localhost:5000/api/courses?limit=1000'),
-        fetch('http://localhost:5000/api/batches'),
-        fetch('http://localhost:5000/api/students')
+        fetch('http://localhost:5000/api/batches')
       ]);
       const coursesData = await coursesRes.json();
       const batchesData = await batchesRes.json();
-      const studentsData = await studentsRes.json();
       
       const loadedCourses = coursesData.courses || [];
       setCourses(loadedCourses);
       setBatches(batchesData);
-      setStudents(studentsData);
 
       if (loadedCourses.length > 0) {
         setSelectedCourseId(loadedCourses[0]._id);

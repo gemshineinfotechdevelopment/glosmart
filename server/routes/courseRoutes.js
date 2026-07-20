@@ -17,6 +17,12 @@ router.get('/', async (req, res) => {
     if (status && status !== 'All Courses') {
       query.status = status;
     }
+    
+    if (req.query.instructor) {
+      const batches = await Batch.find({ instructor: req.query.instructor });
+      const courseIds = batches.map(b => b.courseId);
+      query._id = { $in: courseIds };
+    }
 
     const courses = await Course.find(query)
       .populate('batches')

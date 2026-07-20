@@ -18,7 +18,11 @@ export default function AdminCoursePage() {
 
   const fetchCourses = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/courses');
+      let url = 'http://localhost:5000/api/courses';
+      if (user?.role === 'teacher' && user?.name) {
+        url += `?instructor=${encodeURIComponent(user.name)}`;
+      }
+      const response = await fetch(url);
       const data = await response.json();
       setCourses(data.courses || []);
     } catch (error) {

@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fi';
 import { Link, useParams } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
+import { useAuth } from '../../context/AuthContext';
 
 interface Student {
   _id?: string;
@@ -44,6 +45,7 @@ const PaintPaletteIcon = () => (
 
 const BatchDetails: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
+  const { user } = useAuth();
   const [studentsList, setStudentsList] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,6 +57,43 @@ const BatchDetails: React.FC = () => {
   const [isEditingStudent, setIsEditingStudent] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Student>>({});
 
+  const [batches, setBatches] = useState<any[]>([]);
+  const [activeSession, setActiveSession] = useState<any>(null);
+
+  const currentBatch = batches.find(b => b._id === batchId);
+
+  const handleToggleAttendance = async () => {
+    if (!currentBatch || !currentBatch._id) return;
+    try {
+      if (activeSession) {
+        if (user?.role === 'teacher' && activeSession.enabledByRole === 'admin') {
+          alert('You cannot disable an attendance session enabled by an Admin.');
+          return;
+        }
+        // Disable it
+        const res = await fetch(`http://localhost:5000/api/attendance/sessions/${activeSession._id}/disable`, {
+          method: 'PUT'
+        });
+        if (res.ok) setActiveSession(null);
+      } else {
+        // Enable it
+        const res = await fetch(`http://localhost:5000/api/attendance/sessions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            batchId: currentBatch._id,
+            enabledByUserId: user?._id,
+            enabledByName: user?.name || user?.email,
+            enabledByRole: user?.role
+          })
+        });
+        if (res.ok) {
+          const session = await res.json();
+          setActiveSession(session);
+        }
+      }
+    } catch (err) {
+      console.error(err);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [batches, setBatches] = useState<any[]>([]);
 
@@ -116,7 +155,6 @@ const BatchDetails: React.FC = () => {
     }
   };
 
-  const currentBatch = batches.find(b => b._id === batchId);
   const studentsInBatch = studentsList.filter(student => {
     if (!currentBatch || !currentBatch._id) return false;
     const sBatchId = (student.batchId && typeof student.batchId === 'object')
@@ -127,6 +165,30 @@ const BatchDetails: React.FC = () => {
   });
 
   useEffect(() => {
+    fetch('http://localhost:5000/api/students')
+      .then(res => res.json())
+      .then(data => {
+        setStudentsList(data);
+      })
+      .catch(err => {
+        console.error("Failed to load students from API", err);
+        setStudentsList([]);
+      });
+
+    fetch('http://localhost:5000/api/batches')
+      .then(res => res.json())
+      .then(data => {
+        setBatches(data);
+      })
+      .catch(err => console.error("Failed to fetch batches", err));
+
+    if (batchId) {
+      fetch(`http://localhost:5000/api/attendance/sessions/batch/${batchId}/active`)
+        .then(res => res.json())
+        .then(data => setActiveSession(data))
+        .catch(err => console.error(err));
+    }
+  }, [batchId]);
     fetchStudentsAndBatches();
   }, []);
 
@@ -255,6 +317,23 @@ const BatchDetails: React.FC = () => {
                 Pending
               </button>
             </div>
+
+            {(user?.role === 'admin' || (user?.role === 'teacher' && currentBatch?.instructor === user?.name)) && (
+              <button 
+                onClick={handleToggleAttendance}
+                disabled={activeSession && user?.role === 'teacher' && activeSession.enabledByRole === 'admin'}
+                className={`px-4 py-2 rounded-xl text-sm font-bold shadow-md transition-all ${
+                  activeSession 
+                    ? (user?.role === 'teacher' && activeSession.enabledByRole === 'admin')
+                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                      : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200' 
+                    : 'bg-[#6247df] text-white hover:bg-[#5035c9] shadow-purple-200'
+                }`}
+                title={activeSession && user?.role === 'teacher' && activeSession.enabledByRole === 'admin' ? "Cannot disable session enabled by Admin" : ""}
+              >
+                {activeSession ? 'Disable Attendance' : 'Enable Attendance'}
+              </button>
+            )}
 
             <button className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer">
               <FiUpload size={16} /> Export

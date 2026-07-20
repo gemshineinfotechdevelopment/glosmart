@@ -75,7 +75,12 @@ export default function AdminCourseBatchesPage() {
       setCourse(courseData);
 
       const batchesRes = await fetch(`http://localhost:5000/api/batches/course/${id}`);
-      const batchesData = await batchesRes.json();
+      let batchesData = await batchesRes.json();
+      
+      if (user?.role === 'teacher' && user?.name) {
+        batchesData = batchesData.filter((b: any) => b.instructor === user.name);
+      }
+      
       setBatches(batchesData);
 
       const teachersRes = await fetch('http://localhost:5000/api/teachers');
