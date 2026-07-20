@@ -8,6 +8,7 @@ import {
 import { Link, useParams } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 interface Student {
   _id?: string;
@@ -71,13 +72,13 @@ const BatchDetails: React.FC = () => {
           return;
         }
         // Disable it
-        const res = await fetch(`http://localhost:5000/api/attendance/sessions/${activeSession._id}/disable`, {
+        const res = await fetch(`${API_BASE_URL}/api/attendance/sessions/${activeSession._id}/disable`, {
           method: 'PUT'
         });
         if (res.ok) setActiveSession(null);
       } else {
         // Enable it
-        const res = await fetch(`http://localhost:5000/api/attendance/sessions`, {
+        const res = await fetch(`${API_BASE_URL}/api/attendance/sessions`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -103,7 +104,7 @@ const BatchDetails: React.FC = () => {
     if (!newDate) return;
     
     try {
-      const res = await fetch(`http://localhost:5000/api/batches/${currentBatch._id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/batches/${currentBatch._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ endDate: newDate })
@@ -123,8 +124,8 @@ const BatchDetails: React.FC = () => {
   const fetchStudentsAndBatches = async () => {
     try {
       const [studentsRes, batchesRes] = await Promise.all([
-        fetch('http://localhost:5000/api/students'),
-        fetch('http://localhost:5000/api/batches')
+        fetch(`${API_BASE_URL}/api/students`),
+        fetch(`${API_BASE_URL}/api/batches`)
       ]);
       const studentsData = await studentsRes.json();
       const batchesData = await batchesRes.json();
@@ -139,7 +140,7 @@ const BatchDetails: React.FC = () => {
     e.preventDefault();
     if (!selectedStudent || !selectedStudent._id) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/students/${selectedStudent._id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/students/${selectedStudent._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editFormData),
@@ -160,7 +161,7 @@ const BatchDetails: React.FC = () => {
   const handleDeleteStudent = async (studentId: string) => {
     if (!window.confirm("Are you sure you want to delete this student?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/students/${studentId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/students/${studentId}`, {
         method: 'DELETE',
       });
       if (res.ok) {
@@ -190,7 +191,7 @@ const BatchDetails: React.FC = () => {
   useEffect(() => {
     fetchStudentsAndBatches();
     if (batchId) {
-      fetch(`http://localhost:5000/api/attendance/sessions/batch/${batchId}/active`)
+      fetch(`${API_BASE_URL}/api/attendance/sessions/batch/${batchId}/active`)
         .then(res => res.json())
         .then(data => setActiveSession(data))
         .catch(err => console.error(err));
@@ -234,13 +235,13 @@ const BatchDetails: React.FC = () => {
 
 
   return (
-    <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800 relative">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fcfdff] font-sans text-slate-800 relative">
 
       {/* Sidebar */}
       <AdminSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
 
         {/* Top bar */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">

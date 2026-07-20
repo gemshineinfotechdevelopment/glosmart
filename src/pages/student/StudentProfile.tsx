@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 import { FiEdit2, FiX, FiCheck, FiCheckCircle, FiUser } from 'react-icons/fi';
 
 interface ProfileData {
@@ -47,7 +48,7 @@ const StudentProfile: React.FC = () => {
   // Fetch Student data on mount
   useEffect(() => {
     const profileId = user?.profileId || 'first';
-    fetch(`http://localhost:5000/api/students/${profileId}`)
+    fetch(`${API_BASE_URL}/api/students/${profileId}`)
       .then(res => res.json())
       .then(data => {
         if (data) {
@@ -87,7 +88,7 @@ const StudentProfile: React.FC = () => {
       gender: editGender
     };
 
-    fetch(`http://localhost:5000/api/students/${profile.studentId}`, {
+    fetch(`${API_BASE_URL}/api/students/${profile.studentId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedFields)
@@ -126,10 +127,10 @@ const StudentProfile: React.FC = () => {
 
 
   return (
-    <div className="flex min-h-screen bg-[#F9FAFB] w-full font-sans">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#F9FAFB] w-full font-sans">
       <StudentSidebar />
       
-      <main className="flex-1 flex flex-col min-h-screen relative">
+      <main className="flex-1 flex flex-col min-h-screen relative w-full min-w-0">
         
         {/* Toast Notification */}
         {showToast && (
@@ -142,10 +143,10 @@ const StudentProfile: React.FC = () => {
         )}
 
         {/* Top Header */}
-        <div className="flex justify-between items-center px-10 py-8">
+        <div className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-4 sm:py-8">
           <div>
-            <h1 className="text-2xl font-bold text-[#111827]">Student Profile</h1>
-            <p className="text-[#6B7280] text-[15px] mt-1">View and manage your academic profile</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-[#111827]">Student Profile</h1>
+            <p className="text-[#6B7280] text-[13px] sm:text-[15px] mt-1">View and manage your academic profile</p>
           </div>
           
           <div className="flex items-center gap-4">

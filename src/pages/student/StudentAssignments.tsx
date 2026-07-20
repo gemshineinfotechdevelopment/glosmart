@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 import {
   FiBookOpen,
   FiCalendar,  
@@ -38,7 +39,7 @@ const StudentAssignments: React.FC = () => {
         const profileId = user?.profileId || 'first';
         
         // 1. Fetch student
-        const studentRes = await fetch(`http://localhost:5000/api/students/${profileId}`);
+        const studentRes = await fetch(`${API_BASE_URL}/api/students/${profileId}`);
         const studentData = await studentRes.json();
         
         if (studentData) {
@@ -50,7 +51,7 @@ const StudentAssignments: React.FC = () => {
           setEnrolledCourseNames(courseNames);
 
           // 2. Fetch all courses to get courseIds for enrolled course names
-          const coursesRes = await fetch('http://localhost:5000/api/courses');
+          const coursesRes = await fetch(`${API_BASE_URL}/api/courses`);
           const coursesData = await coursesRes.json();
           const allCourses = coursesData.courses || [];
 
@@ -63,7 +64,7 @@ const StudentAssignments: React.FC = () => {
           const allAssignments: Assignment[] = [];
           for (const course of matchedCourses) {
             try {
-              const assignRes = await fetch(`http://localhost:5000/api/batches/course/${course._id}/assignments`);
+              const assignRes = await fetch(`${API_BASE_URL}/api/batches/course/${course._id}/assignments`);
               const assignData = await assignRes.json();
               
               // Extract both batchId and batchName from enrolled courses for this course
@@ -114,18 +115,18 @@ const StudentAssignments: React.FC = () => {
   const uniqueCourses = Array.from(new Set(assignments.map(a => a.courseName).filter(Boolean)));
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
       {/* Left Sidebar */}
       <StudentSidebar />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden pb-12">
+      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden pb-12 w-full min-w-0">
         
         {/* Top Header */}
-        <header className="flex justify-between items-center px-6 lg:px-10 py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
+        <header className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-4 sm:py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Assignments</h1>
-            <p className="text-slate-500 text-[14px] mt-0.5">View assignments assigned by your course instructors</p>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Assignments</h1>
+            <p className="text-slate-500 text-[13px] sm:text-[14px] mt-0.5">View assignments assigned by your course instructors</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -143,7 +144,7 @@ const StudentAssignments: React.FC = () => {
         </header>
 
         {/* Outer Container */}
-        <div className="px-6 lg:px-10 mt-6 space-y-6 flex-1">
+        <div className="px-4 sm:px-6 lg:px-10 mt-6 space-y-6 flex-1">
           
           {/* Stat Cards Row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">

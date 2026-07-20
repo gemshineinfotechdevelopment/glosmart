@@ -7,6 +7,7 @@ import {
 import { MdCurrencyRupee } from 'react-icons/md';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 
 const Dashboard: React.FC = () => {
@@ -16,7 +17,7 @@ const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<any>({});
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/dashboard/stats')
+    fetch(`${API_BASE_URL}/api/dashboard/stats`)
       .then(res => res.json())
       .then(data => {
         setStats(data);
@@ -27,18 +28,18 @@ const Dashboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fafbfc] font-sans text-slate-800">
 
       {/* Sidebar */}
       <AdminSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 gap-4">
           <div>
-            <h2 className="text-3xl font-extrabold text-[#1c1c28] mb-1">Academy Overview</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c28] mb-1">Academy Overview</h2>
             <p className="text-slate-500 font-medium">
               Welcome back, {user?.name ? user.name : (user?.role === 'teacher' ? 'Tutor' : 'Admin')}. Here's what's happening today.
             </p>

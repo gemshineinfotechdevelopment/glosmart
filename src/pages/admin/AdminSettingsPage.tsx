@@ -3,7 +3,7 @@ import { FiSave, FiUser, FiPhone, FiMail, FiMapPin, FiFacebook, FiInstagram, FiT
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { useAuth } from '../../context/AuthContext';
 
-const API_BASE = 'http://localhost:5000';
+import { API_BASE_URL } from '../../config/api';
 
 interface SettingsData {
   profile: {
@@ -56,7 +56,7 @@ const AdminSettingsPage: React.FC = () => {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/api/settings`);
+      const res = await fetch(`${API_BASE_URL}/api/settings`);
       if (res.ok) {
         const data = await res.json();
         setFormData({
@@ -123,7 +123,7 @@ const AdminSettingsPage: React.FC = () => {
         };
       }
 
-      const res = await fetch(`${API_BASE}/api/settings`, {
+      const res = await fetch(`${API_BASE_URL}/api/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -145,7 +145,7 @@ const AdminSettingsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
+      <div className="flex flex-col lg:flex-row min-h-screen bg-[#fafbfc] font-sans text-slate-800">
         <AdminSidebar />
         <main className="flex-1 flex justify-center items-center h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6247df]"></div>
@@ -155,15 +155,15 @@ const AdminSettingsPage: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fafbfc] font-sans text-slate-800">
       <AdminSidebar />
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto pb-24">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto pb-24 w-full min-w-0">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
             <div>
-              <h2 className="text-3xl font-extrabold text-[#1c1c28] mb-1">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c28] mb-1">
                 {isAdmin ? 'Academy Settings' : 'Teacher Profile Settings'}
               </h2>
               <p className="text-slate-500 font-medium">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 import { 
   FiBookOpen, 
   FiClock, 
@@ -69,7 +70,7 @@ const StudentCourses: React.FC = () => {
       try {
         const profileId = user?.profileId || 'first';
         // 1. Fetch Student first
-        const studentRes = await fetch(`http://localhost:5000/api/students/${profileId}`);
+        const studentRes = await fetch(`${API_BASE_URL}/api/students/${profileId}`);
         if (studentRes.ok) {
           const studentData = await studentRes.json();
           setStudentId(studentData._id);
@@ -87,7 +88,7 @@ const StudentCourses: React.FC = () => {
           // Fetch batch & assignment data for enrolled courses
           if (studentData.enrolledCourses && studentData.enrolledCourses.length > 0) {
             try {
-              const coursesRes = await fetch('http://localhost:5000/api/courses');
+              const coursesRes = await fetch(`${API_BASE_URL}/api/courses`);
               const coursesData = await coursesRes.json();
               const allCourses = coursesData.courses || [];
 
@@ -100,7 +101,7 @@ const StudentCourses: React.FC = () => {
                 if (matched) {
                   // Fetch batches for this course
                   try {
-                    const batchRes = await fetch(`http://localhost:5000/api/batches/course/${matched._id}`);
+                    const batchRes = await fetch(`${API_BASE_URL}/api/batches/course/${matched._id}`);
                     const batchData = await batchRes.json();
                     batchMap[ec.courseName] = batchData;
                   } catch (err) {
@@ -127,7 +128,7 @@ const StudentCourses: React.FC = () => {
   useEffect(() => {
     const getCourses = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/courses');
+        const response = await fetch(`${API_BASE_URL}/api/courses`);
         if (response.ok) {
           const data = await response.json();
           const coursesList: Course[] = data.courses || [];
@@ -158,7 +159,7 @@ const StudentCourses: React.FC = () => {
     setLoadingBatches(true);
     try {
       const courseIdentifier = course._id || (course as any).courseId;
-      const res = await fetch(`http://localhost:5000/api/batches/course/${courseIdentifier}`);
+      const res = await fetch(`${API_BASE_URL}/api/batches/course/${courseIdentifier}`);
       if (res.ok) {
         const data = await res.json();
         setEnrollBatches(data || []);
@@ -219,18 +220,18 @@ const StudentCourses: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
       {/* Left Sidebar */}
       <StudentSidebar />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden pb-12">
+      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden pb-12 w-full min-w-0">
         
         {/* Top Header */}
-        <header className="flex justify-between items-center px-6 lg:px-10 py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
+        <header className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-4 sm:py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">My Courses</h1>
-            <p className="text-slate-500 text-[14px] mt-0.5">Manage your active learning modules and enrolled courses</p>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">My Courses</h1>
+            <p className="text-slate-500 text-[13px] sm:text-[14px] mt-0.5">Manage your active learning modules and enrolled courses</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -248,7 +249,7 @@ const StudentCourses: React.FC = () => {
         </header>
 
         {/* Content Container */}
-        <div className="px-6 lg:px-10 mt-8 space-y-10 flex-1">
+        <div className="px-4 sm:px-6 lg:px-10 mt-6 sm:mt-8 space-y-10 flex-1">
           {location.state?.fromRestricted && (
             <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs font-semibold flex items-center gap-3 shadow-sm">
               <span className="text-amber-500 text-sm">⚠️</span>

@@ -1,55 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bgImage from '../assets/background-home.jpeg';
+import mobileBg from '../assets/background.png';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { FiX } from 'react-icons/fi';
-
-
-
-
-const getImageUrl = (path: string) => {
-  if (!path) return '';
-  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/images/')) {
-    return path;
-  }
-  return `http://localhost:5000${path}`;
-};
+import { API_BASE_URL, getImageUrl } from '../config/api';
 
 export default function Gallery() {
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState('All Media');
   const [visibleCount, setVisibleCount] = useState(8);
   const [artworks, setArtworks] = useState<any[]>([]);
   const [featuredArtworks, setFeaturedArtworks] = useState<any[]>([]);
-  const [courseFilters, setCourseFilters] = useState<string[]>(['All Media']);
   const [selectedArtwork, setSelectedArtwork] = useState<any | null>(null);
 
   useEffect(() => {
-    // Fetch courses
-    fetch('http://localhost:5000/api/courses?limit=1000&status=Active')
-      .then(res => res.ok ? res.json() : Promise.reject('Failed to load courses'))
-      .then(data => {
-        if (data && data.courses) {
-          const courseNames = data.courses.map((c: any) => {
-            const name = c.courseName || '';
-            let cleaned = name.replace(/\b(beginner|advanced|intermediate)\b/gi, '')
-              .replace(/\(\s*\)/g, '')
-              .replace(/^[\s-–—:]+|[\s-–—:]+$/g, '')
-              .replace(/\s+/g, ' ')
-              .trim();
-            return cleaned;
-          }).filter(Boolean);
-          const uniqueFilters = ['All Media', ...Array.from(new Set<string>(courseNames))];
-          setCourseFilters(uniqueFilters);
-        }
-      })
-      .catch(err => {
-        console.error("Failed to load courses, using default filters:", err);
-      });
 
     // Fetch gallery images
-    fetch('http://localhost:5000/api/gallery?limit=100')
+    fetch(`${API_BASE_URL}/api/gallery?limit=100`)
       .then(res => res.ok ? res.json() : Promise.reject('Failed to load gallery'))
       .then(data => {
         if (data && data.images && data.images.length > 0) {
@@ -109,11 +77,15 @@ export default function Gallery() {
       });
   }, []);
 
-  const filteredArtworks = activeFilter === 'All Media'
-    ? artworks
-    : artworks.filter(art => art.type === activeFilter);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
 
-  const displayedArtworks = filteredArtworks.slice(0, visibleCount);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const displayedArtworks = artworks.slice(0, visibleCount);
 
   return (
     <>
@@ -121,7 +93,7 @@ export default function Gallery() {
       <div 
         className="text-slate-800 min-h-screen relative overflow-hidden font-sans pt-28"
         style={{
-          backgroundImage: `url(${bgImage})`,
+          backgroundImage: `url(${isMobile ? mobileBg : bgImage})`,
           backgroundSize: '100% auto',
           backgroundRepeat: 'repeat-y',
           backgroundPosition: 'top center'
@@ -268,34 +240,9 @@ export default function Gallery() {
       )}
 
       <section className="relative z-10 max-w-6xl mx-auto px-5 md:px-10 pb-20">
-        <div className="flex flex-wrap justify-between items-end gap-5 mb-10">
-          <div>
-            <h2 className="text-3xl font-bold text-slate-800 mb-2">Student Art Gallery</h2>
-            <p className="text-slate-500 text-sm">A collection of masterpieces from our latest academy workshop.</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="bg-white border border-slate-200 rounded-full w-11 h-11 flex items-center justify-center cursor-pointer text-[#00738e] hover:bg-slate-50 transition-colors">
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-            </button>
-            <div className="flex flex-wrap bg-white p-1.5 rounded-3xl shadow-sm border border-slate-100 max-w-full gap-1">
-              {courseFilters.map(f => (
-                <button 
-                  key={f} 
-                  className={`px-6 py-2 border-none rounded-full cursor-pointer font-semibold text-sm transition-all duration-300 ${
-                    activeFilter === f 
-                      ? 'bg-[#00738e] text-white shadow-sm' 
-                      : 'bg-transparent text-slate-500 hover:text-slate-800'
-                  }`}
-                  onClick={() => {
-                    setActiveFilter(f);
-                    setVisibleCount(8);
-                  }}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="mb-10">
+          <h2 className="text-3xl font-bold text-slate-800 mb-2">Student Art Gallery</h2>
+          <p className="text-slate-500 text-sm">A collection of masterpieces from our latest academy workshop.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-10">
@@ -319,7 +266,7 @@ export default function Gallery() {
           ))}
         </div>
 
-        {visibleCount < filteredArtworks.length && (
+        {visibleCount < artworks.length && (
           <div className="text-center">
             <button 
               className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-8 py-3 rounded-full cursor-pointer transition-colors duration-200 text-sm"

@@ -5,6 +5,7 @@ import {
   FiChevronLeft, FiChevronRight, FiEdit3, FiRefreshCw, FiUser
 } from 'react-icons/fi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
+import { API_BASE_URL } from '../../config/api';
 
 interface PaymentRow {
   invoiceNo: string;
@@ -61,7 +62,7 @@ export const FeesPayments: React.FC = () => {
   ]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/payments')
+    fetch(`${API_BASE_URL}/api/payments`)
       .then(res => res.json())
       .then(data => {
         if (data.length > 0) {
@@ -94,13 +95,13 @@ export const FeesPayments: React.FC = () => {
   });
 
   return (
-    <div className="flex min-h-screen bg-[#f8f9fd] font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#f8f9fd] font-sans text-slate-800">
 
       {/* Sidebar */}
       <AdminSidebar />
 
       {/* Main Content Area */}
-      <main className="flex-1 p-6 md:p-8 overflow-y-auto flex flex-col gap-6 max-w-7xl mx-auto w-full box-border">
+      <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto flex flex-col gap-6 max-w-7xl mx-auto w-full min-w-0 box-border">
 
         {/* Top Search Bar */}
         <div className="relative w-full">
@@ -122,7 +123,7 @@ export const FeesPayments: React.FC = () => {
         {/* Section Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h2 className="text-3xl font-black text-[#1c1c28] tracking-tight">Fees & Payments</h2>
+            <h2 className="text-2xl sm:text-3xl font-black text-[#1c1c28] tracking-tight">Fees & Payments</h2>
             <p className="text-slate-500 font-semibold text-sm mt-1">Manage tuition fees, track collections and generate student invoices.</p>
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">

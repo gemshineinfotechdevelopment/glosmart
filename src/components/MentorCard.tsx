@@ -1,11 +1,12 @@
 import React from 'react';
 import type { IconType } from 'react-icons';
+import { FiUser } from 'react-icons/fi';
 
 interface MentorCardProps {
   name: string;
   role: string;
   description: string;
-  image: string;
+  image?: string;
   badgeIcon?: IconType;
   badgeBg?: string;
   badgeColor?: string;
@@ -24,12 +25,19 @@ const MentorCard: React.FC<MentorCardProps> = ({
     <div className="group bg-white rounded-3xl shadow-xl shadow-slate-100/60 p-5 flex flex-col gap-5 border border-slate-100/30 transition-all duration-300 hover:scale-105 hover:shadow-2xl">
       
       {/* Image Container with Floating Badge */}
-      <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-50">
-        <img 
-          src={image} 
-          alt={name} 
-          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" 
-        />
+      <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center">
+        {image ? (
+          <img 
+            src={image} 
+            alt={name} 
+            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" 
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-100 via-indigo-50 to-purple-50 text-indigo-400 p-4 select-none">
+            <FiUser className="w-16 h-16 md:w-20 md:h-20 text-indigo-300 mb-2" />
+            <span className="text-sm font-black text-indigo-600 uppercase tracking-wider">{name.split(' ').map(n => n[0]).join('')}</span>
+          </div>
+        )}
         
         {/* Floating Custom Badge */}
         {BadgeIcon && (

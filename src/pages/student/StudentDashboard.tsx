@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { 
-  FiBook, 
-  FiClock, 
-  FiChevronRight, 
-  FiVolume2, 
-  FiUserCheck, 
+import { API_BASE_URL } from '../../config/api';
+import {
+  FiBook,
+  FiClock,
+  FiChevronRight,
+  FiVolume2,
+  FiUserCheck,
   FiMail,
   FiArrowRight,
   FiUser,
@@ -41,7 +42,7 @@ const StudentDashboard: React.FC = () => {
   useEffect(() => {
     const profileId = user?.profileId;
     if (!profileId) return; // no valid ID — skip fetch, show defaults
-    fetch(`http://127.0.0.1:5000/api/students/${profileId}`)
+    fetch(`${API_BASE_URL}/api/students/${profileId}`)
       .then(res => {
         if (!res.ok) throw new Error(`Server error ${res.status}`);
         return res.json();
@@ -80,7 +81,7 @@ const StudentDashboard: React.FC = () => {
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const batchRes = await fetch('http://localhost:5000/api/batches', { cache: 'no-store' });
+        const batchRes = await fetch(`${API_BASE_URL}/api/batches`, { cache: 'no-store' });
         if (!batchRes.ok) return;
         const allBatches = await batchRes.json();
 
@@ -111,13 +112,13 @@ const StudentDashboard: React.FC = () => {
   // Derive Schedule Timeline dynamically
   const schedule = student.enrolledCourses.length > 0
     ? student.enrolledCourses.map((c: any, index: number) => ({
-        id: `s-${index}`,
-        time: c.nextSession || 'Schedule TBD',
-        courseName: c.courseName,
-        room: `Studio ${String.fromCharCode(65 + index)}`,
-        instructor: c.instructor || 'TBD',
-        day: 'Every Weekday'
-      }))
+      id: `s-${index}`,
+      time: c.nextSession || 'Schedule TBD',
+      courseName: c.courseName,
+      room: `Studio ${String.fromCharCode(65 + index)}`,
+      instructor: c.instructor || 'TBD',
+      day: 'Every Weekday'
+    }))
     : [];
 
   // Academy Announcements
@@ -143,72 +144,74 @@ const StudentDashboard: React.FC = () => {
   // Derive Instructors list dynamically
   const instructors = student.enrolledCourses.length > 0
     ? Array.from(new Set(student.enrolledCourses.map((c: any) => c.instructor)))
-        .filter(inst => inst && inst !== 'TBD' && inst !== 'TBD (Assigning)')
-        .map((name: any) => {
-          const course = student.enrolledCourses.find((c: any) => c.instructor === name);
-          return { name, courseName: course ? course.courseName : 'Art Course' };
-        })
+      .filter(inst => inst && inst !== 'TBD' && inst !== 'TBD (Assigning)')
+      .map((name: any) => {
+        const course = student.enrolledCourses.find((c: any) => c.instructor === name);
+        return { name, courseName: course ? course.courseName : 'Art Course' };
+      })
     : [];
 
   // Recent Activity Logs
   const recentLogs = student.enrolledCourses.length > 0
     ? [
-        {
-          id: 'log1',
-          action: 'Course Enrolled',
-          detail: `Enrolled in ${student.enrolledCourses[student.enrolledCourses.length - 1].courseName}`,
-          time: 'Recently'
-        },
-        ...student.enrolledCourses.slice(0, -1).map((c: any, idx: number) => ({
-          id: `log-${idx + 2}`,
-          action: 'Course Active',
-          detail: `Currently enrolled in ${c.courseName}`,
-          time: 'Ongoing'
-        }))
-      ]
+      {
+        id: 'log1',
+        action: 'Course Enrolled',
+        detail: `Enrolled in ${student.enrolledCourses[student.enrolledCourses.length - 1].courseName}`,
+        time: 'Recently'
+      },
+      ...student.enrolledCourses.slice(0, -1).map((c: any, idx: number) => ({
+        id: `log-${idx + 2}`,
+        action: 'Course Active',
+        detail: `Currently enrolled in ${c.courseName}`,
+        time: 'Ongoing'
+      }))
+    ]
     : [
-        {
-          id: 'log-empty',
-          action: 'Account Registered',
-          detail: 'Welcome to GloSmart Academy! Please purchase a course to get started.',
-          time: 'Just Now'
-        }
-      ];
+      {
+        id: 'log-empty',
+        action: 'Account Registered',
+        detail: 'Welcome to GloSmart Academy! Please purchase a course to get started.',
+        time: 'Just Now'
+      }
+    ];
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
       {/* Left Sidebar */}
       <StudentSidebar />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden pb-12">
-        
+      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden pb-12 w-full min-w-0">
+
         {/* Top Header */}
-        <header className="flex justify-between items-center px-6 lg:px-10 py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
+        <header className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-4 sm:py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1>
-            <p className="text-slate-500 text-[14px] mt-0.5">Welcome back, {student.name.split(' ')[0]}! Explore your progress.</p>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1>
+            <p className="text-slate-500 text-[13px] sm:text-[14px] mt-0.5">Welcome back, {student.name.split(' ')[0]}! Explore your progress.</p>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
               <p className="text-[14px] font-bold text-slate-900 leading-none">{student.name}</p>
               <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • {student.grade}</p>
             </div>
-            <div 
+            <div
               className="w-10 h-10 rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center border border-slate-200 shadow-sm cursor-pointer shrink-0"
               onClick={() => navigate('/student/profile')}
             >
               <FiUser size={20} />
             </div>
           </div>
-        </header>        {/* Outer Dashboard Content Container */}
-        <div className="px-6 lg:px-10 mt-8 space-y-8 flex-1">
-          
+        </header>
+
+        {/* Outer Dashboard Content Container */}
+        <div className="px-4 sm:px-6 lg:px-10 mt-6 sm:mt-8 space-y-8 flex-1">
+
           {student.enrolledCourses.length === 0 ? (
             // REDESIGNED NEW USER DASHBOARD
             <div className="space-y-8">
-              
+
               {/* Welcome Jumbotron */}
               <div className="bg-gradient-to-r from-[#4700b3]/10 via-[#6247df]/5 to-[#4700b3]/5 border border-purple-100 rounded-[2.5rem] p-8 md:p-12 text-left relative overflow-hidden shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div className="space-y-3 max-w-2xl">
@@ -232,10 +235,10 @@ const StudentDashboard: React.FC = () => {
 
               {/* Grid Layout */}
               <div className="grid grid-cols-1 lg:grid-cols-[1.7fr_1.1fr] gap-8 items-start">
-                
-                 {/* Left Column */}
+
+                {/* Left Column */}
                 <div className="space-y-8">
-                  
+
                   {/* Weekly Art Challenge */}
                   {/*<div className="bg-gradient-to-br from-amber-50/60 to-orange-50/40 p-6 md:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.01)] border border-amber-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 text-left">
                     <div className="space-y-3">
@@ -272,9 +275,9 @@ const StudentDashboard: React.FC = () => {
                       {/* Art 1 */}
                       <div className="space-y-2 group cursor-pointer">
                         <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 relative">
-                          <img 
-                            src="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
-                            alt="Floral Still Life" 
+                          <img
+                            src="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+                            alt="Floral Still Life"
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                           <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">Watercolor</span>
@@ -288,9 +291,9 @@ const StudentDashboard: React.FC = () => {
                       {/* Art 2 */}
                       <div className="space-y-2 group cursor-pointer">
                         <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 relative">
-                          <img 
-                            src="https://images.unsplash.com/photo-1541701494587-cb58502866ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
-                            alt="Abstract Fusion" 
+                          <img
+                            src="https://images.unsplash.com/photo-1541701494587-cb58502866ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+                            alt="Abstract Fusion"
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                           <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">Acrylic</span>
@@ -304,9 +307,9 @@ const StudentDashboard: React.FC = () => {
                       {/* Art 3 */}
                       <div className="space-y-2 group cursor-pointer">
                         <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 relative">
-                          <img 
-                            src="https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
-                            alt="Digital Splash" 
+                          <img
+                            src="https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+                            alt="Digital Splash"
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                           <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">Digital</span>
@@ -346,14 +349,14 @@ const StudentDashboard: React.FC = () => {
 
                 {/* Right Column */}
                 <div className="space-y-8">
-                  
+
                   {/* Action Shortcuts Panel */}
                   <div className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
                     <h3 className="text-lg font-black text-slate-900 tracking-tight mb-5">Quick Actions</h3>
-                    
+
                     <div className="space-y-4">
                       {/* Action 1 */}
-                      <div 
+                      <div
                         onClick={() => navigate('/student/profile')}
                         className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-[#4700b3]/5 border border-slate-150 rounded-2xl cursor-pointer transition-all group"
                       >
@@ -370,7 +373,7 @@ const StudentDashboard: React.FC = () => {
                       </div>
 
                       {/* Action 2 */}
-                      <div 
+                      <div
                         onClick={() => navigate('/student/fees')}
                         className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-[#4700b3]/5 border border-slate-150 rounded-2xl cursor-pointer transition-all group"
                       >
@@ -397,7 +400,7 @@ const StudentDashboard: React.FC = () => {
                         <FiStar className="fill-amber-500" size={12} /> <span>4.9 Avg</span>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-4">
                       {/* Teacher 1 */}
                       <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition-all">
@@ -452,7 +455,7 @@ const StudentDashboard: React.FC = () => {
                   {/* Recent Activity Log Widget */}
                   <div className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
                     <h3 className="text-lg font-black text-slate-900 tracking-tight mb-5">Recent Activity</h3>
-                    
+
                     <div className="space-y-4">
                       {recentLogs.map((log) => (
                         <div key={log.id} className="flex gap-3 text-left">
@@ -523,9 +526,9 @@ const StudentDashboard: React.FC = () => {
 
               {/* Quick Stats Grid */}
               <div className="grid grid-cols-1 gap-6">
-                
+
                 {/* Stat 2: Active Courses */}
-                <div 
+                <div
                   onClick={() => navigate('/student/courses')}
                   className="bg-white p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow group"
                 >
@@ -545,10 +548,10 @@ const StudentDashboard: React.FC = () => {
 
               {/* Main Dashboard Panel Layout */}
               <div className="grid grid-cols-1 lg:grid-cols-[1.7fr_1.1fr] gap-8 items-start">
-                
+
                 {/* Left Main Panel: Schedule & Announcements */}
                 <div className="space-y-8">
-                  
+
                   {/* Schedule / Timeline Widget */}
                   <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
                     <div className="flex justify-between items-center mb-6">
@@ -556,7 +559,7 @@ const StudentDashboard: React.FC = () => {
                         <h3 className="text-lg font-black text-slate-900 tracking-tight">Weekly Study Schedule</h3>
                         <p className="text-slate-400 text-xs mt-0.5">Your scheduled classes at GloSmart Academy</p>
                       </div>
-                      <button 
+                      <button
                         onClick={() => navigate('/student/courses')}
                         className="text-[#4700b3] hover:text-[#3d0099] font-bold text-xs flex items-center gap-0.5 bg-transparent border-none cursor-pointer"
                       >
@@ -567,8 +570,8 @@ const StudentDashboard: React.FC = () => {
                     <div className="space-y-4">
                       {schedule.length > 0 ? (
                         schedule.map((item) => (
-                          <div 
-                            key={item.id} 
+                          <div
+                            key={item.id}
                             className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col md:flex-row justify-between md:items-center gap-4 hover:border-purple-100 transition-colors"
                           >
                             <div className="flex items-center gap-4 text-left">
@@ -582,7 +585,7 @@ const StudentDashboard: React.FC = () => {
                                 </p>
                               </div>
                             </div>
-                            
+
                             <span className="text-xs font-bold text-slate-650 flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-slate-150 shrink-0 w-fit">
                               <FiClock size={12} className="text-[#4700b3]" /> {item.time}
                             </span>
@@ -591,7 +594,7 @@ const StudentDashboard: React.FC = () => {
                       ) : (
                         <div className="text-center py-8 text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
                           <p className="font-semibold text-sm">No scheduled classes yet.</p>
-                          <button 
+                          <button
                             onClick={() => navigate('/student/courses')}
                             className="mt-3 px-4 py-2 bg-[#4700b3] text-white rounded-xl font-bold text-xs hover:bg-[#3d0099] border-none cursor-pointer"
                           >
@@ -629,11 +632,11 @@ const StudentDashboard: React.FC = () => {
 
                 {/* Right Main Panel: Course Progress Spotlight & Log Tracker */}
                 <div className="space-y-8">
-                  
+
                   {/* Recent Activity Log Widget */}
                   <div className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
                     <h3 className="text-lg font-black text-slate-900 tracking-tight mb-5">Recent Activity</h3>
-                    
+
                     <div className="space-y-4">
                       {recentLogs.map((log) => (
                         <div key={log.id} className="flex gap-3 text-left">
@@ -659,7 +662,7 @@ const StudentDashboard: React.FC = () => {
                   {/* Quick Action Instructors Contact Widget */}
                   <div className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
                     <h3 className="text-lg font-black text-slate-900 tracking-tight mb-4">My Instructors</h3>
-                    
+
                     <div className="space-y-3">
                       {instructors.length > 0 ? (
                         instructors.map((instructor: any, index: number) => (

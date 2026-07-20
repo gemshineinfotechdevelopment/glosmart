@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { FiPlus, FiArrowLeft, FiEdit2, FiTrash2, FiClock, FiCalendar, FiFileText, FiX, FiVideo, FiCopy, FiLink } from 'react-icons/fi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 export default function AdminCourseBatchesPage() {
   const { id } = useParams();
@@ -56,7 +57,7 @@ export default function AdminCourseBatchesPage() {
     uploadData.append('image', file);
 
     try {
-      const res = await fetch('http://localhost:5000/api/upload', {
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
         method: 'POST',
         body: uploadData
       });
@@ -79,11 +80,11 @@ export default function AdminCourseBatchesPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const courseRes = await fetch(`http://localhost:5000/api/courses/${id}`);
+      const courseRes = await fetch(`${API_BASE_URL}/api/courses/${id}`);
       const courseData = await courseRes.json();
       setCourse(courseData);
 
-      const batchesRes = await fetch(`http://localhost:5000/api/batches/course/${id}`);
+      const batchesRes = await fetch(`${API_BASE_URL}/api/batches/course/${id}`);
       const batchesData = await batchesRes.json();
 
       setBatches(batchesData);
@@ -98,7 +99,7 @@ export default function AdminCourseBatchesPage() {
       setZoomLinkInputs(initialZoomInputs);
       setZoomStatus(initialZoomStatus);
 
-      const teachersRes = await fetch('http://localhost:5000/api/teachers');
+      const teachersRes = await fetch(`${API_BASE_URL}/api/teachers`);
       const teachersData = await teachersRes.json();
       setTeachers(teachersData);
     } catch (error) {
@@ -136,8 +137,8 @@ export default function AdminCourseBatchesPage() {
       };
 
       const url = editingBatch 
-        ? `http://localhost:5000/api/batches/${editingBatch._id}` 
-        : 'http://localhost:5000/api/batches';
+        ? `${API_BASE_URL}/api/batches/${editingBatch._id}` 
+        : `${API_BASE_URL}/api/batches`;
       const method = editingBatch ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -162,7 +163,7 @@ export default function AdminCourseBatchesPage() {
   const handleDelete = async (batchId: string) => {
     if (window.confirm('Delete this batch?')) {
       try {
-        await fetch(`http://localhost:5000/api/batches/${batchId}`, { method: 'DELETE' });
+        await fetch(`${API_BASE_URL}/api/batches/${batchId}`, { method: 'DELETE' });
         fetchData();
       } catch (error) {
         console.error('Delete failed', error);
@@ -248,7 +249,7 @@ export default function AdminCourseBatchesPage() {
           zoomActivatedAt: new Date().toISOString(),
           status: 'ACTIVE',
         };
-        const res = await fetch(`http://localhost:5000/api/batches/${batch._id}`, {
+        const res = await fetch(`${API_BASE_URL}/api/batches/${batch._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -281,7 +282,7 @@ export default function AdminCourseBatchesPage() {
             zoomActivatedAt: null,
             status: 'UPCOMING',
           };
-          const res = await fetch(`http://localhost:5000/api/batches/${batch._id}`, {
+          const res = await fetch(`${API_BASE_URL}/api/batches/${batch._id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
@@ -321,7 +322,7 @@ export default function AdminCourseBatchesPage() {
         description: sessionReportDescription.trim() || 'No session notes provided.'
       };
 
-      await fetch('http://localhost:5000/api/tutor-reports', {
+      await fetch(`${API_BASE_URL}/api/tutor-reports`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reportPayload)
@@ -336,7 +337,7 @@ export default function AdminCourseBatchesPage() {
         status: 'UPCOMING'
       };
 
-      await fetch(`http://localhost:5000/api/batches/${deactivateBatchModal._id}`, {
+      await fetch(`${API_BASE_URL}/api/batches/${deactivateBatchModal._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(batchPayload)
@@ -361,7 +362,7 @@ export default function AdminCourseBatchesPage() {
 
     setSavingAssignment(batchId);
     try {
-      const res = await fetch(`http://localhost:5000/api/batches/${batchId}/assignments`, {
+      const res = await fetch(`${API_BASE_URL}/api/batches/${batchId}/assignments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: text })
@@ -381,7 +382,7 @@ export default function AdminCourseBatchesPage() {
 
   const handleDeleteAssignment = async (batchId: string, assignmentId: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/batches/${batchId}/assignments/${assignmentId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/batches/${batchId}/assignments/${assignmentId}`, {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -393,9 +394,9 @@ export default function AdminCourseBatchesPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-50">
       <AdminSidebar />
-      <div className="flex-1 p-6 md:p-10 overflow-y-auto">
+      <div className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
         
         <button 
           onClick={() => navigate('/admin/courses')}

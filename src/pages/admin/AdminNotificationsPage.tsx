@@ -3,7 +3,7 @@ import { FiBell, FiMail, FiPhone, FiCalendar, FiTrash2, FiCheck, FiInbox, FiAler
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { useAuth } from '../../context/AuthContext';
 
-const API_BASE = 'http://localhost:5000';
+import { API_BASE_URL } from '../../config/api';
 
 interface NotificationItem {
   _id: string;
@@ -33,7 +33,7 @@ const AdminNotificationsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch(`${API_BASE}/api/notifications`);
+      const res = await fetch(`${API_BASE_URL}/api/notifications`);
       if (!res.ok) throw new Error('Failed to load reminders');
       const data = await res.json();
       setNotifications(data);
@@ -48,7 +48,7 @@ const AdminNotificationsPage: React.FC = () => {
   const handleToggleRead = async (id: string) => {
     try {
       setActionId(id);
-      const res = await fetch(`${API_BASE}/api/notifications/${id}/read`, {
+      const res = await fetch(`${API_BASE_URL}/api/notifications/${id}/read`, {
         method: 'PUT'
       });
       if (!res.ok) throw new Error('Failed to update status');
@@ -65,7 +65,7 @@ const AdminNotificationsPage: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this reminder?')) return;
     try {
       setActionId(id);
-      const res = await fetch(`${API_BASE}/api/notifications/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/notifications/${id}`, {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Failed to delete reminder');
@@ -81,15 +81,15 @@ const AdminNotificationsPage: React.FC = () => {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fafbfc] font-sans text-slate-800">
       <AdminSidebar />
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto pb-24">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto pb-24 w-full min-w-0">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
             <div>
-              <h2 className="text-3xl font-extrabold text-[#1c1c28] mb-1 flex items-center gap-2">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c28] mb-1 flex items-center gap-2">
                 <FiBell className="text-[#6247df]" /> Reminders & Notifications
               </h2>
               <p className="text-slate-500 font-medium">Review and respond to messages submitted via the contact form.</p>

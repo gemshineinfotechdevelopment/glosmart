@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import crypto from 'crypto';
 import Razorpay from 'razorpay';
 import Payment from '../models/Payment.js';
@@ -104,13 +105,34 @@ router.post('/razorpay-verify', async (req, res) => {
     await newPayment.save();
 
     // 3. Update student record
-    const student = await Student.findById(studentId);
+    let student = null;
+    if (studentId && mongoose.Types.ObjectId.isValid(studentId)) {
+      student = await Student.findById(studentId);
+    }
+
+    if (!student && paymentDetails && paymentDetails.email) {
+      student = await Student.findOne({ email: new RegExp('^' + paymentDetails.email.trim() + '$', 'i') });
+    }
+
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    // Add new course to enrolledCourses list
-    student.enrolledCourses.push(newEnrolledCourse);
+    // Add or update course in enrolledCourses list to avoid duplicates
+    if (!student.enrolledCourses) student.enrolledCourses = [];
+    if (newEnrolledCourse) {
+      const existingIndex = student.enrolledCourses.findIndex(ec => {
+        if (newEnrolledCourse.courseId && ec.courseId === newEnrolledCourse.courseId) return true;
+        if (newEnrolledCourse.courseName && (ec.courseName || '').toLowerCase().trim() === (newEnrolledCourse.courseName || '').toLowerCase().trim()) return true;
+        return false;
+      });
+
+      if (existingIndex >= 0) {
+        Object.assign(student.enrolledCourses[existingIndex], newEnrolledCourse);
+      } else {
+        student.enrolledCourses.push(newEnrolledCourse);
+      }
+    }
 
     // Update student's top-level properties
     if (updatePayload) {
@@ -127,9 +149,13 @@ router.post('/razorpay-verify', async (req, res) => {
     // 4. Update the Batch capacity/students list
     if (updatePayload && updatePayload.batchId) {
       await Batch.findByIdAndUpdate(updatePayload.batchId, {
-        $inc: { enrolledStudents: 1 },
-        $addToSet: { students: studentId }
+        $addToSet: { students: student._id }
       });
+      const updatedBatch = await Batch.findById(updatePayload.batchId);
+      if (updatedBatch) {
+        updatedBatch.enrolledStudents = updatedBatch.students.length;
+        await updatedBatch.save();
+      }
     }
 
     // 5. Create a notification in the DB for the Admin and Teachers

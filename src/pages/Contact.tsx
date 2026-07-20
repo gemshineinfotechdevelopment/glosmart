@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import bgImage from '../assets/background-home.jpeg';
+import mobileBg from '../assets/background.png';
 
 // SVG Icons defined as components for cleanliness
 const PhoneIcon = () => (
@@ -59,7 +60,7 @@ const FAQS: FaqItem[] = [
   },
 ];
 
-const API_BASE = typeof window !== 'undefined' ? `http://${window.location.hostname}:5000` : 'http://localhost:5000';
+import { API_BASE_URL } from '../config/api';
 
 export const Contact: React.FC = () => {
   const [settings, setSettings] = useState({
@@ -69,7 +70,7 @@ export const Contact: React.FC = () => {
   });
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/settings`)
+    fetch(`${API_BASE_URL}/api/settings`)
       .then(res => res.ok ? res.json() : Promise.reject('Failed to load settings'))
       .then(data => {
         if (data && data.contactInfo) {
@@ -120,7 +121,7 @@ export const Contact: React.FC = () => {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/notifications`, {
+      const res = await fetch(`${API_BASE_URL}/api/notifications`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -143,11 +144,19 @@ export const Contact: React.FC = () => {
     }
   };
 
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div
-      className="font-sans text-[#1e295d] bg-[#faf7f0] min-h-screen relative flex flex-col"
+      className="font-sans text-[#1e295d] min-h-screen relative flex flex-col"
       style={{
-        backgroundImage: `url(${bgImage})`,
+        backgroundImage: `url(${isMobile ? mobileBg : bgImage})`,
         backgroundSize: '100% auto',
         backgroundRepeat: 'repeat-y',
         backgroundPosition: 'top center',
@@ -171,33 +180,33 @@ export const Contact: React.FC = () => {
         <section className="grid grid-cols-1 md:grid-cols-[1fr_1.1fr] gap-12 mb-20 items-start">
           {/* Info Card Column */}
           <div className="flex flex-col gap-7 pt-5">
-            <div className="flex items-center gap-5 bg-transparent rounded-2xl py-1 px-0 transition-transform duration-300 hover:scale-105">
-              <div className="flex justify-center items-center w-12 h-12 rounded-full shrink-0 bg-[#005a78] text-white">
+            <div className="flex items-center gap-4 bg-transparent rounded-2xl py-1 px-0 transition-transform duration-300 hover:scale-105">
+              <div className="flex justify-center items-center w-10 h-10 rounded-full shrink-0 bg-[#005a78] text-white">
                 <PhoneIcon />
               </div>
               <div className="flex flex-col">
-                <span className="text-[12px] font-extrabold text-[#616c96] uppercase tracking-wider mb-1">Phone</span>
-                <span className="text-[17px] font-semibold text-[#1e295d]">{settings.phone}</span>
+                <span className="text-[11px] font-extrabold text-[#616c96] uppercase tracking-wider mb-0.5">Phone</span>
+                <span className="text-[14px] font-semibold text-[#1e295d]">{settings.phone}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-5 bg-transparent rounded-2xl py-1 px-0 transition-transform duration-300 hover:scale-105">
-              <div className="flex justify-center items-center w-12 h-12 rounded-full shrink-0 bg-[#e67e9c] text-white">
+            <div className="flex items-center gap-4 bg-transparent rounded-2xl py-1 px-0 transition-transform duration-300 hover:scale-105">
+              <div className="flex justify-center items-center w-10 h-10 rounded-full shrink-0 bg-[#e67e9c] text-white">
                 <MailIcon />
               </div>
               <div className="flex flex-col">
-                <span className="text-[12px] font-extrabold text-[#616c96] uppercase tracking-wider mb-1">Email</span>
-                <span className="text-[17px] font-semibold text-[#1e295d]">{settings.email}</span>
+                <span className="text-[11px] font-extrabold text-[#616c96] uppercase tracking-wider mb-0.5">Email</span>
+                <span className="text-[14px] font-semibold text-[#1e295d]">{settings.email}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-5 bg-transparent rounded-2xl py-1 px-0 transition-transform duration-300 hover:scale-105">
-              <div className="flex justify-center items-center w-12 h-12 rounded-full shrink-0 bg-[#c7a73e] text-white">
+            <div className="flex items-center gap-4 bg-transparent rounded-2xl py-1 px-0 transition-transform duration-300 hover:scale-105">
+              <div className="flex justify-center items-center w-10 h-10 rounded-full shrink-0 bg-[#c7a73e] text-white">
                 <PinIcon />
               </div>
               <div className="flex flex-col">
-                <span className="text-[12px] font-extrabold text-[#616c96] uppercase tracking-wider mb-1">Address</span>
-                <span className="text-[17px] font-semibold text-[#1e295d]">{settings.address}</span>
+                <span className="text-[11px] font-extrabold text-[#616c96] uppercase tracking-wider mb-0.5">Address</span>
+                <span className="text-[14px] font-semibold text-[#1e295d]">{settings.address}</span>
               </div>
             </div>
           </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Check, Star, X, Calendar, Clock, Users } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 // Images
 import courseBg from '../assets/course-bg.png';
@@ -23,7 +24,7 @@ export default function Course() {
 
   const fetchCourses = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/courses');
+      const res = await fetch(`${API_BASE_URL}/api/courses`);
       const data = await res.json();
       setCourses(data.courses || []);
     } catch (error) {
@@ -37,7 +38,7 @@ export default function Course() {
     setSelectedCourse(course);
     setLoadingBatches(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/batches/course/${course._id}`);
+      const res = await fetch(`${API_BASE_URL}/api/batches/course/${course._id}`);
       const data = await res.json();
       setBatches(data);
     } catch (error) {

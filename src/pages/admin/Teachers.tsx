@@ -7,6 +7,7 @@ import {
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import AdminSidebar from '../../components/admin/AdminSidebar';
+import { API_BASE_URL } from '../../config/api';
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
@@ -170,7 +171,7 @@ const Teachers: React.FC = () => {
 
   const fetchTeachers = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/teachers');
+      const res = await fetch(`${API_BASE_URL}/api/teachers`);
       const data = await res.json();
       setTeachers(data);
     } catch (error) {
@@ -230,7 +231,7 @@ const Teachers: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this teacher?")) {
       try {
-        const res = await fetch(`http://localhost:5000/api/teachers/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/api/teachers/${id}`, {
           method: 'DELETE'
         });
         if (res.ok) {
@@ -272,8 +273,8 @@ const Teachers: React.FC = () => {
 
     try {
       const url = editingTeacherId 
-        ? `http://localhost:5000/api/teachers/${editingTeacherId}` 
-        : 'http://localhost:5000/api/teachers';
+        ? `${API_BASE_URL}/api/teachers/${editingTeacherId}` 
+        : `${API_BASE_URL}/api/teachers`;
         
       const method = editingTeacherId ? 'PUT' : 'POST';
 
@@ -316,12 +317,12 @@ const Teachers: React.FC = () => {
   });
 
   return (
-    <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fcfdff] font-sans text-slate-800">
       <AdminSidebar />
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
         {/* Top bar */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-          <h1 className="text-[28px] font-bold text-[#1c1c28]">Teachers</h1>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 gap-4">
+          <h1 className="text-2xl sm:text-[28px] font-bold text-[#1c1c28]">Teachers</h1>
           <div className="flex items-center gap-6 w-full md:w-auto">
             <div className="relative w-full md:w-72">
               <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />

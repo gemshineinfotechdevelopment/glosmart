@@ -3,6 +3,7 @@ import { FiCheck } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config/api';
 import loginImg from '../assets/login.png';
 import crayonImg from '../assets/crayon.png';
 
@@ -19,7 +20,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/auth/login', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -34,7 +35,7 @@ const Login: React.FC = () => {
             return;
           }
           try {
-            const studentRes = await fetch(`http://127.0.0.1:5000/api/students/${data.profileId}`);
+            const studentRes = await fetch(`${API_BASE_URL}/api/students/${data.profileId}`);
             if (studentRes.ok) {
               const studentData = await studentRes.json();
               if (!studentData.enrolledCourses || studentData.enrolledCourses.length === 0) {

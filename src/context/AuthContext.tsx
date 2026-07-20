@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 
 interface User {
   _id: string;
@@ -28,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const currentProfileId = user?.profileId;
     if (!currentProfileId) return;
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/students/${currentProfileId}`);
+      const res = await fetch(`${API_BASE_URL}/api/students/${currentProfileId}`);
       if (res.ok) {
         const data = await res.json();
         setEnrolledCount(data.enrolledCourses ? data.enrolledCourses.length : 0);
@@ -47,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(parsed);
         if (parsed.role === 'student' && parsed.profileId) {
           try {
-            const res = await fetch(`http://127.0.0.1:5000/api/students/${parsed.profileId}`);
+            const res = await fetch(`${API_BASE_URL}/api/students/${parsed.profileId}`);
             if (res.ok) {
               const data = await res.json();
               setEnrolledCount(data.enrolledCourses ? data.enrolledCourses.length : 0);
@@ -66,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(userData);
     localStorage.setItem('glosmart_user', JSON.stringify(userData));
     if (userData.role === 'student' && userData.profileId) {
-      fetch(`http://127.0.0.1:5000/api/students/${userData.profileId}`)
+      fetch(`${API_BASE_URL}/api/students/${userData.profileId}`)
         .then(res => res.json())
         .then(data => {
           setEnrolledCount(data.enrolledCourses ? data.enrolledCourses.length : 0);

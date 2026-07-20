@@ -8,6 +8,7 @@ import {
 import { Link } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 const Students: React.FC = () => {
   const { user } = useAuth();
@@ -102,7 +103,7 @@ const Students: React.FC = () => {
       address: residentialAddress || 'Not provided'
     };
 
-    fetch('http://localhost:5000/api/students', {
+    fetch(`${API_BASE_URL}/api/students`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newStudent),
@@ -122,7 +123,7 @@ const Students: React.FC = () => {
   };
   const handleApproveStudent = async (studentId: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/students/${studentId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/students/${studentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ approvalStatus: 'APPROVED' })
@@ -141,7 +142,7 @@ const Students: React.FC = () => {
   const handleRejectStudent = async (studentId: string) => {
     if (!confirm('Are you sure you want to reject and delete this registration request?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/students/${studentId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/students/${studentId}`, {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -196,9 +197,9 @@ const Students: React.FC = () => {
   const fetchData = async () => {
     try {
       const [coursesRes, batchesRes, studentsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/courses?limit=1000'),
-        fetch('http://localhost:5000/api/batches'),
-        fetch('http://localhost:5000/api/students')
+        fetch(`${API_BASE_URL}/api/courses?limit=1000`),
+        fetch(`${API_BASE_URL}/api/batches`),
+        fetch(`${API_BASE_URL}/api/students`)
       ]);
       const coursesData = await coursesRes.json();
       const batchesData = await batchesRes.json();
@@ -255,17 +256,17 @@ const Students: React.FC = () => {
   });
 
   return (
-    <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fcfdff] font-sans text-slate-800">
       
       {/* Sidebar */}
       <AdminSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
         
         {/* Top bar */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-          <h1 className="text-[28px] font-bold text-[#1c1c28]">Students</h1>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 gap-4">
+          <h1 className="text-2xl sm:text-[28px] font-bold text-[#1c1c28]">Students</h1>
           
           <div className="flex items-center gap-6 w-full md:w-auto">
             {/* Search */}

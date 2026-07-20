@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { FiCheck, FiX, FiUserCheck, FiUsers } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 const AdminAttendancePage: React.FC = () => {
   const { user } = useAuth();
@@ -17,12 +18,12 @@ const AdminAttendancePage: React.FC = () => {
 
   const fetchSessions = async () => {
     try {
-      const url = `http://localhost:5000/api/attendance/sessions?role=${user?.role}&userId=${user?.profileId}&name=${user?.name}`;
+      const url = `${API_BASE_URL}/api/attendance/sessions?role=${user?.role}&userId=${user?.profileId}&name=${user?.name}`;
       const res = await fetch(url);
       const data = await res.json();
       setSessions(data);
 
-      const statsRes = await fetch('http://localhost:5000/api/attendance/stats');
+      const statsRes = await fetch(`${API_BASE_URL}/api/attendance/stats`);
       if (statsRes.ok) {
         setStats(await statsRes.json());
       }
@@ -34,7 +35,7 @@ const AdminAttendancePage: React.FC = () => {
   const handleDisable = async (id: string) => {
     if (!window.confirm("Are you sure you want to disable this session?")) return;
     try {
-      await fetch(`http://localhost:5000/api/attendance/sessions/${id}/disable`, {
+      await fetch(`${API_BASE_URL}/api/attendance/sessions/${id}/disable`, {
         method: 'PUT'
       });
       fetchSessions();
@@ -46,7 +47,7 @@ const AdminAttendancePage: React.FC = () => {
   const openSessionDetails = async (session: any) => {
     setSelectedSession(session);
     try {
-      const res = await fetch(`http://localhost:5000/api/attendance/records/session/${session._id}`);
+      const res = await fetch(`${API_BASE_URL}/api/attendance/records/session/${session._id}`);
       const data = await res.json();
       setSessionRecords(data);
       setShowModal(true);
@@ -56,11 +57,11 @@ const AdminAttendancePage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800 relative">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fcfdff] font-sans text-slate-800 relative">
       <AdminSidebar />
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
-        <div className="mb-8">
-          <h2 className="text-3xl font-extrabold text-[#1c1c28] mb-2 tracking-tight">Attendance Management</h2>
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
+        <div className="mb-6 md:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c28] mb-2 tracking-tight">Attendance Management</h2>
           <p className="text-slate-500 font-medium text-[15px]">
             Manage attendance sessions and view student attendance records.
           </p>

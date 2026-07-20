@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
+import { API_BASE_URL } from '../../config/api';
 
 export default function AdminCreateCoursePage() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function AdminCreateCoursePage() {
     uploadData.append('image', file);
 
     try {
-      const res = await fetch('http://localhost:5000/api/upload', {
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
         method: 'POST',
         body: uploadData
       });
@@ -53,7 +54,7 @@ export default function AdminCreateCoursePage() {
 
   const fetchCourse = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/courses/${id}`);
+      const res = await fetch(`${API_BASE_URL}/api/courses/${id}`);
       const data = await res.json();
       setFormData({
         ...data,
@@ -94,7 +95,7 @@ export default function AdminCreateCoursePage() {
     try {
       if (isEdit) {
         const payload = { ...formData, skillLevel: formData.skillLevels[0] };
-        const response = await fetch(`http://localhost:5000/api/courses/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/courses/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -113,7 +114,7 @@ export default function AdminCreateCoursePage() {
             skillLevel: level, 
             courseName: formData.skillLevels.length > 1 ? `${formData.courseName} - ${level}` : formData.courseName
           };
-          const res = await fetch('http://localhost:5000/api/courses', {
+          const res = await fetch(`${API_BASE_URL}/api/courses`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -142,7 +143,7 @@ export default function AdminCreateCoursePage() {
     
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/courses/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/courses/${id}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -159,17 +160,17 @@ export default function AdminCreateCoursePage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-50">
       <AdminSidebar />
-      <div className="flex-1 p-6 md:p-10 overflow-y-auto">
+      <div className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-3xl font-bold text-slate-800 mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-6 md:mb-8">
             {isEdit ? 'Edit Course' : 'Create New Course'}
           </h1>
           
-          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 space-y-6">
+          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-8 space-y-6">
             
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-1">Course Name *</label>
                 <input 

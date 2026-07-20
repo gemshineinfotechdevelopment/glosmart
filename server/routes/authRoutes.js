@@ -18,28 +18,37 @@ router.post('/signup', async (req, res) => {
   try {
     const { fullName, phoneNumber, email, password } = req.body;
 
-    const userExists = await User.findOne({ email });
+    const emailRegex = new RegExp('^' + email.trim() + '$', 'i');
+    const userExists = await User.findOne({ email: emailRegex });
 
     if (userExists) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    // 1. Create Student record
-    const student = new Student({
-      name: fullName,
-      email: email,
-      phone: phoneNumber || '',
-      joiningDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      admissionDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      feeStatus: 'PENDING',
-      attendanceRate: 100,
-      avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
-      enrolledCourses: [],
-      attendanceRecords: [],
-      assignments: [],
-      leaveRequests: []
-    });
-    await student.save();
+    // 1. Find or Create Student record
+    let student = await Student.findOne({ email: emailRegex });
+
+    if (!student) {
+      student = new Student({
+        name: fullName || 'Student User',
+        email: email,
+        phone: phoneNumber || '',
+        joiningDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        admissionDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        feeStatus: 'PENDING',
+        attendanceRate: 100,
+        avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+        enrolledCourses: [],
+        attendanceRecords: [],
+        assignments: [],
+        leaveRequests: []
+      });
+      await student.save();
+    } else if (fullName && student.name === 'Student User') {
+      student.name = fullName;
+      if (phoneNumber) student.phone = phoneNumber;
+      await student.save();
+    }
 
     // 2. Create User record linked to Student
     const user = new User({

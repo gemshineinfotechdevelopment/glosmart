@@ -4,6 +4,7 @@ import { FiPlus, FiEdit2 } from 'react-icons/fi';
 import { MdOutlineDashboard } from 'react-icons/md';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 export default function AdminCoursePage() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function AdminCoursePage() {
     try {
       // Both admin and teacher see all courses.
       // Batch-level filtering (instructor === user.name) handles what teachers see inside each course.
-      const response = await fetch('http://localhost:5000/api/courses');
+      const response = await fetch(`${API_BASE_URL}/api/courses`);
       const data = await response.json();
       setCourses(data.courses || []);
     } catch (error) {
@@ -32,13 +33,13 @@ export default function AdminCoursePage() {
   const filteredCourses = courses;
 
   return (
-    <div className="flex min-h-screen bg-[#f8f9fc] font-sans">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#f8f9fc] font-sans">
       <AdminSidebar />
-      <div className="flex-1 p-6 md:p-10 overflow-y-auto">
+      <div className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-800 mb-2">Course Management</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">Course Management</h1>
               <p className="text-slate-500">Streamline academy operations: track active batches, monitor teacher performance, and manage student enrollment schedules.</p>
             </div>
             {(user?.role === 'admin' || user?.role === 'teacher') && (

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import bgImage from '../assets/background-home.jpeg';
+import mobileBg from '../assets/background.png';
 import { 
   FiStar, 
   FiRefreshCw, 
@@ -197,7 +198,14 @@ export const Faqs: React.FC = () => {
     setOpenFaq(openFaq === index ? null : index);
   };
 
-  // Get active items or filter globally if search query is present
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const currentCategoryData = categories.find((cat) => cat.id === activeTab);
   const displayedItems = searchQuery
     ? categories.flatMap((cat) => cat.items).filter(
@@ -209,9 +217,9 @@ export const Faqs: React.FC = () => {
 
   return (
     <div
-      className="font-sans text-[#1e295d] bg-[#faf7f0] min-h-screen relative flex flex-col"
+      className="font-sans text-[#1e295d] min-h-screen relative flex flex-col"
       style={{
-        backgroundImage: `url(${bgImage})`,
+        backgroundImage: `url(${isMobile ? mobileBg : bgImage})`,
         backgroundSize: '100% auto',
         backgroundRepeat: 'repeat-y',
         backgroundPosition: 'top center',

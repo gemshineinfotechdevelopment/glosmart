@@ -21,7 +21,8 @@ interface GalleryImage {
 }
 
 
-const API_BASE = 'http://localhost:5000';
+import { API_BASE_URL, getImageUrl } from '../../config/api';
+
 const ITEMS_PER_PAGE = 12;
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
@@ -116,7 +117,7 @@ const AdminGalleryPage: React.FC = () => {
       if (filterCategory && filterCategory !== 'All') params.set('category', filterCategory);
       if (filterFeatured) params.set('featured', 'true');
 
-      const res = await fetch(`${API_BASE}/api/gallery?${params}`);
+      const res = await fetch(`${API_BASE_URL}/api/gallery?${params}`);
       if (!res.ok) throw new Error('Failed to fetch images');
       const data = await res.json();
 
@@ -140,7 +141,7 @@ const AdminGalleryPage: React.FC = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const courseRes = await fetch(`${API_BASE}/api/courses?limit=1000&status=Active`);
+        const courseRes = await fetch(`${API_BASE_URL}/api/courses?limit=1000&status=Active`);
         if (courseRes.ok) {
           const courseData = await courseRes.json();
           if (courseData && courseData.courses) {
@@ -258,7 +259,7 @@ const AdminGalleryPage: React.FC = () => {
         formData.append('image', selectedFile);
       }
 
-      const res = await fetch(`${API_BASE}/api/gallery`, {
+      const res = await fetch(`${API_BASE_URL}/api/gallery`, {
         method: 'POST',
         body: formData,
       });
@@ -295,7 +296,7 @@ const AdminGalleryPage: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this image?')) return;
     try {
-      const res = await fetch(`${API_BASE}/api/gallery/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE_URL}/api/gallery/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete image');
       setSelectedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
       fetchImages(currentPage);
@@ -311,7 +312,7 @@ const AdminGalleryPage: React.FC = () => {
     if (!window.confirm(`Delete ${selectedIds.size} selected image(s)?`)) return;
     try {
       setBulkDeleting(true);
-      const res = await fetch(`${API_BASE}/api/gallery/bulk`, {
+      const res = await fetch(`${API_BASE_URL}/api/gallery/bulk`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: Array.from(selectedIds) }),
@@ -330,7 +331,7 @@ const AdminGalleryPage: React.FC = () => {
   // ─── Toggle featured ────────────────────────────────────────────────────
   const handleToggleFeatured = async (id: string) => {
     try {
-      const res = await fetch(`${API_BASE}/api/gallery/${id}/featured`, { method: 'PATCH' });
+      const res = await fetch(`${API_BASE_URL}/api/gallery/${id}/featured`, { method: 'PATCH' });
       if (!res.ok) throw new Error('Failed to toggle featured');
       const updated = await res.json();
       setImages((prev) => prev.map((img) => (img._id === id ? updated : img)));
@@ -385,7 +386,7 @@ const AdminGalleryPage: React.FC = () => {
     // Save new order to backend
     const orderPayload = reordered.map((img, idx) => ({ id: img._id, order: idx }));
     try {
-      await fetch(`${API_BASE}/api/gallery/reorder`, {
+      await fetch(`${API_BASE_URL}/api/gallery/reorder`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ images: orderPayload }),
@@ -417,14 +418,14 @@ const AdminGalleryPage: React.FC = () => {
 
   // ─── RENDER ──────────────────────────────────────────────────────────────
   return (
-    <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fafbfc] font-sans text-slate-800">
       <AdminSidebar />
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto pb-24">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto pb-24 w-full min-w-0">
         {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
           <div>
-            <h2 className="text-3xl font-extrabold text-[#1c1c28] mb-1">Gallery Management</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c28] mb-1">Gallery Management</h2>
             <p className="text-slate-500 font-medium">
               Upload and manage images for the public gallery.
               {totalImages > 0 && <span className="ml-2 text-slate-400">({totalImages} images)</span>}
@@ -533,7 +534,7 @@ const AdminGalleryPage: React.FC = () => {
                 {/* Image area */}
                 <div className="relative h-48 overflow-hidden bg-slate-100">
                   <img
-                    src={img.imageUrl.startsWith('http') ? img.imageUrl : `${API_BASE}${img.imageUrl}`}
+                    src={getImageUrl(img.imageUrl)}
                     alt={img.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
                     onClick={() => setLightboxImage(img)}
@@ -878,7 +879,7 @@ const AdminGalleryPage: React.FC = () => {
             {/* Image */}
             <div className="md:w-2/3 bg-slate-900 flex items-center justify-center min-h-[300px]">
               <img
-                src={lightboxImage.imageUrl.startsWith('http') ? lightboxImage.imageUrl : `${API_BASE}${lightboxImage.imageUrl}`}
+                src={getImageUrl(lightboxImage.imageUrl)}
                 alt={lightboxImage.title}
                 className="w-full h-full object-contain max-h-[70vh]"
               />

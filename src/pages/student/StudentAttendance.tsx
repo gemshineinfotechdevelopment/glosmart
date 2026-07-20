@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 import { 
   FiCheck, 
   FiChevronLeft, 
@@ -36,7 +37,7 @@ const StudentAttendance: React.FC = () => {
   // Fetch student data on mount
   useEffect(() => {
     const profileId = user?.profileId || 'first';
-    fetch(`http://127.0.0.1:5000/api/students/${profileId}`)
+    fetch(`${API_BASE_URL}/api/students/${profileId}`)
       .then(res => res.json())
       .then(data => {
         if (data) {
@@ -47,7 +48,7 @@ const StudentAttendance: React.FC = () => {
           setEnrolledCourses(data.enrolledCourses || []);
 
           // Fetch active sessions
-          fetch(`http://localhost:5000/api/attendance/sessions/active/${profileId}`)
+          fetch(`${API_BASE_URL}/api/attendance/sessions/active/${profileId}`)
             .then(res => res.json())
             .then(sessions => {
               if (Array.isArray(sessions)) {
@@ -61,7 +62,7 @@ const StudentAttendance: React.FC = () => {
 
   const handleMarkAttendance = async (sessionId: string, batchId: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/attendance/records`, {
+      const res = await fetch(`${API_BASE_URL}/api/attendance/records`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ studentId: user?.profileId, sessionId, batchId }),
@@ -195,18 +196,18 @@ const StudentAttendance: React.FC = () => {
 
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
       {/* Left Sidebar */}
       <StudentSidebar />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden pb-12">
+      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden pb-12 w-full min-w-0">
         
         {/* Top Header */}
-        <header className="flex justify-between items-center px-6 lg:px-10 py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
+        <header className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-4 sm:py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Attendance Insight</h1>
-            <p className="text-slate-500 text-[14px] mt-0.5">Track your class engagement and active status</p>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Attendance Insight</h1>
+            <p className="text-slate-500 text-[13px] sm:text-[14px] mt-0.5">Track your class engagement and active status</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -224,7 +225,7 @@ const StudentAttendance: React.FC = () => {
         </header>
         
         {/* Outer Container */}
-        <div className="px-6 lg:px-10 mt-8 space-y-8 flex-1">
+        <div className="px-4 sm:px-6 lg:px-10 mt-6 sm:mt-8 space-y-8 flex-1">
           
           {/* Active Attendance Banners */}
           {activeBatches.length > 0 ? (

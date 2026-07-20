@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FiCheck } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import loginImg from '../assets/login.png';
 import crayonImg from '../assets/crayon.png';
 
@@ -24,7 +25,7 @@ const Signup: React.FC = () => {
     }
 
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/auth/signup', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fullName, phoneNumber, email, password })

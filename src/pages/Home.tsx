@@ -7,8 +7,10 @@ import {
 import { MdOutlineDashboard } from 'react-icons/md';
 import { FaPalette, FaRocket, FaPaintBrush } from 'react-icons/fa';
 
+import { API_BASE_URL, getImageUrl } from '../config/api';
+
 import bgImage from '../assets/background-home.jpeg';
-import cloudImage from '../assets/cloud.png';
+import mobileBg from '../assets/background.png';
 
 // Mock images since we don't have the exact ones from the design
 const mockAvatar1 = "https://i.pravatar.cc/150?img=1";
@@ -22,23 +24,28 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const [courses, setCourses] = useState<any[]>([]);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/courses')
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/courses`)
       .then(res => res.json())
       .then(data => setCourses(data.courses || []))
       .catch(error => console.error('Error fetching courses', error));
 
-    fetch('http://localhost:5000/api/gallery?sortBy=newest&limit=4')
+    fetch(`${API_BASE_URL}/api/gallery?sortBy=newest&limit=4`)
       .then(res => res.json())
       .then(data => {
         if (data && data.images && data.images.length > 0) {
           const urls = data.images.map((img: any) => {
-            const path = img.imageUrl || '';
-            if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/images/')) {
-              return path;
-            }
-            return `http://localhost:5000${path}`;
+            return getImageUrl(img.imageUrl);
           });
           setGalleryImages(urls);
         }
@@ -50,7 +57,7 @@ const Home: React.FC = () => {
     <main
       className="w-full min-h-screen overflow-hidden text-slate-800 font-sans"
       style={{
-        backgroundImage: `url(${bgImage})`,
+        backgroundImage: `url(${isMobile ? mobileBg : bgImage})`,
         backgroundSize: '100% auto',
         backgroundRepeat: 'repeat-y',
         backgroundPosition: 'top center'
@@ -58,28 +65,28 @@ const Home: React.FC = () => {
     >
 
       {/* 1. Hero Section */}
-      <section className="relative w-full pt-40 pb-32 px-6 lg:px-20 overflow-hidden">
+      <section className="relative w-full pt-28 sm:pt-36 lg:pt-40 pb-20 sm:pb-28 lg:pb-32 px-4 sm:px-6 lg:px-20 overflow-hidden">
         {/* Playful background shapes */}
         <div className="absolute top-10 left-10 w-32 h-32 bg-purple-200 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob"></div>
         <div className="absolute top-10 right-20 w-40 h-40 bg-pink-200 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-10 left-1/3 w-40 h-40 bg-blue-200 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob animation-delay-4000"></div>
 
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
-          <div className="flex flex-col gap-6 text-left">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
+          <div className="flex flex-col gap-5 sm:gap-6 text-left">
             <div className="inline-flex">
               <span className="bg-pink-100 text-pink-500 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                 Kids Learning
               </span>
             </div>
-            <h1 className="text-5xl lg:text-7xl font-extrabold leading-tight text-[#1A254C]">
+            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold leading-tight text-[#1A254C]">
               Ignite Your<br />Inner<br />
               <span className="text-[#66c2e3]">Masterpiece</span>
             </h1>
-            <p className="text-slate-600 text-lg max-w-md leading-relaxed">
+            <p className="text-slate-600 text-base sm:text-lg max-w-md leading-relaxed">
               Learn the core of art, involve in growth today! Over 100+ new courses in this month, bring new learning program.
             </p>
-            <div className="flex items-center gap-6 mt-4">
-              <button className="bg-[#005577] text-white px-8 py-3.5 rounded-full font-bold hover:bg-[#003d55] hover:shadow-xl transition-all hover:-translate-y-1">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6 mt-2 sm:mt-4">
+              <button className="bg-[#005577] text-white px-7 sm:px-8 py-3 sm:py-3.5 rounded-full font-bold hover:bg-[#003d55] hover:shadow-xl transition-all hover:-translate-y-1">
                 Start for free
               </button>
               <button className="flex items-center gap-3 text-slate-600 font-bold hover:text-[#005577] transition-all group">
@@ -217,16 +224,24 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Pink Clouds Divider (Using Background Image) */}
-        <div
-          className="absolute bottom-0 left-0 w-full h-[150px] md:h-[250px] z-0 pointer-events-none"
-          style={{
-            backgroundImage: `url(${cloudImage})`,
-            backgroundSize: '100% 100%',
-            backgroundPosition: 'bottom',
-            backgroundRepeat: 'no-repeat'
-          }}
-        ></div>
+        {/* Pink Wave Divider UI */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10 pointer-events-none">
+          <svg
+            className="relative block w-full h-[60px] sm:h-[100px] md:h-[150px]"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,40 C200,80 400,10 600,60 C800,110 1000,30 1200,50 L1200,120 L0,120 Z"
+              fill="#FF9EBF"
+              opacity="0.5"
+            ></path>
+            <path
+              d="M0,20 C150,90 350,-20 500,50 C650,120 900,20 1200,60 L1200,120 L0,120 Z"
+              fill="#FF6584"
+            ></path>
+          </svg>
+        </div>
       </section>
 
       {/* 5. Objectives Section */}

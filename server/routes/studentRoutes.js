@@ -157,15 +157,79 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST new student
+// POST new student (or update existing if email matches)
 router.post('/', async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required for manual student creation.' });
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required for student creation.' });
     }
 
-    const userExists = await User.findOne({ email });
+    const emailRegex = new RegExp('^' + email.trim() + '$', 'i');
+    let student = await Student.findOne({ email: emailRegex });
+
+    if (student) {
+      // Update existing student details without duplicating
+      const updateData = { ...req.body };
+      delete updateData.email; // keep original email format
+      delete updateData.enrolledCourses; // handle enrolledCourses safely
+
+      Object.assign(student, updateData);
+
+      // Merge new enrolledCourses if provided
+      if (req.body.enrolledCourses && Array.isArray(req.body.enrolledCourses)) {
+        if (!student.enrolledCourses) student.enrolledCourses = [];
+        for (const ec of req.body.enrolledCourses) {
+          const courseKey = (ec.courseName || '').toLowerCase().trim();
+          const exists = student.enrolledCourses.some(
+            existing => (existing.courseName || '').toLowerCase().trim() === courseKey
+          );
+          if (!exists) {
+            student.enrolledCourses.push(ec);
+          }
+        }
+      }
+
+      const savedStudent = await student.save();
+
+      // Ensure User record exists
+      let user = await User.findOne({ email: emailRegex });
+      if (!user && password) {
+        user = new User({
+          email: savedStudent.email,
+          password: password,
+          role: 'student',
+          profileId: savedStudent._id
+        });
+        await user.save();
+      } else if (user && !user.profileId) {
+        user.profileId = savedStudent._id;
+        await user.save();
+      }
+
+      // Update batch enrollment if applicable
+      if (savedStudent.approvalStatus !== 'PENDING' && (savedStudent.batchId || savedStudent.batch)) {
+        const query = savedStudent.batchId ? { _id: savedStudent.batchId } : { batchName: savedStudent.batch };
+        await Batch.findOneAndUpdate(
+          query,
+          { $addToSet: { students: savedStudent._id } }
+        );
+        const b = await Batch.findOne(query);
+        if (b) {
+          b.enrolledStudents = b.students.length;
+          await b.save();
+        }
+      }
+
+      return res.status(200).json(savedStudent);
+    }
+
+    // New Student creation
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required for new student creation.' });
+    }
+
+    const userExists = await User.findOne({ email: emailRegex });
     if (userExists) {
       return res.status(400).json({ message: 'A user already exists with this email address.' });
     }
@@ -188,10 +252,14 @@ router.post('/', async (req, res) => {
       await Batch.findOneAndUpdate(
         query,
         { 
-          $inc: { enrolledStudents: 1 },
-          $push: { students: savedStudent._id }
+          $addToSet: { students: savedStudent._id }
         }
       );
+      const b = await Batch.findOne(query);
+      if (b) {
+        b.enrolledStudents = b.students.length;
+        await b.save();
+      }
     }
 
     res.status(201).json(savedStudent);

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiPhone, FiMail, FiMapPin, FiFacebook, FiInstagram, FiTwitter, FiYoutube } from 'react-icons/fi';
-
-const API_BASE = 'http://localhost:5000';
+import { API_BASE_URL } from '../config/api';
 
 interface FooterSettings {
   contactInfo: {
@@ -25,7 +24,7 @@ const Footer: React.FC = () => {
   });
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/settings`)
+    fetch(`${API_BASE_URL}/api/settings`)
       .then(res => res.ok ? res.json() : Promise.reject('Failed to load settings'))
       .then(data => {
         if (data) {

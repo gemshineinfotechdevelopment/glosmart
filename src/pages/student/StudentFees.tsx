@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 import { FiDownload, FiCheckCircle, FiAlertCircle, FiCreditCard, FiUser } from 'react-icons/fi';
 
 interface ReceiptRow {
@@ -69,7 +70,7 @@ const StudentFees: React.FC = () => {
   useEffect(() => {
     const profileId = user?.profileId || 'first';
     // 1. Fetch student
-    fetch(`http://localhost:5000/api/students/${profileId}`)
+    fetch(`${API_BASE_URL}/api/students/${profileId}`)
       .then(res => res.json())
       .then(studentData => {
         if (studentData) {
@@ -81,7 +82,7 @@ const StudentFees: React.FC = () => {
           setStudentAvatar(studentData.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
 
           // 2. Fetch payments
-          fetch('http://localhost:5000/api/payments')
+          fetch(`${API_BASE_URL}/api/payments`)
             .then(res => res.json())
             .then(async (paymentsData) => {
               const filtered = paymentsData.filter((p: any) => p.studentName === name);
@@ -100,7 +101,7 @@ const StudentFees: React.FC = () => {
                 // Seed database payments for this student
                 for (const receipt of defaultReceipts) {
                   try {
-                    await fetch('http://localhost:5000/api/payments', {
+                    await fetch(`${API_BASE_URL}/api/payments`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
@@ -120,10 +121,11 @@ const StudentFees: React.FC = () => {
               } else {
                 setReceipts([]);
               }
-            });
+            })
+            .catch(err => console.error('Error fetching payments:', err));
         }
       })
-      .catch(err => console.error('Error loading payments:', err));
+      .catch(err => console.error('Error loading student:', err));
   }, [user]);
 
   const loadRazorpayScript = () => {
@@ -156,7 +158,7 @@ const StudentFees: React.FC = () => {
       }
 
       // 2. Fetch Razorpay Key ID from backend
-      const keyRes = await fetch('http://localhost:5000/api/payments/razorpay-key');
+      const keyRes = await fetch(`${API_BASE_URL}/api/payments/razorpay-key`);
       if (!keyRes.ok) throw new Error('Failed to retrieve Razorpay Key ID');
       const { keyId } = await keyRes.json();
 
@@ -167,7 +169,7 @@ const StudentFees: React.FC = () => {
         : `${pendingEnrollment.courseName} - Course Enrollment Fee`;
 
       // 3. Create Razorpay order on backend
-      const orderRes = await fetch('http://localhost:5000/api/payments/razorpay-order', {
+      const orderRes = await fetch(`${API_BASE_URL}/api/payments/razorpay-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: feeNum })
@@ -221,7 +223,7 @@ const StudentFees: React.FC = () => {
           try {
             setPaying(true);
             // Call verify API
-            const verifyRes = await fetch('http://localhost:5000/api/payments/razorpay-verify', {
+            const verifyRes = await fetch(`${API_BASE_URL}/api/payments/razorpay-verify`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -307,18 +309,18 @@ const StudentFees: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
       {/* Left Sidebar */}
       <StudentSidebar />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden pb-12">
+      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden pb-12 w-full min-w-0">
         
         {/* Top Header */}
-        <header className="flex justify-between items-center px-6 lg:px-10 py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
+        <header className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-4 sm:py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Fees & Payments</h1>
-            <p className="text-slate-500 text-[14px] mt-0.5">View your billing history and download invoice receipts</p>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Fees & Payments</h1>
+            <p className="text-slate-500 text-[13px] sm:text-[14px] mt-0.5">View your billing history and download invoice receipts</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -336,7 +338,7 @@ const StudentFees: React.FC = () => {
         </header>
 
         {/* Content Container */}
-        <div className="px-6 lg:px-10 mt-8 space-y-8 flex-1">
+        <div className="px-4 sm:px-6 lg:px-10 mt-6 sm:mt-8 space-y-8 flex-1">
           
           {/* Toast Notification */}
           {showToast && (

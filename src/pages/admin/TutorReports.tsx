@@ -8,8 +8,7 @@ import {
   FiTrendingUp
 } from 'react-icons/fi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
-
-const API_BASE = 'http://localhost:5000';
+import { API_BASE_URL } from '../../config/api';
 
 interface ReportItem {
   _id: string;
@@ -34,7 +33,7 @@ const TutorReports: React.FC = () => {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/api/tutor-reports`);
+      const res = await fetch(`${API_BASE_URL}/api/tutor-reports`);
       if (res.ok) {
         const data = await res.json();
         setReports(data);
@@ -73,16 +72,15 @@ const TutorReports: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fafbfc] font-sans text-slate-800">
       <AdminSidebar />
-
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto pb-24">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
         <div className="max-w-7xl mx-auto space-y-8">
           
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h2 className="text-3xl font-extrabold text-[#1c1c28] mb-1 flex items-center gap-3">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c28] mb-1 flex items-center gap-3">
                 <FiFileText className="text-[#6247df]" />
                 Tutor Class Reports
               </h2>
