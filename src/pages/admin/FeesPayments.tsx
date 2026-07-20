@@ -4,7 +4,6 @@ import {
   FiBriefcase, FiClock, FiCreditCard, FiFilter,
   FiChevronLeft, FiChevronRight, FiEdit3, FiRefreshCw, FiUser
 } from 'react-icons/fi';
-import AdminSidebar from '../../components/admin/AdminSidebar';
 import { API_BASE_URL } from '../../config/api';
 
 interface PaymentRow {
@@ -95,13 +94,7 @@ export const FeesPayments: React.FC = () => {
   });
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[#f8f9fd] font-sans text-slate-800">
-
-      {/* Sidebar */}
-      <AdminSidebar />
-
-      {/* Main Content Area */}
-      <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto flex flex-col gap-6 max-w-7xl mx-auto w-full min-w-0 box-border">
+    <div className="p-4 sm:p-6 md:p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full box-border">
 
         {/* Top Search Bar */}
         <div className="relative w-full">
@@ -394,7 +387,6 @@ export const FeesPayments: React.FC = () => {
           </div>
           */}
         </div>
-      </main>
     </div>
   );
 };

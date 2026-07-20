@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiPlus, FiArrowLeft, FiEdit2, FiTrash2, FiClock, FiCalendar, FiFileText, FiX, FiVideo, FiCopy, FiLink } from 'react-icons/fi';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/api';
 
@@ -394,9 +394,7 @@ export default function AdminCourseBatchesPage() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-50">
-      <AdminSidebar />
-      <div className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
+    <div className="p-4 sm:p-6 md:p-10">
         
         <button 
           onClick={() => navigate('/admin/courses')}
@@ -419,7 +417,7 @@ export default function AdminCourseBatchesPage() {
                 </h1>
                 <p className="text-slate-500 mt-1">Manage schedules, instructors, and assignments.</p>
               </div>
-              {(user?.role === 'admin' || user?.role === 'teacher') && (
+              {user?.role === 'admin' && (
                 <button 
                   onClick={() => { resetForm(); setEditingBatch(null); setShowModal(true); }}
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
@@ -627,7 +625,7 @@ export default function AdminCourseBatchesPage() {
                     </div>
                   )}
 
-                  {(user?.role === 'admin' || user?.role === 'teacher') && (
+                  {user?.role === 'admin' && (
                     <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-4">
                       <button 
                         onClick={() => openEditModal(batch)}
@@ -656,9 +654,6 @@ export default function AdminCourseBatchesPage() {
             </div>
           </>
         )}
-
-      </div>
-
 
       {/* Batch Edit Modal */}
       {showModal && (
@@ -737,23 +732,7 @@ export default function AdminCourseBatchesPage() {
                   <input type="number" name="batchFee" value={formData.batchFee} onChange={handleInputChange} placeholder="Leave blank to use course fee" className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
 
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Zoom Meeting Link</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FiLink className="text-slate-400" size={14} />
-                    </div>
-                    <input 
-                      type="url" 
-                      name="zoomLink" 
-                      value={formData.zoomLink} 
-                      onChange={handleInputChange} 
-                      placeholder="https://zoom.us/j/..." 
-                      className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" 
-                    />
-                  </div>
-                  <p className="text-xs text-slate-400 mt-1">Paste the Zoom meeting link for this session. Update it before each class.</p>
-                </div>
+
 
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-2">Days of the Week</label>

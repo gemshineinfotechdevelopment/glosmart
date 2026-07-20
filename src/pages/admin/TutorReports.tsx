@@ -7,7 +7,6 @@ import {
   FiRefreshCw, 
   FiTrendingUp
 } from 'react-icons/fi';
-import AdminSidebar from '../../components/admin/AdminSidebar';
 import { API_BASE_URL } from '../../config/api';
 
 interface ReportItem {
@@ -72,9 +71,7 @@ const TutorReports: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fafbfc] font-sans text-slate-800">
-      <AdminSidebar />
-      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
+    <div className="p-4 sm:p-6 md:p-10 pb-24">
         <div className="max-w-7xl mx-auto space-y-8">
           
           {/* Header */}
@@ -267,7 +264,7 @@ const TutorReports: React.FC = () => {
           )}
 
         </div>
-      </main>
+
 
       {/* Description Popup Modal */}
       {selectedReport && (

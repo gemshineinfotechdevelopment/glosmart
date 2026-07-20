@@ -6,7 +6,6 @@ import {
 } from 'react-icons/fi';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
-import AdminSidebar from '../../components/admin/AdminSidebar';
 import { API_BASE_URL } from '../../config/api';
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
@@ -317,9 +316,7 @@ const Teachers: React.FC = () => {
   });
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fcfdff] font-sans text-slate-800">
-      <AdminSidebar />
-      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
+    <div className="p-4 sm:p-6 md:p-10">
         {/* Top bar */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 gap-4">
           <h1 className="text-2xl sm:text-[28px] font-bold text-[#1c1c28]">Teachers</h1>
@@ -674,7 +671,7 @@ const Teachers: React.FC = () => {
             </div>
           </div>
         )}
-      </main>
+
       <style>{`
         @keyframes shake {
           0%, 100% { transform: translateX(0); }

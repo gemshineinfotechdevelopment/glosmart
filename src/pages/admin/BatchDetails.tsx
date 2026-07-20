@@ -6,7 +6,7 @@ import {
   FiChevronRight as FiBreadcrumbRight, FiX, FiCheck, FiUser, FiUsers, FiTrash2
 } from 'react-icons/fi';
 import { Link, useParams } from 'react-router-dom';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/api';
 
@@ -235,13 +235,7 @@ const BatchDetails: React.FC = () => {
 
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fcfdff] font-sans text-slate-800 relative">
-
-      {/* Sidebar */}
-      <AdminSidebar />
-
-      {/* Main Content */}
-      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
+    <div className="p-4 sm:p-6 md:p-10">
 
         {/* Top bar */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -441,13 +435,15 @@ const BatchDetails: React.FC = () => {
                           <FiFileText size={18} />
                         </button>
 
-                        <button
-                          onClick={() => handleDeleteStudent(student._id || student.id?.toString() || '')}
-                          className="hover:text-red-600 text-red-400 transition-colors border-none bg-transparent cursor-pointer"
-                          title="Delete Student"
-                        >
-                          <FiTrash2 size={18} />
-                        </button>
+                        {user?.role === 'admin' && (
+                          <button
+                            onClick={() => handleDeleteStudent(student._id || student.id?.toString() || '')}
+                            className="hover:text-red-600 text-red-400 transition-colors border-none bg-transparent cursor-pointer"
+                            title="Delete Student"
+                          >
+                            <FiTrash2 size={18} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -494,7 +490,7 @@ const BatchDetails: React.FC = () => {
           </div>
         </div>
 
-      </main>
+
 
       {/* Student Details Side Drawer */}
       {selectedStudent && (
@@ -627,22 +623,24 @@ const BatchDetails: React.FC = () => {
 
                 {/* Bottom Actions */}
                 <div className="p-6 border-t border-slate-100 flex gap-4 bg-slate-50 shrink-0">
-                  <button
-                    onClick={() => {
-                      setEditFormData({
-                        name: selectedStudent.name,
-                        phone: selectedStudent.phone,
-                        address: selectedStudent.address,
-                        feeStatus: selectedStudent.feeStatus,
-                        age: selectedStudent.age,
-                        gender: selectedStudent.gender
-                      });
-                      setIsEditingStudent(true);
-                    }}
-                    className="flex-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold py-3.5 rounded-2xl text-sm transition-colors focus:outline-none cursor-pointer"
-                  >
-                    Edit Profile
-                  </button>
+                  {user?.role === 'admin' && (
+                    <button
+                      onClick={() => {
+                        setEditFormData({
+                          name: selectedStudent.name,
+                          phone: selectedStudent.phone,
+                          address: selectedStudent.address,
+                          feeStatus: selectedStudent.feeStatus,
+                          age: selectedStudent.age,
+                          gender: selectedStudent.gender
+                        });
+                        setIsEditingStudent(true);
+                      }}
+                      className="flex-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold py-3.5 rounded-2xl text-sm transition-colors focus:outline-none cursor-pointer"
+                    >
+                      Edit Profile
+                    </button>
+                  )}
                   <button
                     onClick={() => { setReportStudent(selectedStudent); setShowReportModal(true); }}
                     className="flex-1 bg-[#6247df] hover:bg-[#5035c9] text-white font-bold py-3.5 rounded-2xl text-sm transition-colors shadow-md shadow-purple-200 focus:outline-none cursor-pointer"
@@ -787,7 +785,6 @@ const BatchDetails: React.FC = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

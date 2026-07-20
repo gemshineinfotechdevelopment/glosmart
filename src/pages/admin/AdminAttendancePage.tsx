@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+
 import { FiCheck, FiX, FiUserCheck, FiUsers } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/api';
@@ -57,9 +57,7 @@ const AdminAttendancePage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[#fcfdff] font-sans text-slate-800 relative">
-      <AdminSidebar />
-      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto w-full min-w-0">
+    <div className="p-4 sm:p-6 md:p-10">
         <div className="mb-6 md:mb-8">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c28] mb-2 tracking-tight">Attendance Management</h2>
           <p className="text-slate-500 font-medium text-[15px]">
@@ -165,7 +163,7 @@ const AdminAttendancePage: React.FC = () => {
             </table>
           </div>
         </div>
-      </main>
+
 
       {/* Session Details Modal */}
       {showModal && selectedSession && (
