@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   FiSearch, FiCalendar, FiFilter, FiPlus, 
   FiArrowRight, FiVideo,
-  FiUserPlus, FiX, FiSave, FiBookOpen,
+  FiUserPlus, FiUser, FiX, FiSave, FiBookOpen,
   FiCheck, FiTrash2
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
@@ -444,6 +444,30 @@ const Students: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Students List for this Batch */}
+                  <div className="mt-6 pt-6 border-t border-slate-100">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="text-sm font-bold text-[#1c1c28]">Students List</h4>
+                    </div>
+                    
+                    <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                      {students.filter(s => isStudentInBatch(s, batch)).length > 0 ? (
+                        students.filter(s => isStudentInBatch(s, batch)).map(student => (
+                          <div key={student._id || student.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                              <FiUser size={14} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-[#1c1c28] truncate">{student.name}</p>
+                              <p className="text-[10px] text-slate-500 truncate">{student.email || student.phone}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-400 italic text-center py-4">No students enrolled yet.</p>
+                      )}
+                    </div>
+                  </div>
 
                 </div>
               );
@@ -468,14 +492,16 @@ const Students: React.FC = () => {
                   students.filter(s => s.approvalStatus === 'PENDING').map(student => (
                     <tr key={student._id} className="text-slate-700 text-sm hover:bg-slate-50/50 transition-colors">
                       <td className="py-4 flex items-center gap-3">
-                        <img src={student.avatar || "https://i.pravatar.cc/150?img=12"} alt={student.name} className="w-10 h-10 rounded-full object-cover" />
+                        <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                          <FiUser size={18} />
+                        </div>
                         <div>
                           <p className="font-bold text-[#1c1c28]">{student.name}</p>
                           <p className="text-xs text-slate-400">{student.email}</p>
                         </div>
                       </td>
                       <td className="py-4 font-medium text-slate-500">
-                        {student.age} yrs / {student.gender}
+                        {student.age} yrs / {student.gender || 'Male'}
                       </td>
                       <td className="py-4 font-bold text-[#1c1c28]">
                         {student.course || 'Not selected'}

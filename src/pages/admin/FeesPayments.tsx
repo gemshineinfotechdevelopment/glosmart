@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   FiGrid, FiDownload, FiPlus,
   FiBriefcase, FiClock, FiCreditCard, FiFilter,
-  FiChevronLeft, FiChevronRight, FiEdit3, FiRefreshCw,
+  FiChevronLeft, FiChevronRight, FiEdit3, FiRefreshCw, FiUser
 } from 'react-icons/fi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 
@@ -185,9 +185,15 @@ export const FeesPayments: React.FC = () => {
             </div>
             <div className="flex items-center gap-2.5 mt-1.5">
               <div className="flex -space-x-2">
-                <img src="https://i.pravatar.cc/150?img=11" className="w-6.5 h-6.5 rounded-full border-2 border-white object-cover" alt="Student" />
-                <img src="https://i.pravatar.cc/150?img=22" className="w-6.5 h-6.5 rounded-full border-2 border-white object-cover" alt="Student" />
-                <img src="https://i.pravatar.cc/150?img=33" className="w-6.5 h-6.5 rounded-full border-2 border-white object-cover" alt="Student" />
+                <div className="w-6 h-6 rounded-full border border-white bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                  <FiUser size={10} />
+                </div>
+                <div className="w-6 h-6 rounded-full border border-white bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                  <FiUser size={10} />
+                </div>
+                <div className="w-6 h-6 rounded-full border border-white bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                  <FiUser size={10} />
+                </div>
               </div>
               <span className="text-xs text-slate-400 font-semibold">+21 others</span>
             </div>
@@ -246,7 +252,9 @@ export const FeesPayments: React.FC = () => {
                     <td className="py-4 px-6 font-bold text-slate-400">{row.invoiceNo}</td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <img src={row.avatar} className="w-8 h-8 rounded-full object-cover shrink-0" alt={row.studentName} />
+                        <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                          <FiUser size={14} />
+                        </div>
                         <span className="font-extrabold text-[#1c1c28]">{row.studentName}</span>
                       </div>
                     </td>
