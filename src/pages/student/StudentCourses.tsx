@@ -213,24 +213,9 @@ const StudentCourses: React.FC = () => {
     ? suggestedCourses 
     : fallbackSuggestions.filter(f => !enrolledCourses.map(e => e.courseName.toLowerCase()).includes(f.courseName.toLowerCase()));
 
-  // Check if a batch class is currently live
+  // Check if a batch class is currently live — ONLY true if explicitly activated (isZoomActive === true)
   const isBatchLive = (batch: any): boolean => {
-    if (!batch.zoomLink || batch.status !== 'ACTIVE') return false;
-    if (!batch.days || batch.days.length === 0 || !batch.startTime || !batch.endTime) return false;
-
-    const now = new Date();
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const todayName = dayNames[now.getDay()];
-
-    if (!batch.days.includes(todayName)) return false;
-
-    const [startH, startM] = batch.startTime.split(':').map(Number);
-    const [endH, endM] = batch.endTime.split(':').map(Number);
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
-
-    return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+    return Boolean(batch.zoomLink && batch.isZoomActive === true && batch.status === 'ACTIVE');
   };
 
   return (
@@ -436,7 +421,7 @@ const StudentCourses: React.FC = () => {
                                       )}
                                     </div>
                                     {/* Zoom Join Button */}
-                                    {batch.zoomLink && (
+                                    {batch.zoomLink && batch.isZoomActive !== false && batch.status === 'ACTIVE' && (
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();

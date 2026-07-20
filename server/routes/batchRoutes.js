@@ -6,6 +6,9 @@ import Student from '../models/Student.js';
 const router = express.Router();
 
 const calculateBatchStatus = (batch) => {
+  if (batch.isZoomActive === false) {
+    return 'UPCOMING';
+  }
   if (!batch.startDate || !batch.endDate) return batch.status || 'UPCOMING';
   const now = new Date();
   const start = new Date(batch.startDate);
@@ -17,8 +20,8 @@ const calculateBatchStatus = (batch) => {
   end.setHours(0, 0, 0, 0);
 
   if (now < start) return 'UPCOMING';
-  if (now > end) return 'INACTIVE';
-  return 'ACTIVE';
+  if (now > end) return 'COMPLETED';
+  return batch.status || 'ACTIVE';
 };
 
 // GET all batches

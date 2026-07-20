@@ -18,6 +18,7 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
+import tutorReportRoutes from './routes/tutorReportRoutes.js';
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/tutor-reports', tutorReportRoutes);
 
 
 app.get('/', (req, res) => {
