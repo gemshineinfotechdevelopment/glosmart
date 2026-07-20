@@ -38,10 +38,10 @@ const AdminSidebar: React.FC = () => {
     { name: 'Courses', path: '/admin/courses', icon: <FiBookOpen size={20} /> },
     ...(user?.role === 'admin' ? [
       { name: 'Teachers', path: '/admin/teachers', icon: <FiUserCheck size={20} /> },
-      { name: 'Fees & Payments', path: '/admin/fees', icon: <MdCurrencyRupee size={20} /> }
+      { name: 'Fees & Payments', path: '/admin/fees', icon: <MdCurrencyRupee size={20} /> },
+      { name: 'Tutor Reports', path: '/admin/tutor-reports', icon: <FiFileText size={20} /> }
     ] : []),
     { name: 'Gallery', path: '/admin/gallery', icon: <FiImage size={20} /> },
-    { name: 'Tutor Reports', path: '/admin/tutor-reports', icon: <FiFileText size={20} /> },
     { name: 'Attendance', path: '/admin/attendance', icon: <FiUserCheck size={20} /> },
     { name: 'Notifications', path: '/admin/notifications', icon: <FiBell size={20} /> },
     { name: 'Settings', path: '/admin/settings', icon: <FiSettings size={20} /> },

@@ -440,13 +440,15 @@ const BatchDetails: React.FC = () => {
                           <FiFileText size={18} />
                         </button>
 
-                        <button
-                          onClick={() => handleDeleteStudent(student._id || student.id?.toString() || '')}
-                          className="hover:text-red-600 text-red-400 transition-colors border-none bg-transparent cursor-pointer"
-                          title="Delete Student"
-                        >
-                          <FiTrash2 size={18} />
-                        </button>
+                        {user?.role === 'admin' && (
+                          <button
+                            onClick={() => handleDeleteStudent(student._id || student.id?.toString() || '')}
+                            className="hover:text-red-600 text-red-400 transition-colors border-none bg-transparent cursor-pointer"
+                            title="Delete Student"
+                          >
+                            <FiTrash2 size={18} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -626,22 +628,24 @@ const BatchDetails: React.FC = () => {
 
                 {/* Bottom Actions */}
                 <div className="p-6 border-t border-slate-100 flex gap-4 bg-slate-50 shrink-0">
-                  <button
-                    onClick={() => {
-                      setEditFormData({
-                        name: selectedStudent.name,
-                        phone: selectedStudent.phone,
-                        address: selectedStudent.address,
-                        feeStatus: selectedStudent.feeStatus,
-                        age: selectedStudent.age,
-                        gender: selectedStudent.gender
-                      });
-                      setIsEditingStudent(true);
-                    }}
-                    className="flex-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold py-3.5 rounded-2xl text-sm transition-colors focus:outline-none cursor-pointer"
-                  >
-                    Edit Profile
-                  </button>
+                  {user?.role === 'admin' && (
+                    <button
+                      onClick={() => {
+                        setEditFormData({
+                          name: selectedStudent.name,
+                          phone: selectedStudent.phone,
+                          address: selectedStudent.address,
+                          feeStatus: selectedStudent.feeStatus,
+                          age: selectedStudent.age,
+                          gender: selectedStudent.gender
+                        });
+                        setIsEditingStudent(true);
+                      }}
+                      className="flex-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold py-3.5 rounded-2xl text-sm transition-colors focus:outline-none cursor-pointer"
+                    >
+                      Edit Profile
+                    </button>
+                  )}
                   <button
                     onClick={() => { setReportStudent(selectedStudent); setShowReportModal(true); }}
                     className="flex-1 bg-[#6247df] hover:bg-[#5035c9] text-white font-bold py-3.5 rounded-2xl text-sm transition-colors shadow-md shadow-purple-200 focus:outline-none cursor-pointer"
