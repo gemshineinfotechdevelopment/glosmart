@@ -3,10 +3,11 @@ import {
   FiSearch, FiCalendar, FiUpload,
   FiClock,
   FiEye, FiFileText, FiChevronLeft, FiChevronRight,
-  FiChevronRight as FiBreadcrumbRight, FiX, FiCheck, FiUser, FiUsers
+  FiChevronRight as FiBreadcrumbRight, FiX, FiCheck, FiUser, FiUsers, FiTrash2
 } from 'react-icons/fi';
 import { Link, useParams } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
+import { useAuth } from '../../context/AuthContext';
 
 interface Student {
   _id?: string;
@@ -24,9 +25,9 @@ interface Student {
   attendanceRate: number;
   attendanceTrend: string;
   batch: string;
-  batchId?: string;
+  batchId?: string | { _id: string; batchName?: string };
   course: string;
-  courseId?: string;
+  courseId?: string | { _id: string; courseName?: string };
   teacher: string;
   admissionDate: string;
   schedule: string;
@@ -44,6 +45,7 @@ const PaintPaletteIcon = () => (
 
 const BatchDetails: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
+  const { user } = useAuth();
   const [studentsList, setStudentsList] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,6 +56,61 @@ const BatchDetails: React.FC = () => {
   const [reportStudent, setReportStudent] = useState<Student | null>(null);
   const [isEditingStudent, setIsEditingStudent] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Student>>({});
+
+  const [batches, setBatches] = useState<any[]>([]);
+  const [activeSession, setActiveSession] = useState<any>(null);
+
+  const currentBatch = batches.find(b => b._id === batchId);
+
+  const handleToggleAttendance = async () => {
+    if (!currentBatch || !currentBatch._id) return;
+    try {
+      if (activeSession) {
+        if (user?.role === 'teacher' && activeSession.enabledByRole === 'admin') {
+          alert('You cannot disable an attendance session enabled by an Admin.');
+          return;
+        }
+        // Disable it
+        const res = await fetch(`http://localhost:5000/api/attendance/sessions/${activeSession._id}/disable`, {
+          method: 'PUT'
+        });
+        if (res.ok) setActiveSession(null);
+      } else {
+        // Enable it
+        const res = await fetch(`http://localhost:5000/api/attendance/sessions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            batchId: currentBatch._id,
+            enabledByUserId: user?._id,
+            enabledByName: user?.name || user?.email,
+            enabledByRole: user?.role
+          })
+        });
+        if (res.ok) {
+          const session = await res.json();
+          setActiveSession(session);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchStudentsAndBatches = async () => {
+    try {
+      const [studentsRes, batchesRes] = await Promise.all([
+        fetch('http://localhost:5000/api/students'),
+        fetch('http://localhost:5000/api/batches')
+      ]);
+      const studentsData = await studentsRes.json();
+      const batchesData = await batchesRes.json();
+      setStudentsList(studentsData);
+      setBatches(batchesData);
+    } catch (err) {
+      console.error("Failed to load students and batches from API", err);
+    }
+  };
 
   const handleUpdateStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,9 +123,9 @@ const BatchDetails: React.FC = () => {
       });
       if (res.ok) {
         const updatedStudent = await res.json();
-        setStudentsList(studentsList.map(s => s._id === updatedStudent._id ? updatedStudent : s));
         setSelectedStudent(updatedStudent);
         setIsEditingStudent(false);
+        fetchStudentsAndBatches();
       } else {
         console.error("Failed to update student");
       }
@@ -77,33 +134,45 @@ const BatchDetails: React.FC = () => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [batches, setBatches] = useState<any[]>([]);
+  const handleDeleteStudent = async (studentId: string) => {
+    if (!window.confirm("Are you sure you want to delete this student?")) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/students/${studentId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        alert("Student deleted successfully!");
+        fetchStudentsAndBatches();
+        if (selectedStudent && (selectedStudent._id === studentId)) {
+          setSelectedStudent(null);
+        }
+      } else {
+        alert("Failed to delete student.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting student.");
+    }
+  };
 
-  const currentBatch = batches.find(b => b._id === batchId);
   const studentsInBatch = studentsList.filter(student => {
-    if (!currentBatch) return false;
-    return student.batchId === currentBatch._id || student.batch === currentBatch.batchName;
+    if (!currentBatch || !currentBatch._id) return false;
+    const sBatchId = (student.batchId && typeof student.batchId === 'object')
+      ? student.batchId._id 
+      : student.batchId;
+    return (sBatchId?.toString() === currentBatch._id.toString()) || 
+           (student.batch === currentBatch.batchName);
   });
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/students')
-      .then(res => res.json())
-      .then(data => {
-        setStudentsList(data);
-      })
-      .catch(err => {
-        console.error("Failed to load students from API", err);
-        setStudentsList([]);
-      });
-
-    fetch('http://localhost:5000/api/batches')
-      .then(res => res.json())
-      .then(data => {
-        setBatches(data);
-      })
-      .catch(err => console.error("Failed to fetch batches", err));
-  }, []);
+    fetchStudentsAndBatches();
+    if (batchId) {
+      fetch(`http://localhost:5000/api/attendance/sessions/batch/${batchId}/active`)
+        .then(res => res.json())
+        .then(data => setActiveSession(data))
+        .catch(err => console.error(err));
+    }
+  }, [batchId]);
 
 
 
@@ -231,6 +300,23 @@ const BatchDetails: React.FC = () => {
               </button>
             </div>
 
+            {(user?.role === 'admin' || (user?.role === 'teacher' && currentBatch?.instructor === user?.name)) && (
+              <button 
+                onClick={handleToggleAttendance}
+                disabled={activeSession && user?.role === 'teacher' && activeSession.enabledByRole === 'admin'}
+                className={`px-4 py-2 rounded-xl text-sm font-bold shadow-md transition-all ${
+                  activeSession 
+                    ? (user?.role === 'teacher' && activeSession.enabledByRole === 'admin')
+                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                      : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200' 
+                    : 'bg-[#6247df] text-white hover:bg-[#5035c9] shadow-purple-200'
+                }`}
+                title={activeSession && user?.role === 'teacher' && activeSession.enabledByRole === 'admin' ? "Cannot disable session enabled by Admin" : ""}
+              >
+                {activeSession ? 'Disable Attendance' : 'Enable Attendance'}
+              </button>
+            )}
+
             <button className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer">
               <FiUpload size={16} /> Export
             </button>
@@ -305,7 +391,7 @@ const BatchDetails: React.FC = () => {
                       <div className="flex items-center justify-end gap-3 text-slate-400">
                         <button
                           onClick={() => setSelectedStudent(student)}
-                          className="hover:text-slate-700 transition-colors"
+                          className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"
                         >
                           <FiEye size={18} />
                         </button>
@@ -315,6 +401,14 @@ const BatchDetails: React.FC = () => {
                           className="hover:text-slate-700 transition-colors border-none bg-transparent cursor-pointer"
                         >
                           <FiFileText size={18} />
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteStudent(student._id || student.id?.toString() || '')}
+                          className="hover:text-red-600 text-red-400 transition-colors border-none bg-transparent cursor-pointer"
+                          title="Delete Student"
+                        >
+                          <FiTrash2 size={18} />
                         </button>
                       </div>
                     </td>
