@@ -6,7 +6,7 @@ import {
 } from 'react-icons/fi';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface GalleryImage {
@@ -417,10 +417,7 @@ const AdminGalleryPage: React.FC = () => {
 
   // ─── RENDER ──────────────────────────────────────────────────────────────
   return (
-    <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
-      <AdminSidebar />
-
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto pb-24">
+    <div className="p-6 md:p-10 pb-24">
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
@@ -644,7 +641,8 @@ const AdminGalleryPage: React.FC = () => {
             </button>
           </div>
         )}
-      </main>
+
+
 
       {/* ════════════════════════════════════════════════════════════════════
           BULK ACTION BAR (floating bottom)

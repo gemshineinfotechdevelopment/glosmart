@@ -25,6 +25,7 @@ import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminNotificationsPage from './pages/admin/AdminNotificationsPage';
 import AdminAttendancePage from './pages/admin/AdminAttendancePage';
 import TutorReports from './pages/admin/TutorReports';
+import AdminLayout from './layouts/AdminLayout';
 
 // Student Pages
 import StudentProfile from './pages/student/StudentProfile';
@@ -77,6 +78,23 @@ function AppContent(): React.JSX.Element {
           <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminNotificationsPage /></ProtectedRoute>} />
           <Route path="/admin/attendance" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminAttendancePage /></ProtectedRoute>} />
           <Route path="/admin/tutor-reports" element={<ProtectedRoute allowedRoles={['admin']}><TutorReports /></ProtectedRoute>} />
+          {/* Admin Routes — nested under AdminLayout so sidebar persists */}
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminLayout /></ProtectedRoute>}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="courses" element={<AdminCoursePage />} />
+            <Route path="courses/new" element={<AdminCreateCoursePage />} />
+            <Route path="courses/edit/:id" element={<AdminCreateCoursePage />} />
+            <Route path="courses/:id/batches" element={<AdminCourseBatchesPage />} />
+            <Route path="teachers" element={<ProtectedRoute allowedRoles={['admin']}><Teachers /></ProtectedRoute>} />
+            <Route path="fees" element={<ProtectedRoute allowedRoles={['admin']}><FeesPayments /></ProtectedRoute>} />
+            <Route path="students" element={<Students />} />
+            <Route path="students/:batchId" element={<BatchDetails />} />
+            <Route path="gallery" element={<AdminGalleryPage />} />
+            <Route path="settings" element={<AdminSettingsPage />} />
+            <Route path="notifications" element={<AdminNotificationsPage />} />
+            <Route path="attendance" element={<AdminAttendancePage />} />
+            <Route path="tutor-reports" element={<TutorReports />} />
+          </Route>
 
           {/* Student Routes */}
           <Route path="/student/profile" element={<ProtectedRoute allowedRoles={['student']}><StudentProfile /></ProtectedRoute>} />
@@ -101,7 +119,11 @@ function ScrollToTop(): null {
   const { pathname } = useLocation();
 
   React.useEffect(() => {
-    window.scrollTo(0, 0);
+    // Don't scroll to top for admin/student pages — they use a fixed sidebar layout
+    const isAdminOrStudent = pathname.startsWith('/admin') || pathname.startsWith('/student');
+    if (!isAdminOrStudent) {
+      window.scrollTo(0, 0);
+    }
   }, [pathname]);
 
   return null;

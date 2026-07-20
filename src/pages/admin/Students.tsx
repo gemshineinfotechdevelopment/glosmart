@@ -6,7 +6,7 @@ import {
   FiCheck, FiTrash2
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+
 import { useAuth } from '../../context/AuthContext';
 
 const Students: React.FC = () => {
@@ -256,13 +256,7 @@ const Students: React.FC = () => {
 
 
   return (
-    <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800">
-      
-      {/* Sidebar */}
-      <AdminSidebar />
-
-      {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+    <div className="p-6 md:p-10">
         
         {/* Top bar */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
@@ -525,7 +519,7 @@ const Students: React.FC = () => {
 
 
 
-      </main>
+
 
       {/* Modal - New Student Enrollment */}
       {showAddModal && (
@@ -773,7 +767,6 @@ const Students: React.FC = () => {
           </form>
         </div>
       )}
-
     </div>
   );
 };

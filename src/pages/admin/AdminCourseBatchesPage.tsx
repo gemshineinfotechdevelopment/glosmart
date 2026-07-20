@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiPlus, FiArrowLeft, FiEdit2, FiTrash2, FiClock, FiCalendar, FiFileText, FiX, FiVideo, FiCopy, FiLink } from 'react-icons/fi';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+
 import { useAuth } from '../../context/AuthContext';
 
 export default function AdminCourseBatchesPage() {
@@ -393,9 +393,7 @@ export default function AdminCourseBatchesPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <AdminSidebar />
-      <div className="flex-1 p-6 md:p-10 overflow-y-auto">
+    <div className="p-6 md:p-10">
         
         <button 
           onClick={() => navigate('/admin/courses')}
@@ -655,9 +653,6 @@ export default function AdminCourseBatchesPage() {
             </div>
           </>
         )}
-
-      </div>
-
 
       {/* Batch Edit Modal */}
       {showModal && (

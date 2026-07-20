@@ -65,7 +65,7 @@ const AdminSidebar: React.FC = () => {
           </div>
         </div>
 
-        <nav className="flex-1 px-4 flex flex-col gap-2 overflow-y-hidden hover:overflow-y-auto font-sans">
+        <nav className="flex-1 px-4 flex flex-col gap-2 overflow-y-auto font-sans">
           {links.map((link) => {
             const isActive = currentPath === link.path;
             return (
