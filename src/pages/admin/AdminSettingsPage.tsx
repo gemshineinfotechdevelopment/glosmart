@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiSave, FiUser, FiPhone, FiMail, FiMapPin, FiFacebook, FiInstagram, FiTwitter, FiYoutube, FiCheckCircle, FiLock, FiEdit } from 'react-icons/fi';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+
 import { useAuth } from '../../context/AuthContext';
 
 const API_BASE = 'http://localhost:5000';
@@ -145,20 +145,14 @@ const AdminSettingsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
-        <AdminSidebar />
-        <main className="flex-1 flex justify-center items-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6247df]"></div>
-        </main>
+      <div className="flex-1 flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6247df]"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-[#fafbfc] font-sans text-slate-800">
-      <AdminSidebar />
-
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto pb-24">
+    <div className="p-6 md:p-10 pb-24">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -453,7 +447,6 @@ const AdminSettingsPage: React.FC = () => {
             </form>
           </div>
         </div>
-      </main>
 
       <style>{`
         @keyframes slideUp {

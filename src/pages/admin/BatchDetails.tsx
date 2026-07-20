@@ -6,7 +6,7 @@ import {
   FiChevronRight as FiBreadcrumbRight, FiX, FiCheck, FiUser, FiUsers, FiTrash2
 } from 'react-icons/fi';
 import { Link, useParams } from 'react-router-dom';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+
 import { useAuth } from '../../context/AuthContext';
 
 interface Student {
@@ -234,13 +234,7 @@ const BatchDetails: React.FC = () => {
 
 
   return (
-    <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800 relative">
-
-      {/* Sidebar */}
-      <AdminSidebar />
-
-      {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+    <div className="p-6 md:p-10">
 
         {/* Top bar */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -493,7 +487,7 @@ const BatchDetails: React.FC = () => {
           </div>
         </div>
 
-      </main>
+
 
       {/* Student Details Side Drawer */}
       {selectedStudent && (
@@ -786,7 +780,6 @@ const BatchDetails: React.FC = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

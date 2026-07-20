@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+
 
 export default function AdminCreateCoursePage() {
   const navigate = useNavigate();
@@ -159,10 +159,8 @@ export default function AdminCreateCoursePage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <AdminSidebar />
-      <div className="flex-1 p-6 md:p-10 overflow-y-auto">
-        <div className="max-w-3xl mx-auto">
+    <div className="p-6 md:p-10">
+      <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl font-bold text-slate-800 mb-8">
             {isEdit ? 'Edit Course' : 'Create New Course'}
           </h1>
@@ -293,7 +291,6 @@ export default function AdminCreateCoursePage() {
             </div>
             
           </form>
-        </div>
       </div>
     </div>
   );
