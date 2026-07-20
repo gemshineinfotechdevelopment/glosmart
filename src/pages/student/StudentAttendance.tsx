@@ -517,7 +517,9 @@ const StudentAttendance: React.FC = () => {
                     <tbody className="divide-y divide-slate-50 font-sans">
                       
                       {enrolledCourses.length > 0 ? (
-                        enrolledCourses.map((c: any, index: number) => {
+                        enrolledCourses
+                          .filter((c: any) => selectedBatch === 'All' || (c.batchName || c.courseName) === selectedBatch)
+                          .map((c: any, index: number) => {
                           let rate = 100;
                           let present = 0;
                           let absent = 0;

@@ -17,7 +17,7 @@ const calculateBatchStatus = (batch) => {
   end.setHours(0, 0, 0, 0);
 
   if (now < start) return 'UPCOMING';
-  if (now > end) return 'COMPLETED';
+  if (now > end) return 'INACTIVE';
   return 'ACTIVE';
 };
 

@@ -97,6 +97,29 @@ const BatchDetails: React.FC = () => {
     }
   };
 
+  const handleExtendBatch = async () => {
+    if (!currentBatch || !currentBatch._id) return;
+    const newDate = window.prompt('Enter new end date for the batch (YYYY-MM-DD):', currentBatch.endDate);
+    if (!newDate) return;
+    
+    try {
+      const res = await fetch(`http://localhost:5000/api/batches/${currentBatch._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endDate: newDate })
+      });
+      if (res.ok) {
+        alert('Batch extended successfully!');
+        fetchStudentsAndBatches();
+      } else {
+        alert('Failed to extend batch.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error extending batch.');
+    }
+  };
+
   const fetchStudentsAndBatches = async () => {
     try {
       const [studentsRes, batchesRes] = await Promise.all([
@@ -315,6 +338,17 @@ const BatchDetails: React.FC = () => {
                 {activeSession ? 'Disable Attendance' : 'Enable Attendance'}
               </button>
             )}
+
+            {currentBatch?.status === 'INACTIVE' && user?.role === 'admin' && (
+              <button 
+                onClick={handleExtendBatch}
+                className="px-4 py-2.5 rounded-xl font-bold text-sm transition-all bg-[#108c9f] text-white hover:bg-[#0e7c8c] shadow-md cursor-pointer border-none"
+              >
+                Extend Batch
+              </button>
+            )}
+
+
 
             <button className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer">
               <FiUpload size={16} /> Export

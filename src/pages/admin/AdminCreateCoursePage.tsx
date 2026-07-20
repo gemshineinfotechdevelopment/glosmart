@@ -10,8 +10,7 @@ export default function AdminCreateCoursePage() {
   const [formData, setFormData] = useState({
     courseName: '',
     skillLevels: ['Beginner'],
-    startDate: '',
-    endDate: '',
+    skillLevels: ['Beginner'],
     maxStudents: 30,
     status: 'Active',
     description: '',
@@ -60,8 +59,7 @@ export default function AdminCreateCoursePage() {
       setFormData({
         ...data,
         skillLevels: [data.skillLevel || 'Beginner'],
-        startDate: data.startDate ? new Date(data.startDate).toISOString().split('T')[0] : '',
-        endDate: data.endDate ? new Date(data.endDate).toISOString().split('T')[0] : '',
+        skillLevels: [data.skillLevel || 'Beginner'],
       });
     } catch (error) {
       console.error('Failed to fetch course', error);
@@ -205,28 +203,7 @@ export default function AdminCreateCoursePage() {
                 </div>
               </div>
 
-              <div className="col-span-2 grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
-                  <input 
-                    type="date" 
-                    name="startDate" 
-                    value={formData.startDate} 
-                    onChange={handleChange} 
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">End Date</label>
-                  <input 
-                    type="date" 
-                    name="endDate" 
-                    value={formData.endDate} 
-                    onChange={handleChange} 
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-                  />
-                </div>
-              </div>
+
 
               <div className="hidden">
                 <label className="block text-sm font-medium text-slate-700 mb-1">Course Fee (₹)</label>
