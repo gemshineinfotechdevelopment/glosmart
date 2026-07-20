@@ -17,6 +17,7 @@ const batchSchema = new mongoose.Schema({
   batchFee: { type: Number }, // Optional override
   classroom: { type: String },
   batchNotes: { type: String },
+  zoomLink: { type: String, default: '' },
   status: { type: String, enum: ['ACTIVE', 'UPCOMING', 'COMPLETED', 'WEEKEND', 'INACTIVE'], default: 'UPCOMING' },
   statusColor: { type: String, default: "bg-teal-500" },
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],

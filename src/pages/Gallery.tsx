@@ -22,7 +22,7 @@ export default function Gallery() {
   const [visibleCount, setVisibleCount] = useState(8);
   const [artworks, setArtworks] = useState<any[]>([]);
   const [featuredArtworks, setFeaturedArtworks] = useState<any[]>([]);
-  const [courseFilters, setCourseFilters] = useState<string[]>(['All Media', 'Paintings', 'Digital']);
+  const [courseFilters, setCourseFilters] = useState<string[]>(['All Media']);
   const [selectedArtwork, setSelectedArtwork] = useState<any | null>(null);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function Gallery() {
               .trim();
             return cleaned;
           }).filter(Boolean);
-          const uniqueFilters = Array.from(new Set(['All Media', 'Paintings', 'Digital', ...courseNames]));
+          const uniqueFilters = ['All Media', ...Array.from(new Set<string>(courseNames))];
           setCourseFilters(uniqueFilters);
         }
       })
