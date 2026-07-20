@@ -11,9 +11,7 @@ const batchSchema = new mongoose.Schema({
   startTime: { type: String },
   endTime: { type: String },
   days: [{ type: String }],
-  capacity: { type: Number, default: 30 },
   enrolledStudents: { type: Number, default: 0 },
-  availableSeats: { type: Number, default: 30 },
   batchFee: { type: Number }, // Optional override
   classroom: { type: String },
   batchNotes: { type: String },
@@ -41,11 +39,8 @@ const batchSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Pre-save hook to calculate availableSeats and auto-generate batchCode
+// Pre-save hook to auto-generate batchCode
 batchSchema.pre('save', async function () {
-  // Calculate available seats
-  this.availableSeats = Math.max(0, this.capacity - this.enrolledStudents);
-
   if (!this.isNew) {
     return;
   }

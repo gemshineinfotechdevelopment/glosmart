@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiCalendar, FiEdit2 } from 'react-icons/fi';
+import { FiPlus, FiEdit2 } from 'react-icons/fi';
 import { MdOutlineDashboard } from 'react-icons/md';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { useAuth } from '../../context/AuthContext';
@@ -10,7 +10,6 @@ export default function AdminCoursePage() {
   const { user } = useAuth();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('All Courses');
 
   useEffect(() => {
     fetchCourses();
@@ -30,12 +29,7 @@ export default function AdminCoursePage() {
     }
   };
 
-  const filteredCourses = courses.filter(c => {
-    if (filter === 'All Courses') return true;
-    if (filter === 'Active') return c.status === 'Active';
-    if (filter === 'Inactive') return c.status === 'Inactive';
-    return true;
-  });
+  const filteredCourses = courses;
 
   return (
     <div className="flex min-h-screen bg-[#f8f9fc] font-sans">
@@ -57,21 +51,7 @@ export default function AdminCoursePage() {
             )}
           </div>
 
-          <div className="flex items-center gap-3 mb-8 overflow-x-auto pb-2">
-            {['All Courses', 'Active', 'Inactive'].map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-6 py-2.5 rounded-full font-semibold whitespace-nowrap transition-colors text-sm ${
-                  filter === f 
-                    ? 'bg-[#4f39f6] text-white' 
-                    : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
-                }`}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
+
           {loading ? (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4f39f6]"></div>
@@ -118,20 +98,7 @@ export default function AdminCoursePage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
-                        <FiCalendar size={12} /> Start Date
-                      </div>
-                      <p className="text-sm font-bold text-slate-700">{course.startDate ? new Date(course.startDate).toLocaleDateString() : 'TBD'}</p>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
-                        <FiCalendar size={12} /> End Date
-                      </div>
-                      <p className="text-sm font-bold text-slate-700">{course.endDate ? new Date(course.endDate).toLocaleDateString() : 'TBD'}</p>
-                    </div>
-                  </div>
+
 
                   <div className="mt-auto pt-5 border-t border-slate-100 flex items-center justify-between">
                     <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 rounded-lg text-sm font-bold text-indigo-600 border border-indigo-100">

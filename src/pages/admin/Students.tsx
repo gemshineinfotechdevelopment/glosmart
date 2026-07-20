@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   FiSearch, FiCalendar, FiFilter, FiPlus, 
-  FiArrowRight, FiVideo,
-  FiUserPlus, FiX, FiSave, FiBookOpen,
+  FiArrowRight,
+  FiUserPlus, FiUser, FiX, FiSave, FiBookOpen,
   FiCheck, FiTrash2
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
@@ -25,7 +25,7 @@ const Students: React.FC = () => {
   };
 
   // Filter states
-  const [activeTab, setActiveTab] = useState<'All' | 'ACTIVE' | 'UPCOMING' | 'PENDING'>('All');
+  const [activeTab, setActiveTab] = useState<'All' | 'ACTIVE' | 'UPCOMING' | 'INACTIVE' | 'PENDING'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [courseFilter, setCourseFilter] = useState('');
@@ -230,6 +230,7 @@ const Students: React.FC = () => {
     const status = batch.status || 'UPCOMING';
     if (activeTab === 'ACTIVE' && status !== 'ACTIVE') return false;
     if (activeTab === 'UPCOMING' && status !== 'UPCOMING') return false;
+    if (activeTab === 'INACTIVE' && status !== 'INACTIVE') return false;
 
     // Search filter
     if (searchQuery) {
@@ -245,14 +246,14 @@ const Students: React.FC = () => {
       const cId = batch.courseId?._id || batch.courseId;
       if (cId !== courseFilter) return false;
     }
+    // Teacher filter
+    if (user?.role === 'teacher') {
+      if (batch.instructor !== user?.name) return false;
+    }
 
     return true;
   });
 
-  const totalCapacity = batches.reduce((acc, b) => acc + (b.capacity || 30), 0);
-  const totalEnrolled = batches.reduce((acc, b) => acc + (b.enrolledStudents || 0), 0);
-  const occupancyPercentage = totalCapacity > 0 ? Math.round((totalEnrolled / totalCapacity) * 100) : 0;
-  const strokeDashoffset = 251.2 - (251.2 * occupancyPercentage) / 100;
   return (
     <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800">
       
@@ -345,6 +346,16 @@ const Students: React.FC = () => {
               >
                 Upcoming
               </button>
+              <button 
+                onClick={() => setActiveTab('INACTIVE')}
+                className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all border-none cursor-pointer ${
+                  activeTab === 'INACTIVE'
+                    ? 'bg-white text-[#6247df] shadow-[0_2px_10px_rgb(0,0,0,0.04)]'
+                    : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                }`}
+              >
+                Inactive
+              </button>
               {(user?.role === 'admin' || user?.role === 'teacher') && (
                 <button 
                   onClick={() => setActiveTab('PENDING')}
@@ -400,7 +411,6 @@ const Students: React.FC = () => {
         {activeTab !== 'PENDING' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {displayedBatches.map((batch, index) => {
-              const enrollmentPercentage = Math.round(((batch.enrolledStudents || 0) / (batch.capacity || 30)) * 100);
               return (
                 <div key={batch._id || index} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
                   <div className="flex justify-between items-start mb-6">
@@ -424,14 +434,7 @@ const Students: React.FC = () => {
                   </div>
                   
                   <div className="mt-auto">
-                    <div className="flex justify-between items-end mb-2">
-                      <span className="text-xs font-bold text-slate-500">Enrollment: {batch.enrolledStudents || 0}/{batch.capacity || 30}</span>
-                      <span className="text-sm font-extrabold text-[#6247df]">{enrollmentPercentage}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-6">
-                      <div className={`h-full rounded-full ${batch.progressBg || 'bg-[#6247df]'}`} style={{ width: `${Math.min(enrollmentPercentage, 100)}%` }}></div>
-                    </div>
-                    
+
                     <div className="flex justify-between items-center pt-5 border-t border-slate-100">
                       <span className="text-[11px] font-bold text-slate-400">{batch.status === 'ACTIVE' ? 'Ongoing' : 'Upcoming'}</span>
                       <Link to={`/admin/students/${batch._id}`} className="text-[#6247df] text-sm font-bold flex items-center gap-1 hover:text-[#5035c9] no-underline">
@@ -450,7 +453,9 @@ const Students: React.FC = () => {
                       {students.filter(s => isStudentInBatch(s, batch)).length > 0 ? (
                         students.filter(s => isStudentInBatch(s, batch)).map(student => (
                           <div key={student._id || student.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
-                            <img src={student.avatar || "https://i.pravatar.cc/150?img=12"} alt={student.name} className="w-8 h-8 rounded-full object-cover" />
+                            <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                              <FiUser size={14} />
+                            </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-bold text-[#1c1c28] truncate">{student.name}</p>
                               <p className="text-[10px] text-slate-500 truncate">{student.email || student.phone}</p>
@@ -486,14 +491,16 @@ const Students: React.FC = () => {
                   students.filter(s => s.approvalStatus === 'PENDING').map(student => (
                     <tr key={student._id} className="text-slate-700 text-sm hover:bg-slate-50/50 transition-colors">
                       <td className="py-4 flex items-center gap-3">
-                        <img src={student.avatar || "https://i.pravatar.cc/150?img=12"} alt={student.name} className="w-10 h-10 rounded-full object-cover" />
+                        <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                          <FiUser size={18} />
+                        </div>
                         <div>
                           <p className="font-bold text-[#1c1c28]">{student.name}</p>
                           <p className="text-xs text-slate-400">{student.email}</p>
                         </div>
                       </td>
                       <td className="py-4 font-medium text-slate-500">
-                        {student.age} yrs / {student.gender}
+                        {student.age} yrs / {student.gender || 'Male'}
                       </td>
                       <td className="py-4 font-bold text-[#1c1c28]">
                         {student.course || 'Not selected'}
@@ -536,91 +543,7 @@ const Students: React.FC = () => {
           </div>
         )}
 
-        {/* Bottom Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Batch Performance Overview */}
-          <div className="lg:col-span-2 bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col md:flex-row gap-8 items-center">
-            <div className="flex-1">
-              <h3 className="text-[22px] font-extrabold text-[#1c1c28] mb-4">Batch Performance Overview</h3>
-              <p className="text-slate-500 font-medium text-[15px] leading-relaxed mb-8">
-                Aggregate student performance across all 12 active batches shows a 15% increase in certification rate this month.
-              </p>
-              
-              <div className="flex gap-4">
-                {/* Stat 1 */}
-                <div className="bg-[#f8f5ff] p-4 rounded-2xl flex-1 border border-purple-50">
-                  <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-1">TOTAL<br/>STUDENTS</p>
-                  <h4 className="text-4xl font-black text-[#6247df]">{students.length}</h4>
-                </div>
-                {/* Stat 2 */}
-                <div className="bg-[#fdf9f4] p-4 rounded-2xl flex-1 border border-orange-50">
-                  <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-1">AVG<br/>GRADE</p>
-                  <h4 className="text-4xl font-black text-[#b67323]">A-</h4>
-                </div>
-                {/* Stat 3 */}
-                <div className="bg-[#f2fbfb] p-4 rounded-2xl flex-1 border border-cyan-50">
-                  <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-1">RETENTION</p>
-                  <h4 className="text-4xl font-black text-[#108c9f]">94<span className="text-2xl">%</span></h4>
-                </div>
-              </div>
-            </div>
-            
-            {/* Circular Chart */}
-            <div className="shrink-0 w-48 h-48 relative flex items-center justify-center">
-              {/* Outer ring */}
-              <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
-                <circle 
-                  cx="50" cy="50" r="40" 
-                  fill="none" 
-                  stroke="#f1f5f9" 
-                  strokeWidth="12" 
-                />
-                <circle 
-                  cx="50" cy="50" r="40" 
-                  fill="none" 
-                  stroke="#6247df" 
-                  strokeWidth="12" 
-                  strokeDasharray="251.2" 
-                  strokeDashoffset={strokeDashoffset} 
-                  strokeLinecap="round" 
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-black text-[#1c1c28]">{occupancyPercentage}%</span>
-                <span className="text-[9px] font-bold text-slate-400 tracking-widest mt-1">FULL CAPACITY</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Campus Activity */}
-          <div className="bg-white rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col">
-            <div className="bg-slate-50 rounded-2xl mb-6 relative overflow-hidden group">
-              {/* Mockup of UI as image placeholder */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 to-transparent z-10"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80" 
-                alt="Campus Activity" 
-                className="w-full h-36 object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 z-20 flex items-center justify-center">
-                <div className="w-10 h-10 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center text-white">
-                  <FiVideo size={20} className="ml-1" />
-                </div>
-              </div>
-            </div>
-            
-            <h3 className="text-lg font-bold text-[#1c1c28] mb-3">Campus Activity</h3>
-            <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6 flex-1">
-              Live view of the main studio during the current Pencil Drawing batch session.
-            </p>
-            
-            <button className="text-[#6247df] text-sm font-bold flex items-center gap-2 hover:text-[#5035c9] w-fit">
-              Live Stream <FiVideo size={16} />
-            </button>
-          </div>
-
-        </div>
 
       </main>
 

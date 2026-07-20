@@ -6,8 +6,6 @@ const courseSchema = new mongoose.Schema({
   description: { type: String },
   skillLevel: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced'], default: 'Beginner' },
   thumbnailImage: { type: String },
-  startDate: { type: Date },
-  endDate: { type: Date },
   maxStudents: { type: Number, default: 30 },
   status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },
   batches: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Batch' }]

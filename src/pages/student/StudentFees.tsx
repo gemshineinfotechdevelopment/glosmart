@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiDownload, FiCheckCircle, FiAlertCircle, FiCreditCard } from 'react-icons/fi';
+import { FiDownload, FiCheckCircle, FiAlertCircle, FiCreditCard, FiUser } from 'react-icons/fi';
 
 interface ReceiptRow {
   invoiceNo: string;
@@ -126,6 +126,20 @@ const StudentFees: React.FC = () => {
       .catch(err => console.error('Error loading payments:', err));
   }, [user]);
 
+  const loadRazorpayScript = () => {
+    return new Promise<boolean>((resolve) => {
+      if ((window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   // Handle Payment Transaction & Enrollment Completion
   const handlePayment = async () => {
     if (!pendingEnrollment || !pendingBatch || !studentId) return;
@@ -133,31 +147,37 @@ const StudentFees: React.FC = () => {
     setPaying(true);
 
     try {
-      const invoiceNo = `#INV-${Math.floor(1000 + Math.random() * 9000)}`;
+      // 1. Load Razorpay script
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        alert('Razorpay SDK failed to load. Please check your internet connection.');
+        setPaying(false);
+        return;
+      }
+
+      // 2. Fetch Razorpay Key ID from backend
+      const keyRes = await fetch('http://localhost:5000/api/payments/razorpay-key');
+      if (!keyRes.ok) throw new Error('Failed to retrieve Razorpay Key ID');
+      const { keyId } = await keyRes.json();
+
       const feeNum = pendingBatch?.batchFee || pendingEnrollment?.courseFee || 4500;
-      const amount = `₹${feeNum.toLocaleString('en-IN')}`;
+      const amountStr = `₹${feeNum.toLocaleString('en-IN')}`;
       const description = pendingBatch 
         ? `${pendingEnrollment.courseName} - Batch: ${pendingBatch.batchName}`
         : `${pendingEnrollment.courseName} - Course Enrollment Fee`;
-      
-      // 1. Save payment receipt to backend
-      const paymentRes = await fetch('http://localhost:5000/api/payments', {
+
+      // 3. Create Razorpay order on backend
+      const orderRes = await fetch('http://localhost:5000/api/payments/razorpay-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          invoiceNo,
-          studentName,
-          avatar: studentAvatar,
-          course: description,
-          amount,
-          mode: 'UPI',
-          status: 'Successful'
-        })
+        body: JSON.stringify({ amount: feeNum })
       });
+      if (!orderRes.ok) throw new Error('Failed to initiate Razorpay order');
+      const orderData = await orderRes.json();
 
-      if (!paymentRes.ok) throw new Error('Payment creation failed');
+      const invoiceNo = `#INV-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      // 2. Add course to student enrolledCourses database record
+      // 4. Construct enrolled course object to pass to verify endpoint
       const newEnrolled = {
         courseId: pendingEnrollment._id,
         courseName: pendingEnrollment.courseName,
@@ -176,7 +196,7 @@ const StudentFees: React.FC = () => {
       };
 
       const updatedCourses = [...enrolledCourses, newEnrolled];
-      
+
       const updatePayload: any = { enrolledCourses: updatedCourses };
       if (pendingBatch) {
         updatePayload.batchId = pendingBatch._id;
@@ -189,40 +209,92 @@ const StudentFees: React.FC = () => {
           : pendingBatch.batchName;
       }
 
-      const studentRes = await fetch(`http://localhost:5000/api/students/${studentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...updatePayload, feeStatus: 'PAID' })
-      });
+      // 5. Open Razorpay checkout popup
+      const options = {
+        key: keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Glosmart Academy',
+        description: description,
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          try {
+            setPaying(true);
+            // Call verify API
+            const verifyRes = await fetch('http://localhost:5000/api/payments/razorpay-verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                studentId,
+                newEnrolledCourse: newEnrolled,
+                updatePayload,
+                paymentDetails: {
+                  invoiceNo,
+                  studentName,
+                  avatar: studentAvatar,
+                  course: description,
+                  amount: amountStr,
+                  mode: 'Razorpay'
+                }
+              })
+            });
 
-      if (!studentRes.ok) throw new Error('Enrollment update failed');
+            if (!verifyRes.ok) {
+              const errData = await verifyRes.json();
+              throw new Error(errData.message || 'Verification failed');
+            }
 
-      // 3. Update states
-      setEnrolledCourses(updatedCourses);
-      await refreshEnrollment();
-      
-      const newReceipt: ReceiptRow = {
-        invoiceNo,
-        item: description,
-        amount,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        method: 'UPI',
-        status: 'Successful'
+            // Verification successful! Update local client state
+            setEnrolledCourses(updatedCourses);
+            await refreshEnrollment();
+
+            const newReceipt: ReceiptRow = {
+              invoiceNo,
+              item: description,
+              amount: amountStr,
+              date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+              method: 'Razorpay',
+              status: 'Successful'
+            };
+            setReceipts((prev) => [newReceipt, ...prev]);
+
+            setToastMessage(`Payment of ${amountStr} successful! Enrolled in ${pendingEnrollment.courseName} (${pendingBatch.batchName}).`);
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 5000);
+
+            setPendingEnrollment(null);
+            setPendingBatch(null);
+            window.history.replaceState({}, document.title);
+          } catch (err: any) {
+            console.error('Error verifying payment:', err);
+            alert(`Payment verification failed: ${err.message || err}`);
+          } finally {
+            setPaying(false);
+          }
+        },
+        prefill: {
+          name: studentName,
+          email: user?.email || '',
+        },
+        theme: {
+          color: '#6247df',
+        },
+        modal: {
+          ondismiss: function () {
+            setPaying(false);
+          }
+        }
       };
-      setReceipts([newReceipt, ...receipts]);
 
-      setToastMessage(`Payment of ${amount} successful! Enrolled in ${pendingEnrollment.courseName} (${pendingBatch.batchName}).`);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 5000);
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
 
-      setPendingEnrollment(null);
-      setPendingBatch(null);
-      window.history.replaceState({}, document.title);
-      
     } catch (err) {
       console.error('Error completing payment:', err);
       alert('There was an issue processing your payment. Please try again.');
-    } finally {
       setPaying(false);
     }
   };
@@ -254,12 +326,12 @@ const StudentFees: React.FC = () => {
               <p className="text-[14px] font-bold text-slate-900 leading-none">{studentName}</p>
               <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • {studentGrade}</p>
             </div>
-            <img 
-              src={studentAvatar} 
-              alt={studentName} 
-              className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm cursor-pointer"
+            <div 
+              className="w-10 h-10 rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center border border-slate-200 shadow-sm cursor-pointer shrink-0"
               onClick={() => navigate('/student/profile')}
-            />
+            >
+              <FiUser size={20} />
+            </div>
           </div>
         </header>
 

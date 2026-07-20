@@ -3,10 +3,8 @@ import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  FiActivity, 
   FiBook, 
   FiClock, 
-  FiTrendingUp, 
   FiChevronRight, 
   FiVolume2, 
   FiUserCheck, 
@@ -246,12 +244,12 @@ const StudentDashboard: React.FC = () => {
               <p className="text-[14px] font-bold text-slate-900 leading-none">{student.name}</p>
               <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • {student.grade}</p>
             </div>
-            <img 
-              src={student.avatar} 
-              alt={student.name} 
-              className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm cursor-pointer"
+            <div 
+              className="w-10 h-10 rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center border border-slate-200 shadow-sm cursor-pointer shrink-0"
               onClick={() => navigate('/student/profile')}
-            />
+            >
+              <FiUser size={20} />
+            </div>
           </div>
         </header>        {/* Outer Dashboard Content Container */}
         <div className="px-6 lg:px-10 mt-8 space-y-8 flex-1">
@@ -606,25 +604,8 @@ const StudentDashboard: React.FC = () => {
               )}
 
               {/* Quick Stats Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 
-                {/* Stat 1: Attendance */}
-                <div 
-                  onClick={() => navigate('/student/attendance')}
-                  className="bg-white p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow group"
-                >
-                  <div>
-                    <span className="text-slate-400 font-bold text-xs uppercase tracking-wider">Attendance</span>
-                    <h3 className="text-2xl font-black text-slate-900 mt-1">{student.attendance}</h3>
-                    <span className="text-xs text-emerald-600 font-extrabold flex items-center gap-0.5 mt-1">
-                      <FiTrendingUp size={12} /> Excellent Standing
-                    </span>
-                  </div>
-                  <div className="p-4 bg-purple-50 text-[#4700b3] rounded-2xl group-hover:bg-[#4700b3] group-hover:text-white transition-colors duration-300">
-                    <FiActivity size={20} className="stroke-[2.5]" />
-                  </div>
-                </div>
-
                 {/* Stat 2: Active Courses */}
                 <div 
                   onClick={() => navigate('/student/courses')}
