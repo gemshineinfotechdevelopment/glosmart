@@ -22,6 +22,16 @@ export default function AdminCourseBatchesPage() {
 
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
+  // Zoom link inline state
+  const [zoomLinkInputs, setZoomLinkInputs] = useState<Record<string, string>>({});
+  const [savingZoomBatch, setSavingZoomBatch] = useState<string | null>(null);
+  const [zoomStatus, setZoomStatus] = useState<Record<string, 'active' | 'inactive' | 'empty' | null>>({});
+
+  // Deactivate Session Report Modal state
+  const [deactivateBatchModal, setDeactivateBatchModal] = useState<any>(null);
+  const [sessionReportDescription, setSessionReportDescription] = useState('');
+  const [submittingReport, setSubmittingReport] = useState(false);
+
   const [formData, setFormData] = useState({
     batchName: '',
     instructor: '',
@@ -75,13 +85,19 @@ export default function AdminCourseBatchesPage() {
       setCourse(courseData);
 
       const batchesRes = await fetch(`http://localhost:5000/api/batches/course/${id}`);
-      let batchesData = await batchesRes.json();
-      
-      if (user?.role === 'teacher' && user?.name) {
-        batchesData = batchesData.filter((b: any) => b.instructor === user.name);
-      }
-      
+      const batchesData = await batchesRes.json();
+
       setBatches(batchesData);
+
+      // Initialize inline zoom link inputs and status from fetched batches
+      const initialZoomInputs: Record<string, string> = {};
+      const initialZoomStatus: Record<string, 'active' | 'inactive' | null> = {};
+      batchesData.forEach((b: any) => { 
+        initialZoomInputs[b._id] = b.zoomLink || ''; 
+        initialZoomStatus[b._id] = b.isZoomActive ? 'active' : (b.zoomLink ? 'inactive' : null);
+      });
+      setZoomLinkInputs(initialZoomInputs);
+      setZoomStatus(initialZoomStatus);
 
       const teachersRes = await fetch('http://localhost:5000/api/teachers');
       const teachersData = await teachersRes.json();
@@ -218,6 +234,130 @@ export default function AdminCourseBatchesPage() {
     setTimeout(() => setCopiedLink(null), 2000);
   };
 
+  const handleSaveZoomLink = async (batch: any, activate: boolean) => {
+    const linkValue = zoomLinkInputs[batch._id]?.trim();
+    if (!linkValue) {
+      setZoomStatus(prev => ({ ...prev, [batch._id]: 'empty' }));
+      return;
+    }
+
+    if (activate) {
+      // Activating Zoom Link: set status = ACTIVE, isZoomActive = true, zoomActivatedAt = new Date()
+      setSavingZoomBatch(batch._id);
+      try {
+        const payload = {
+          ...batch,
+          zoomLink: linkValue,
+          isZoomActive: true,
+          zoomActivatedAt: new Date().toISOString(),
+          status: 'ACTIVE',
+        };
+        const res = await fetch(`http://localhost:5000/api/batches/${batch._id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          setZoomStatus(prev => ({ ...prev, [batch._id]: 'active' }));
+          fetchData();
+        } else {
+          alert('Failed to save zoom link');
+        }
+      } catch (err) {
+        console.error('Error saving zoom link', err);
+      } finally {
+        setSavingZoomBatch(null);
+      }
+    } else {
+      // Deactivating Zoom Link
+      if (user?.role === 'teacher') {
+        // Teachers: Open Deactivate Report Modal Popup to send report to Admin!
+        setDeactivateBatchModal(batch);
+        setSessionReportDescription('');
+      } else {
+        // Admins: Deactivate directly without sending a report
+        setSavingZoomBatch(batch._id);
+        try {
+          const payload = {
+            ...batch,
+            zoomLink: linkValue,
+            isZoomActive: false,
+            zoomActivatedAt: null,
+            status: 'UPCOMING',
+          };
+          const res = await fetch(`http://localhost:5000/api/batches/${batch._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (res.ok) {
+            setZoomStatus(prev => ({ ...prev, [batch._id]: 'inactive' }));
+            fetchData();
+          } else {
+            alert('Failed to save zoom link');
+          }
+        } catch (err) {
+          console.error('Error saving zoom link', err);
+        } finally {
+          setSavingZoomBatch(null);
+        }
+      }
+    }
+  };
+
+  const handleSubmitDeactivationReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deactivateBatchModal) return;
+
+    const linkValue = zoomLinkInputs[deactivateBatchModal._id]?.trim() || deactivateBatchModal.zoomLink || '';
+
+    setSubmittingReport(true);
+    try {
+      // 1. Submit Tutor Report to /api/tutor-reports
+      const reportPayload = {
+        teacherName: user?.name || (user?.role === 'teacher' ? 'Tutor User' : 'Admin User'),
+        courseName: course?.courseName || deactivateBatchModal.courseName || 'Art Course',
+        batchName: deactivateBatchModal.batchName,
+        batchCode: deactivateBatchModal.batchCode || '',
+        zoomLink: linkValue,
+        activatedAt: deactivateBatchModal.zoomActivatedAt || new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+        deactivatedAt: new Date().toISOString(),
+        description: sessionReportDescription.trim() || 'No session notes provided.'
+      };
+
+      await fetch('http://localhost:5000/api/tutor-reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reportPayload)
+      });
+
+      // 2. Update Batch to deactivate Zoom link
+      const batchPayload = {
+        ...deactivateBatchModal,
+        zoomLink: linkValue,
+        isZoomActive: false,
+        zoomActivatedAt: null,
+        status: 'UPCOMING'
+      };
+
+      await fetch(`http://localhost:5000/api/batches/${deactivateBatchModal._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(batchPayload)
+      });
+
+      setZoomStatus(prev => ({ ...prev, [deactivateBatchModal._id]: 'inactive' }));
+      setDeactivateBatchModal(null);
+      setSessionReportDescription('');
+      fetchData();
+    } catch (err) {
+      console.error('Error submitting deactivation report', err);
+      alert('Failed to submit report and deactivate link.');
+    } finally {
+      setSubmittingReport(false);
+    }
+  };
+
   // Assignment handlers
   const handleAddAssignment = async (batchId: string) => {
     const text = assignmentInputs[batchId]?.trim();
@@ -343,45 +483,84 @@ export default function AdminCourseBatchesPage() {
                     </div>
                   </div>
 
-                  {/* Zoom Link Display / Add Prompt */}
-                  {batch.zoomLink ? (
-                    <div className="flex items-center gap-2 mb-4 p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
-                      <FiVideo className="text-indigo-600 shrink-0" size={16} />
-                      <a
-                        href={batch.zoomLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-indigo-600 hover:text-indigo-800 truncate flex-1 font-medium"
-                        title={batch.zoomLink}
-                      >
-                        {batch.zoomLink.length > 45 ? batch.zoomLink.substring(0, 45) + '...' : batch.zoomLink}
-                      </a>
-                      <button
-                        onClick={() => handleCopyLink(batch.zoomLink, batch._id)}
-                        className="p-1.5 text-indigo-400 hover:text-indigo-700 hover:bg-indigo-100 rounded transition-colors bg-transparent border-none cursor-pointer shrink-0"
-                        title="Copy link"
-                      >
-                        {copiedLink === batch._id ? <FiCopy className="text-emerald-600" size={14} /> : <FiCopy size={14} />}
-                      </button>
-                      {copiedLink === batch._id && (
-                        <span className="text-xs text-emerald-600 font-medium">Copied!</span>
-                      )}
-                    </div>
-                  ) : (
-                    (user?.role === 'admin' || user?.role === 'teacher') && (
-                      <div className="flex items-center justify-between gap-2 mb-4 p-3 bg-slate-50 border border-slate-200 border-dashed rounded-lg">
-                        <div className="flex items-center gap-2 text-slate-550">
-                          <FiVideo size={16} />
-                          <span className="text-xs font-semibold">No Zoom link added yet</span>
+                  {/* Zoom Link — Inline Input */}
+                  {(user?.role === 'admin' || user?.role === 'teacher') && (
+                    <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <FiVideo className="text-indigo-600" size={14} />
+                        <span className="text-xs font-semibold text-slate-600">Zoom Link</span>
+                        {batch.zoomLink && (
+                          <>
+                            <button
+                              onClick={() => handleCopyLink(batch.zoomLink, batch._id)}
+                              className="ml-auto p-1 text-indigo-400 hover:text-indigo-700 hover:bg-indigo-100 rounded transition-colors bg-transparent border-none cursor-pointer"
+                              title="Copy link"
+                            >
+                              <FiCopy size={13} />
+                            </button>
+                            {copiedLink === batch._id && (
+                              <span className="text-[10px] text-emerald-600 font-semibold">Copied!</span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <div className="relative mb-2">
+                        <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                          <FiLink className="text-slate-400" size={13} />
                         </div>
+                        <input
+                          type="url"
+                          value={zoomLinkInputs[batch._id] ?? ''}
+                          onChange={(e) => {
+                            setZoomLinkInputs(prev => ({ ...prev, [batch._id]: e.target.value }));
+                            if (zoomStatus[batch._id] === 'empty') {
+                              setZoomStatus(prev => ({ ...prev, [batch._id]: null }));
+                            }
+                          }}
+                          placeholder="https://zoom.us/j/..."
+                          className="w-full pl-7 pr-3 py-1.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none text-xs bg-white"
+                        />
+                      </div>
+                      <div className="flex gap-2">
                         <button
-                          onClick={() => openEditModal(batch)}
-                          className="px-2.5 py-1 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded transition-colors border-none cursor-pointer"
+                          onClick={() => handleSaveZoomLink(batch, false)}
+                          disabled={savingZoomBatch === batch._id}
+                          className="flex-1 py-1.5 text-xs font-semibold border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-60"
                         >
-                          + Add Link
+                          Deactivate
+                        </button>
+                        <button
+                          onClick={() => handleSaveZoomLink(batch, true)}
+                          disabled={savingZoomBatch === batch._id}
+                          className="flex-1 py-1.5 text-xs font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer disabled:opacity-60"
+                        >
+                          {savingZoomBatch === batch._id ? 'Saving...' : 'Activate'}
                         </button>
                       </div>
-                    )
+
+                      {/* Status feedback after action */}
+                      {zoomStatus[batch._id] === 'empty' && (
+                        <div className="mt-2 flex items-center gap-1.5 text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
+                          <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                          <span className="text-[11px] font-bold">Please fill out the Zoom link field before activating or deactivating!</span>
+                        </div>
+                      )}
+                      {zoomStatus[batch._id] === 'active' && (
+                        <div className="mt-2 flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
+                          <span className="relative flex h-2 w-2 shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                          <span className="text-[11px] font-bold">Link is Active — students can see the Zoom link</span>
+                        </div>
+                      )}
+                      {zoomStatus[batch._id] === 'inactive' && (
+                        <div className="mt-2 flex items-center gap-1.5 text-slate-500 bg-slate-100 border border-slate-200 rounded-lg px-3 py-1.5">
+                          <span className="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
+                          <span className="text-[11px] font-bold">Link is Deactivated — hidden from students</span>
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {/* Assignments Section */}
@@ -483,7 +662,8 @@ export default function AdminCourseBatchesPage() {
 
       </div>
 
-      {/* Modal Form */}
+
+      {/* Batch Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -609,6 +789,102 @@ export default function AdminCourseBatchesPage() {
                 </button>
                 <button type="submit" className="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
                   Save Batch
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Deactivate Class Session Report Modal */}
+      {deactivateBatchModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-100 animate-[fadeIn_0.15s_ease-out]">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-5 bg-gradient-to-r from-purple-900/5 via-indigo-900/5 to-purple-900/5 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-rose-50 text-rose-600 rounded-2xl">
+                  <FiVideo size={20} />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-lg">Deactivate Session & Submit Report</h3>
+                  <p className="text-xs text-slate-500 font-medium">Record session notes and end live class for students</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeactivateBatchModal(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 hover:bg-slate-200 flex items-center justify-center border-none cursor-pointer transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSubmitDeactivationReport} className="p-6 md:p-8 space-y-5">
+              {/* Batch & Time Metadata Card */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <div>
+                  <span className="text-slate-400 font-bold block mb-0.5">Course</span>
+                  <span className="font-extrabold text-slate-800 truncate block">{course?.courseName || 'Art Course'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-bold block mb-0.5">Batch</span>
+                  <span className="font-extrabold text-slate-800 truncate block">{deactivateBatchModal.batchName}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-bold block mb-0.5">Session Activated</span>
+                  <span className="font-bold text-emerald-600">
+                    {deactivateBatchModal.zoomActivatedAt 
+                      ? new Date(deactivateBatchModal.zoomActivatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      : 'Earlier Today'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-bold block mb-0.5">Deactivation Time</span>
+                  <span className="font-bold text-rose-600">
+                    {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Description Input */}
+              <div>
+                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+                  Session Description / Class Summary <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={sessionReportDescription}
+                  onChange={(e) => setSessionReportDescription(e.target.value)}
+                  placeholder="What happened during this course and batch session? (e.g. Topics covered, student questions, exercises completed, next class preview)..."
+                  className="w-full p-4 border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-400 outline-none transition-all resize-none text-slate-800 font-medium"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="pt-3 border-t border-slate-100 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDeactivateBatchModal(null)}
+                  className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingReport || !sessionReportDescription.trim()}
+                  className="flex-1 py-3 rounded-xl bg-rose-600 text-white font-bold text-xs hover:bg-rose-700 transition-colors cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {submittingReport ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Submitting Report...
+                    </>
+                  ) : (
+                    'Submit Report & Deactivate'
+                  )}
                 </button>
               </div>
             </form>

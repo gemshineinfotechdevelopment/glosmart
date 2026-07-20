@@ -217,7 +217,7 @@ const StudentCourses: React.FC = () => {
 
   // Check if a batch class is currently live
   const isBatchLive = (batch: any): boolean => {
-    if (!batch.zoomLink || batch.status !== 'ACTIVE') return false;
+    if (!batch.zoomLink || batch.isZoomActive === false || batch.status !== 'ACTIVE') return false;
     if (!batch.days || batch.days.length === 0 || !batch.startTime || !batch.endTime) return false;
 
     const now = new Date();
@@ -438,7 +438,7 @@ const StudentCourses: React.FC = () => {
                                       )}
                                     </div>
                                     {/* Zoom Join Button */}
-                                    {batch.zoomLink && (
+                                    {batch.zoomLink && batch.isZoomActive !== false && batch.status === 'ACTIVE' && (
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();

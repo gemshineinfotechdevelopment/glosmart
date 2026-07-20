@@ -18,6 +18,8 @@ const batchSchema = new mongoose.Schema({
   classroom: { type: String },
   batchNotes: { type: String },
   zoomLink: { type: String, default: '' },
+  isZoomActive: { type: Boolean, default: false },
+  zoomActivatedAt: { type: Date },
   status: { type: String, enum: ['ACTIVE', 'UPCOMING', 'COMPLETED', 'WEEKEND', 'INACTIVE'], default: 'UPCOMING' },
   statusColor: { type: String, default: "bg-teal-500" },
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],

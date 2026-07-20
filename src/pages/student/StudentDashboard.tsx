@@ -16,12 +16,20 @@ import {
   FiCreditCard,
   FiImage,
   FiStar,
-  FiVideo
+  FiVideo,
+  FiLink
 } from 'react-icons/fi';
 
 const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Ticking clock — updates every minute so time-based banners refresh automatically
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Student state
   const [student, setStudent] = useState({
@@ -34,9 +42,13 @@ const StudentDashboard: React.FC = () => {
   });
 
   useEffect(() => {
-    const profileId = user?.profileId || 'first';
+    const profileId = user?.profileId;
+    if (!profileId) return; // no valid ID — skip fetch, show defaults
     fetch(`http://127.0.0.1:5000/api/students/${profileId}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         if (data) {
           let finalAttendance = '0 Days';
@@ -45,7 +57,7 @@ const StudentDashboard: React.FC = () => {
           } else {
             const records = data.attendanceRecords || [];
             if (records.length > 0) {
-              const presentOrLate = records.filter((r: any) => 
+              const presentOrLate = records.filter((r: any) =>
                 r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late'
               ).length;
               finalAttendance = presentOrLate + ' Days';
@@ -73,7 +85,7 @@ const StudentDashboard: React.FC = () => {
 
     const fetchBatches = async () => {
       try {
-        const coursesRes = await fetch('http://localhost:5000/api/courses');
+        const coursesRes = await fetch('http://localhost:5000/api/courses', { cache: 'no-store' });
         const coursesData = await coursesRes.json();
         const allCourses = coursesData.courses || [];
 
@@ -84,10 +96,14 @@ const StudentDashboard: React.FC = () => {
           );
           if (matched) {
             try {
-              const batchRes = await fetch(`http://localhost:5000/api/batches/course/${matched._id}`);
+              const batchRes = await fetch(
+                `http://localhost:5000/api/batches/course/${matched._id}`,
+                { cache: 'no-store' }
+              );
               const batchData = await batchRes.json();
               for (const b of batchData) {
-                if (b.zoomLink) {
+                // Only include ACTIVE batches with an active zoom link — deactivated batches are excluded
+                if (b.zoomLink && b.isZoomActive !== false && b.status === 'ACTIVE') {
                   allBatches.push({ ...b, courseName: ec.courseName });
                 }
               }
@@ -105,12 +121,12 @@ const StudentDashboard: React.FC = () => {
     fetchBatches();
   }, [student.enrolledCourses]);
 
+
   // Check if a batch class is currently live
   const isBatchLive = (batch: any): boolean => {
-    if (!batch.zoomLink || batch.status !== 'ACTIVE') return false;
+    if (!batch.zoomLink || batch.isZoomActive === false || batch.status !== 'ACTIVE') return false;
     if (!batch.days || batch.days.length === 0 || !batch.startTime || !batch.endTime) return false;
 
-    const now = new Date();
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const todayName = dayNames[now.getDay()];
 
@@ -125,7 +141,23 @@ const StudentDashboard: React.FC = () => {
     return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
   };
 
+  // Returns true if today is a class day AND the class has already ended
+  const isBatchEnded = (batch: any): boolean => {
+    if (!batch.days || batch.days.length === 0 || !batch.endTime) return false;
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const todayName = dayNames[now.getDay()];
+    if (!batch.days.includes(todayName)) return false; // not a class day today — not ended
+    const [endH, endM] = batch.endTime.split(':').map(Number);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const endMinutes = endH * 60 + endM;
+    return currentMinutes > endMinutes;
+  };
+
   const currentLiveBatches = liveBatches.filter(isBatchLive);
+  // ACTIVE batches with zoom link — not currently live AND not already ended today
+  const activeLinkBatches = liveBatches.filter(
+    b => b.status === 'ACTIVE' && b.isZoomActive !== false && b.zoomLink && !isBatchLive(b) && !isBatchEnded(b)
+  );
 
   // Derive Schedule Timeline dynamically
   const schedule = student.enrolledCourses.length > 0
@@ -502,6 +534,40 @@ const StudentDashboard: React.FC = () => {
           ) : (
             // REGULAR USER DASHBOARD CONTENT
             <>
+              {/* Zoom Link Reminder — Active but not live right now */}
+              {activeLinkBatches.length > 0 && (
+                <div className="space-y-3">
+                  {activeLinkBatches.map((batch: any) => (
+                    <div
+                      key={batch._id + '-reminder'}
+                      className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white p-4 md:p-5 rounded-2xl shadow-lg shadow-indigo-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
+                          <FiLink size={20} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-extrabold tracking-tight">Zoom Link Available</span>
+                            <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-full">ACTIVE</span>
+                          </div>
+                          <p className="text-indigo-100 text-xs font-semibold mt-0.5">
+                            {batch.courseName} — {batch.batchName} · {batch.startTime} - {batch.endTime}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => window.open(batch.zoomLink, '_blank', 'noopener,noreferrer')}
+                        className="bg-white text-indigo-700 font-bold text-xs px-5 py-2.5 rounded-xl hover:bg-indigo-50 transition-colors shadow-sm border-none cursor-pointer flex items-center gap-2 shrink-0"
+                      >
+                        <FiVideo size={14} />
+                        Open Zoom
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Live Class Banner */}
               {currentLiveBatches.length > 0 && (
                 <div className="space-y-3">

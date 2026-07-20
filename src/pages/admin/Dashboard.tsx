@@ -39,7 +39,9 @@ const Dashboard: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
           <div>
             <h2 className="text-3xl font-extrabold text-[#1c1c28] mb-1">Academy Overview</h2>
-            <p className="text-slate-500 font-medium">Welcome back, Admin. Here's what's happening today.</p>
+            <p className="text-slate-500 font-medium">
+              Welcome back, {user?.name ? user.name : (user?.role === 'teacher' ? 'Tutor' : 'Admin')}. Here's what's happening today.
+            </p>
           </div>
           <div className="flex gap-3">
             <button className="bg-slate-200/50 text-[#1c1c28] px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">

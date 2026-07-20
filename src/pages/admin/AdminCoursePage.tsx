@@ -18,11 +18,9 @@ export default function AdminCoursePage() {
 
   const fetchCourses = async () => {
     try {
-      let url = 'http://localhost:5000/api/courses';
-      if (user?.role === 'teacher' && user?.name) {
-        url += `?instructor=${encodeURIComponent(user.name)}`;
-      }
-      const response = await fetch(url);
+      // Both admin and teacher see all courses.
+      // Batch-level filtering (instructor === user.name) handles what teachers see inside each course.
+      const response = await fetch('http://localhost:5000/api/courses');
       const data = await response.json();
       setCourses(data.courses || []);
     } catch (error) {
@@ -49,7 +47,7 @@ export default function AdminCoursePage() {
               <h1 className="text-3xl font-bold text-slate-800 mb-2">Course Management</h1>
               <p className="text-slate-500">Streamline academy operations: track active batches, monitor teacher performance, and manage student enrollment schedules.</p>
             </div>
-            {user?.role === 'admin' && (
+            {(user?.role === 'admin' || user?.role === 'teacher') && (
               <button 
                 onClick={() => navigate('/admin/courses/new')}
                 className="flex items-center gap-2 px-6 py-3 bg-[#4f39f6] text-white rounded-full hover:bg-indigo-700 transition-colors font-semibold shadow-md shadow-indigo-200 shrink-0"
@@ -100,7 +98,7 @@ export default function AdminCoursePage() {
                       {course.courseCode}
                     </span>
                   </div>
-                  {user?.role === 'admin' && (
+                  {(user?.role === 'admin' || user?.role === 'teacher') && (
                     <button className="absolute top-4 right-4 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-600 hover:text-indigo-600 shadow-sm" onClick={(e) => { e.stopPropagation(); navigate(`/admin/courses/edit/${course._id}`); }}>
                       <FiEdit2 size={14} />
                     </button>
@@ -145,7 +143,7 @@ export default function AdminCoursePage() {
             ))}
 
             {/* New Course Card */}
-            {user?.role === 'admin' && (
+            {(user?.role === 'admin' || user?.role === 'teacher') && (
               <div 
                 onClick={() => navigate('/admin/courses/new')}
                 className="bg-white rounded-2xl shadow-sm border border-dashed border-slate-300 flex flex-col items-center justify-center p-8 text-center cursor-pointer hover:border-[#4f39f6] hover:bg-slate-50 transition-colors min-h-[440px] group"
