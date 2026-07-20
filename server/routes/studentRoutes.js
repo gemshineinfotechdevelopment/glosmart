@@ -162,8 +162,8 @@ router.post('/', async (req, res) => {
     const newStudent = new Student(req.body);
     const savedStudent = await newStudent.save();
 
-    // Increment students count in Batch when student is enrolled in a batch
-    if (savedStudent.batchId || savedStudent.batch) {
+    // Increment students count in Batch when student is enrolled in a batch (and approved!)
+    if (savedStudent.approvalStatus !== 'PENDING' && (savedStudent.batchId || savedStudent.batch)) {
       const query = savedStudent.batchId ? { _id: savedStudent.batchId } : { batchName: savedStudent.batch };
       await Batch.findOneAndUpdate(
         query,
@@ -200,37 +200,82 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
 
+    const wasPending = oldStudent.approvalStatus === 'PENDING';
+    const isNowApproved = req.body.approvalStatus === 'APPROVED';
+
     const updatedStudent = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
     
-    // If the batch changed, update the student counts on the batches
-    const oldBatchId = oldStudent.batchId ? oldStudent.batchId.toString() : oldStudent.batch;
-    const newBatchId = req.body.batchId ? req.body.batchId.toString() : req.body.batch;
-    
-    if (newBatchId && newBatchId !== oldBatchId) {
-      if (oldBatchId) {
-        const oldQuery = mongoose.Types.ObjectId.isValid(oldBatchId) ? { _id: oldBatchId } : { batchName: oldBatchId };
+    // If the student transitioned from PENDING to APPROVED, enroll them in their batch
+    if (wasPending && isNowApproved) {
+      const batchId = updatedStudent.batchId || updatedStudent.batch;
+      if (batchId) {
+        const query = mongoose.Types.ObjectId.isValid(batchId) ? { _id: batchId } : { batchName: batchId };
         await Batch.findOneAndUpdate(
-          oldQuery,
+          query,
           { 
-            $inc: { enrolledStudents: -1 },
-            $pull: { students: updatedStudent._id }
+            $inc: { enrolledStudents: 1 },
+            $push: { students: updatedStudent._id }
           }
         );
       }
+    } else if (updatedStudent.approvalStatus === 'APPROVED') {
+      // If approved, update batch enrollment counts if batch changed
+      const oldBatchId = oldStudent.batchId ? oldStudent.batchId.toString() : oldStudent.batch;
+      const newBatchId = req.body.batchId ? req.body.batchId.toString() : req.body.batch;
       
-      const newQuery = mongoose.Types.ObjectId.isValid(newBatchId) ? { _id: newBatchId } : { batchName: newBatchId };
-      await Batch.findOneAndUpdate(
-        newQuery,
-        { 
-          $inc: { enrolledStudents: 1 },
-          $push: { students: updatedStudent._id }
+      if (newBatchId && newBatchId !== oldBatchId) {
+        if (oldBatchId) {
+          const oldQuery = mongoose.Types.ObjectId.isValid(oldBatchId) ? { _id: oldBatchId } : { batchName: oldBatchId };
+          await Batch.findOneAndUpdate(
+            oldQuery,
+            { 
+              $inc: { enrolledStudents: -1 },
+              $pull: { students: updatedStudent._id }
+            }
+          );
         }
-      );
+        
+        const newQuery = mongoose.Types.ObjectId.isValid(newBatchId) ? { _id: newBatchId } : { batchName: newBatchId };
+        await Batch.findOneAndUpdate(
+          newQuery,
+          { 
+            $inc: { enrolledStudents: 1 },
+            $push: { students: updatedStudent._id }
+          }
+        );
+      }
     }
 
     res.json(updatedStudent);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+// DELETE student by ID
+router.delete('/:id', async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    
+    // Decrement enrollment count in Batch when student is deleted
+    if (student.batchId || student.batch) {
+      const query = student.batchId ? { _id: student.batchId } : { batchName: student.batch };
+      await Batch.findOneAndUpdate(
+        query,
+        { 
+          $inc: { enrolledStudents: -1 },
+          $pull: { students: student._id }
+        }
+      );
+    }
+    
+    await Student.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Student deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

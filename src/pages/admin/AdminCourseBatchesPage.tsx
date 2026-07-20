@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FiPlus, FiArrowLeft, FiEdit2, FiTrash2, FiClock, FiCalendar, FiFileText, FiX } from 'react-icons/fi';
+import { FiPlus, FiArrowLeft, FiEdit2, FiTrash2, FiClock, FiCalendar, FiFileText, FiX, FiVideo, FiCopy, FiLink } from 'react-icons/fi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { useAuth } from '../../context/AuthContext';
 
@@ -20,6 +20,8 @@ export default function AdminCourseBatchesPage() {
   const [assignmentInputs, setAssignmentInputs] = useState<Record<string, string>>({});
   const [savingAssignment, setSavingAssignment] = useState<string | null>(null);
 
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     batchName: '',
     instructor: '',
@@ -31,7 +33,8 @@ export default function AdminCourseBatchesPage() {
     days: [] as string[],
     status: 'UPCOMING',
     batchFee: '',
-    image: ''
+    image: '',
+    zoomLink: ''
   });
   const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -165,7 +168,8 @@ export default function AdminCourseBatchesPage() {
       days: [] as string[],
       status: 'UPCOMING',
       batchFee: '',
-      image: ''
+      image: '',
+      zoomLink: ''
     });
   };
 
@@ -182,9 +186,36 @@ export default function AdminCourseBatchesPage() {
       days: batch.days || ([] as string[]),
       status: batch.status || 'UPCOMING',
       batchFee: batch.batchFee?.toString() || '',
-      image: batch.image || ''
+      image: batch.image || '',
+      zoomLink: batch.zoomLink || ''
     });
     setShowModal(true);
+  };
+
+  // Check if a batch class is currently live
+  const isBatchLive = (batch: any): boolean => {
+    if (!batch.zoomLink || batch.status !== 'ACTIVE') return false;
+    if (!batch.days || batch.days.length === 0 || !batch.startTime || !batch.endTime) return false;
+
+    const now = new Date();
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const todayName = dayNames[now.getDay()];
+
+    if (!batch.days.includes(todayName)) return false;
+
+    const [startH, startM] = batch.startTime.split(':').map(Number);
+    const [endH, endM] = batch.endTime.split(':').map(Number);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+
+    return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+  };
+
+  const handleCopyLink = (link: string, batchId: string) => {
+    navigator.clipboard.writeText(link);
+    setCopiedLink(batchId);
+    setTimeout(() => setCopiedLink(null), 2000);
   };
 
   // Assignment handlers
@@ -251,7 +282,7 @@ export default function AdminCourseBatchesPage() {
                 </h1>
                 <p className="text-slate-500 mt-1">Manage schedules, instructors, and assignments.</p>
               </div>
-              {user?.role === 'admin' && (
+              {(user?.role === 'admin' || user?.role === 'teacher') && (
                 <button 
                   onClick={() => { resetForm(); setEditingBatch(null); setShowModal(true); }}
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
@@ -263,7 +294,7 @@ export default function AdminCourseBatchesPage() {
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {batches.map(batch => (
-                <div key={batch._id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                <div key={batch._id} className={`bg-white rounded-xl shadow-sm border p-6 flex flex-col ${isBatchLive(batch) ? 'border-emerald-300 ring-2 ring-emerald-100' : 'border-slate-200'}`}>
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex gap-4">
                       {batch.image && (
@@ -277,14 +308,25 @@ export default function AdminCourseBatchesPage() {
                         <p className="text-sm text-slate-500">Instructor: {batch.instructor || 'Unassigned'}</p>
                       </div>
                     </div>
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                      batch.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
-                      batch.status === 'UPCOMING' ? 'bg-blue-100 text-blue-700' :
-                      batch.status === 'COMPLETED' ? 'bg-slate-100 text-slate-700' :
-                      'bg-orange-100 text-orange-700'
-                    }`}>
-                      {batch.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {isBatchLive(batch) && (
+                        <span className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                          Live Now
+                        </span>
+                      )}
+                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                        batch.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
+                        batch.status === 'UPCOMING' ? 'bg-blue-100 text-blue-700' :
+                        batch.status === 'COMPLETED' ? 'bg-slate-100 text-slate-700' :
+                        'bg-orange-100 text-orange-700'
+                      }`}>
+                        {batch.status}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="space-y-3 mb-4">
@@ -301,8 +343,49 @@ export default function AdminCourseBatchesPage() {
                     </div>
                   </div>
 
+                  {/* Zoom Link Display / Add Prompt */}
+                  {batch.zoomLink ? (
+                    <div className="flex items-center gap-2 mb-4 p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
+                      <FiVideo className="text-indigo-600 shrink-0" size={16} />
+                      <a
+                        href={batch.zoomLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-indigo-600 hover:text-indigo-800 truncate flex-1 font-medium"
+                        title={batch.zoomLink}
+                      >
+                        {batch.zoomLink.length > 45 ? batch.zoomLink.substring(0, 45) + '...' : batch.zoomLink}
+                      </a>
+                      <button
+                        onClick={() => handleCopyLink(batch.zoomLink, batch._id)}
+                        className="p-1.5 text-indigo-400 hover:text-indigo-700 hover:bg-indigo-100 rounded transition-colors bg-transparent border-none cursor-pointer shrink-0"
+                        title="Copy link"
+                      >
+                        {copiedLink === batch._id ? <FiCopy className="text-emerald-600" size={14} /> : <FiCopy size={14} />}
+                      </button>
+                      {copiedLink === batch._id && (
+                        <span className="text-xs text-emerald-600 font-medium">Copied!</span>
+                      )}
+                    </div>
+                  ) : (
+                    (user?.role === 'admin' || user?.role === 'teacher') && (
+                      <div className="flex items-center justify-between gap-2 mb-4 p-3 bg-slate-50 border border-slate-200 border-dashed rounded-lg">
+                        <div className="flex items-center gap-2 text-slate-550">
+                          <FiVideo size={16} />
+                          <span className="text-xs font-semibold">No Zoom link added yet</span>
+                        </div>
+                        <button
+                          onClick={() => openEditModal(batch)}
+                          className="px-2.5 py-1 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded transition-colors border-none cursor-pointer"
+                        >
+                          + Add Link
+                        </button>
+                      </div>
+                    )
+                  )}
+
                   {/* Assignments Section */}
-                  {user?.role === 'admin' && (
+                  {(user?.role === 'admin' || user?.role === 'teacher') && (
                     <div className="border-t border-slate-100 pt-4 mt-auto">
                       <div className="flex items-center gap-2 mb-3">
                         <FiFileText className="text-indigo-600" size={16} />
@@ -368,7 +451,7 @@ export default function AdminCourseBatchesPage() {
                     </div>
                   )}
 
-                  {user?.role === 'admin' && (
+                  {(user?.role === 'admin' || user?.role === 'teacher') && (
                     <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-4">
                       <button 
                         onClick={() => openEditModal(batch)}
@@ -478,6 +561,24 @@ export default function AdminCourseBatchesPage() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Batch Fee Override (₹)</label>
                   <input type="number" name="batchFee" value={formData.batchFee} onChange={handleInputChange} placeholder="Leave blank to use course fee" className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Zoom Meeting Link</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FiLink className="text-slate-400" size={14} />
+                    </div>
+                    <input 
+                      type="url" 
+                      name="zoomLink" 
+                      value={formData.zoomLink} 
+                      onChange={handleInputChange} 
+                      placeholder="https://zoom.us/j/..." 
+                      className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" 
+                    />
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">Paste the Zoom meeting link for this session. Update it before each class.</p>
                 </div>
 
                 <div className="col-span-2">

@@ -54,6 +54,7 @@ const studentSchema = new mongoose.Schema({
   gender: { type: String },
   joiningDate: { type: String },
   feeStatus: { type: String, default: 'PENDING' },
+  approvalStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'APPROVED' },
   batchEnd: { type: String },
   remainingDays: { type: Number },
   attendanceRate: { type: Number, default: 100 },

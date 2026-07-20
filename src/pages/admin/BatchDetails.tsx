@@ -3,7 +3,7 @@ import {
   FiSearch, FiCalendar, FiUpload,
   FiClock,
   FiEye, FiFileText, FiChevronLeft, FiChevronRight,
-  FiChevronRight as FiBreadcrumbRight, FiX, FiCheck, FiUser, FiUsers
+  FiChevronRight as FiBreadcrumbRight, FiX, FiCheck, FiUser, FiUsers, FiTrash2
 } from 'react-icons/fi';
 import { Link, useParams } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
@@ -25,9 +25,9 @@ interface Student {
   attendanceRate: number;
   attendanceTrend: string;
   batch: string;
-  batchId?: string;
+  batchId?: string | { _id: string; batchName?: string };
   course: string;
-  courseId?: string;
+  courseId?: string | { _id: string; courseName?: string };
   teacher: string;
   admissionDate: string;
   schedule: string;
@@ -94,6 +94,21 @@ const BatchDetails: React.FC = () => {
       }
     } catch (err) {
       console.error(err);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [batches, setBatches] = useState<any[]>([]);
+
+  const fetchStudentsAndBatches = async () => {
+    try {
+      const [studentsRes, batchesRes] = await Promise.all([
+        fetch('http://localhost:5000/api/students'),
+        fetch('http://localhost:5000/api/batches')
+      ]);
+      const studentsData = await studentsRes.json();
+      const batchesData = await batchesRes.json();
+      setStudentsList(studentsData);
+      setBatches(batchesData);
+    } catch (err) {
+      console.error("Failed to load students and batches from API", err);
     }
   };
 
@@ -108,9 +123,9 @@ const BatchDetails: React.FC = () => {
       });
       if (res.ok) {
         const updatedStudent = await res.json();
-        setStudentsList(studentsList.map(s => s._id === updatedStudent._id ? updatedStudent : s));
         setSelectedStudent(updatedStudent);
         setIsEditingStudent(false);
+        fetchStudentsAndBatches();
       } else {
         console.error("Failed to update student");
       }
@@ -119,10 +134,34 @@ const BatchDetails: React.FC = () => {
     }
   };
 
+  const handleDeleteStudent = async (studentId: string) => {
+    if (!window.confirm("Are you sure you want to delete this student?")) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/students/${studentId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        alert("Student deleted successfully!");
+        fetchStudentsAndBatches();
+        if (selectedStudent && (selectedStudent._id === studentId)) {
+          setSelectedStudent(null);
+        }
+      } else {
+        alert("Failed to delete student.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting student.");
+    }
+  };
 
   const studentsInBatch = studentsList.filter(student => {
-    if (!currentBatch) return false;
-    return student.batchId === currentBatch._id || student.batch === currentBatch.batchName;
+    if (!currentBatch || !currentBatch._id) return false;
+    const sBatchId = (student.batchId && typeof student.batchId === 'object')
+      ? student.batchId._id 
+      : student.batchId;
+    return (sBatchId?.toString() === currentBatch._id.toString()) || 
+           (student.batch === currentBatch.batchName);
   });
 
   useEffect(() => {
@@ -150,6 +189,8 @@ const BatchDetails: React.FC = () => {
         .catch(err => console.error(err));
     }
   }, [batchId]);
+    fetchStudentsAndBatches();
+  }, []);
 
 
 
@@ -368,7 +409,7 @@ const BatchDetails: React.FC = () => {
                       <div className="flex items-center justify-end gap-3 text-slate-400">
                         <button
                           onClick={() => setSelectedStudent(student)}
-                          className="hover:text-slate-700 transition-colors"
+                          className="hover:text-slate-700 transition-colors bg-transparent border-none cursor-pointer"
                         >
                           <FiEye size={18} />
                         </button>
@@ -378,6 +419,14 @@ const BatchDetails: React.FC = () => {
                           className="hover:text-slate-700 transition-colors border-none bg-transparent cursor-pointer"
                         >
                           <FiFileText size={18} />
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteStudent(student._id || student.id?.toString() || '')}
+                          className="hover:text-red-600 text-red-400 transition-colors border-none bg-transparent cursor-pointer"
+                          title="Delete Student"
+                        >
+                          <FiTrash2 size={18} />
                         </button>
                       </div>
                     </td>
