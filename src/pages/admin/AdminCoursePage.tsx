@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiEdit2 } from 'react-icons/fi';
 import { MdOutlineDashboard } from 'react-icons/md';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+
 import { useAuth } from '../../context/AuthContext';
 
 export default function AdminCoursePage() {
@@ -32,10 +32,8 @@ export default function AdminCoursePage() {
   const filteredCourses = courses;
 
   return (
-    <div className="flex min-h-screen bg-[#f8f9fc] font-sans">
-      <AdminSidebar />
-      <div className="flex-1 p-6 md:p-10 overflow-y-auto">
-        <div className="max-w-7xl mx-auto">
+    <div className="p-6 md:p-10">
+      <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
               <h1 className="text-3xl font-bold text-slate-800 mb-2">Course Management</h1>
@@ -125,7 +123,6 @@ export default function AdminCoursePage() {
           </div>
           )}
 
-        </div>
       </div>
     </div>
   );
