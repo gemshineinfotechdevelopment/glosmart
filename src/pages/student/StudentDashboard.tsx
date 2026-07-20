@@ -214,12 +214,12 @@ const StudentDashboard: React.FC = () => {
               <p className="text-[14px] font-bold text-slate-900 leading-none">{student.name}</p>
               <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • {student.grade}</p>
             </div>
-            <img 
-              src={student.avatar} 
-              alt={student.name} 
-              className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm cursor-pointer"
+            <div 
+              className="w-10 h-10 rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center border border-slate-200 shadow-sm cursor-pointer shrink-0"
               onClick={() => navigate('/student/profile')}
-            />
+            >
+              <FiUser size={20} />
+            </div>
           </div>
         </header>        {/* Outer Dashboard Content Container */}
         <div className="px-6 lg:px-10 mt-8 space-y-8 flex-1">
