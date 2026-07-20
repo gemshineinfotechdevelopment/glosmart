@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiCalendar, FiEdit2 } from 'react-icons/fi';
+import { FiPlus, FiEdit2 } from 'react-icons/fi';
 import { MdOutlineDashboard } from 'react-icons/md';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { useAuth } from '../../context/AuthContext';

@@ -3,10 +3,8 @@ import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  FiActivity, 
   FiBook, 
   FiClock, 
-  FiTrendingUp, 
   FiChevronRight, 
   FiVolume2, 
   FiUserCheck, 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   FiSearch, FiCalendar, FiFilter, FiPlus, 
-  FiArrowRight, FiVideo,
+  FiArrowRight,
   FiUserPlus, FiUser, FiX, FiSave, FiBookOpen,
   FiCheck, FiTrash2
 } from 'react-icons/fi';
@@ -254,10 +254,6 @@ const Students: React.FC = () => {
     return true;
   });
 
-  const totalCapacity = batches.reduce((acc, b) => acc + (b.capacity || 30), 0);
-  const totalEnrolled = batches.reduce((acc, b) => acc + (b.enrolledStudents || 0), 0);
-  const occupancyPercentage = totalCapacity > 0 ? Math.round((totalEnrolled / totalCapacity) * 100) : 0;
-  const strokeDashoffset = 251.2 - (251.2 * occupancyPercentage) / 100;
   return (
     <div className="flex min-h-screen bg-[#fcfdff] font-sans text-slate-800">
       
@@ -411,7 +407,6 @@ const Students: React.FC = () => {
         {activeTab !== 'PENDING' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {displayedBatches.map((batch, index) => {
-              const enrollmentPercentage = Math.round(((batch.enrolledStudents || 0) / (batch.capacity || 30)) * 100);
               return (
                 <div key={batch._id || index} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
                   <div className="flex justify-between items-start mb-6">

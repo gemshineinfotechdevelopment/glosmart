@@ -10,7 +10,6 @@ export default function AdminCreateCoursePage() {
   const [formData, setFormData] = useState({
     courseName: '',
     skillLevels: ['Beginner'],
-    skillLevels: ['Beginner'],
     maxStudents: 30,
     status: 'Active',
     description: '',
@@ -58,7 +57,6 @@ export default function AdminCreateCoursePage() {
       const data = await res.json();
       setFormData({
         ...data,
-        skillLevels: [data.skillLevel || 'Beginner'],
         skillLevels: [data.skillLevel || 'Beginner'],
       });
     } catch (error) {
