@@ -17,14 +17,6 @@ const Students: React.FC = () => {
   const [courses, setCourses] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
 
-  const isStudentInBatch = (student: any, batch: any) => {
-    if (student.approvalStatus === 'PENDING') return false;
-    if (!batch || !batch._id) return false;
-    const sBatchId = student.batchId?._id || student.batchId;
-    return (sBatchId?.toString() === batch._id.toString()) || 
-           (student.batch === batch.batchName);
-  };
-
   // Filter states
   const [activeTab, setActiveTab] = useState<'All' | 'ACTIVE' | 'UPCOMING' | 'INACTIVE' | 'PENDING'>('All');
   const [searchQuery, setSearchQuery] = useState('');
