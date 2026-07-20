@@ -63,6 +63,21 @@ function AppContent(): React.JSX.Element {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           
+          {/* Admin Routes */}
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/courses" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminCoursePage /></ProtectedRoute>} />
+          <Route path="/admin/courses/new" element={<ProtectedRoute allowedRoles={['admin']}><AdminCreateCoursePage /></ProtectedRoute>} />
+          <Route path="/admin/courses/edit/:id" element={<ProtectedRoute allowedRoles={['admin']}><AdminCreateCoursePage /></ProtectedRoute>} />
+          <Route path="/admin/courses/:id/batches" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminCourseBatchesPage /></ProtectedRoute>} />
+          <Route path="/admin/teachers" element={<ProtectedRoute allowedRoles={['admin']}><Teachers /></ProtectedRoute>} />
+          <Route path="/admin/fees" element={<ProtectedRoute allowedRoles={['admin']}><FeesPayments /></ProtectedRoute>} />
+          <Route path="/admin/students" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><Students /></ProtectedRoute>} />
+          <Route path="/admin/students/:batchId" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><BatchDetails /></ProtectedRoute>} />
+          <Route path="/admin/gallery" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminGalleryPage /></ProtectedRoute>} />
+          <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminSettingsPage /></ProtectedRoute>} />
+          <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminNotificationsPage /></ProtectedRoute>} />
+          <Route path="/admin/attendance" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminAttendancePage /></ProtectedRoute>} />
+          <Route path="/admin/tutor-reports" element={<ProtectedRoute allowedRoles={['admin']}><TutorReports /></ProtectedRoute>} />
           {/* Admin Routes — nested under AdminLayout so sidebar persists */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminLayout /></ProtectedRoute>}>
             <Route index element={<AdminDashboard />} />

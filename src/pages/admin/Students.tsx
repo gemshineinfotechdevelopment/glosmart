@@ -254,6 +254,7 @@ const Students: React.FC = () => {
     return true;
   });
 
+
   return (
     <div className="p-6 md:p-10">
         
@@ -392,12 +393,14 @@ const Students: React.FC = () => {
               </button>
             )}
             
-            <button 
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 bg-[#6247df] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-purple-200 hover:bg-[#5035c9] transition-colors h-full cursor-pointer border-none"
-            >
-              <FiPlus size={16} /> <span className="leading-tight">Add Student</span>
-            </button>
+            {user?.role === 'admin' && (
+              <button 
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center gap-2 bg-[#6247df] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-purple-200 hover:bg-[#5035c9] transition-colors h-full cursor-pointer border-none"
+              >
+                <FiPlus size={16} /> <span className="leading-tight">Add Student</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -437,30 +440,7 @@ const Students: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Students List for this Batch */}
-                  <div className="mt-6 pt-6 border-t border-slate-100">
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="text-sm font-bold text-[#1c1c28]">Students List</h4>
-                    </div>
-                    
-                    <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                      {students.filter(s => isStudentInBatch(s, batch)).length > 0 ? (
-                        students.filter(s => isStudentInBatch(s, batch)).map(student => (
-                          <div key={student._id || student.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
-                            <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
-                              <FiUser size={14} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-[#1c1c28] truncate">{student.name}</p>
-                              <p className="text-[10px] text-slate-500 truncate">{student.email || student.phone}</p>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-slate-400 italic text-center py-4">No students enrolled yet.</p>
-                      )}
-                    </div>
-                  </div>
+
 
                 </div>
               );
