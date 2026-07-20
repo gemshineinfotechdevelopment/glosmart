@@ -94,8 +94,8 @@ const BatchDetails: React.FC = () => {
       }
     } catch (err) {
       console.error(err);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [batches, setBatches] = useState<any[]>([]);
+    }
+  };
 
   const fetchStudentsAndBatches = async () => {
     try {
@@ -165,23 +165,7 @@ const BatchDetails: React.FC = () => {
   });
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/students')
-      .then(res => res.json())
-      .then(data => {
-        setStudentsList(data);
-      })
-      .catch(err => {
-        console.error("Failed to load students from API", err);
-        setStudentsList([]);
-      });
-
-    fetch('http://localhost:5000/api/batches')
-      .then(res => res.json())
-      .then(data => {
-        setBatches(data);
-      })
-      .catch(err => console.error("Failed to fetch batches", err));
-
+    fetchStudentsAndBatches();
     if (batchId) {
       fetch(`http://localhost:5000/api/attendance/sessions/batch/${batchId}/active`)
         .then(res => res.json())
@@ -189,8 +173,6 @@ const BatchDetails: React.FC = () => {
         .catch(err => console.error(err));
     }
   }, [batchId]);
-    fetchStudentsAndBatches();
-  }, []);
 
 
 

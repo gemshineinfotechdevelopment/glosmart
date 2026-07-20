@@ -8,7 +8,7 @@ import {
   FiPlus, 
   FiAward,
   FiX,
-  FiVideo
+  FiVideo,
   FiUser,
   FiCalendar,
   FiUserCheck,
