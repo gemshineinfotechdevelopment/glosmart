@@ -25,7 +25,6 @@ export default function AdminCourseBatchesPage() {
   const [formData, setFormData] = useState({
     batchName: '',
     instructor: '',
-    capacity: 30,
     startDate: '',
     endDate: '',
     startTime: '',
@@ -117,7 +116,6 @@ export default function AdminCourseBatchesPage() {
       const payload = {
         ...formData,
         courseId: id,
-        capacity: Number(formData.capacity),
         batchFee: formData.batchFee ? Number(formData.batchFee) : undefined
       };
 
@@ -160,7 +158,6 @@ export default function AdminCourseBatchesPage() {
     setFormData({
       batchName: '',
       instructor: '',
-      capacity: 30,
       startDate: '',
       endDate: '',
       startTime: '',
@@ -178,7 +175,6 @@ export default function AdminCourseBatchesPage() {
     setFormData({
       batchName: batch.batchName || '',
       instructor: batch.instructor || '',
-      capacity: batch.capacity || 30,
       startDate: batch.startDate || '',
       endDate: batch.endDate || '',
       startTime: batch.startTime || '',
@@ -553,10 +549,7 @@ export default function AdminCourseBatchesPage() {
                   <input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Max Capacity *</label>
-                  <input required type="number" name="capacity" value={formData.capacity} onChange={handleInputChange} min="1" className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" />
-                </div>
+
                 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Batch Fee Override (₹)</label>

@@ -540,25 +540,8 @@ const StudentDashboard: React.FC = () => {
               )}
 
               {/* Quick Stats Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 
-                {/* Stat 1: Attendance */}
-                <div 
-                  onClick={() => navigate('/student/attendance')}
-                  className="bg-white p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow group"
-                >
-                  <div>
-                    <span className="text-slate-400 font-bold text-xs uppercase tracking-wider">Attendance</span>
-                    <h3 className="text-2xl font-black text-slate-900 mt-1">{student.attendance}</h3>
-                    <span className="text-xs text-emerald-600 font-extrabold flex items-center gap-0.5 mt-1">
-                      <FiTrendingUp size={12} /> Excellent Standing
-                    </span>
-                  </div>
-                  <div className="p-4 bg-purple-50 text-[#4700b3] rounded-2xl group-hover:bg-[#4700b3] group-hover:text-white transition-colors duration-300">
-                    <FiActivity size={20} className="stroke-[2.5]" />
-                  </div>
-                </div>
-
                 {/* Stat 2: Active Courses */}
                 <div 
                   onClick={() => navigate('/student/courses')}
