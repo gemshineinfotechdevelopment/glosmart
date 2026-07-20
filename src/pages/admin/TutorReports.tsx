@@ -3,17 +3,11 @@ import {
   FiFileText, 
   FiClock, 
   FiUser, 
-  FiBookOpen, 
-  FiVideo, 
   FiSearch, 
   FiRefreshCw, 
-  FiCopy, 
-  FiCheck, 
-  FiCalendar,
   FiTrendingUp
 } from 'react-icons/fi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
-import { useAuth } from '../../context/AuthContext';
 
 const API_BASE = 'http://localhost:5000';
 
@@ -32,11 +26,9 @@ interface ReportItem {
 }
 
 const TutorReports: React.FC = () => {
-  const { user } = useAuth();
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);
 
   const fetchReports = async () => {
@@ -57,12 +49,6 @@ const TutorReports: React.FC = () => {
   useEffect(() => {
     fetchReports();
   }, []);
-
-  const handleCopy = (link: string, id: string) => {
-    navigator.clipboard.writeText(link);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
 
   const filteredReports = reports.filter(r => {
     const query = searchQuery.toLowerCase();

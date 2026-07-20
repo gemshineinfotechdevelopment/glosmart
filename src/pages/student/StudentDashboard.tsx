@@ -15,7 +15,6 @@ import {
   FiImage,
   FiStar,
   FiVideo,
-  FiLink
 } from 'react-icons/fi';
 
 const StudentDashboard: React.FC = () => {
@@ -23,7 +22,7 @@ const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
 
   // Ticking clock — updates every minute so time-based banners refresh automatically
-  const [now, setNow] = useState(() => new Date());
+  const [, setNow] = useState(() => new Date());
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(timer);
