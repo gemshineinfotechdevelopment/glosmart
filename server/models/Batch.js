@@ -17,12 +17,18 @@ const batchSchema = new mongoose.Schema({
   batchFee: { type: Number }, // Optional override
   classroom: { type: String },
   batchNotes: { type: String },
+  zoomLink: { type: String, default: '' },
   status: { type: String, enum: ['ACTIVE', 'UPCOMING', 'COMPLETED', 'WEEKEND', 'INACTIVE'], default: 'UPCOMING' },
   statusColor: { type: String, default: "bg-teal-500" },
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
   assignments: [{
     title: { type: String, required: true },
     createdAt: { type: Date, default: Date.now }
+  }],
+  attendanceEnabled: { type: Boolean, default: false },
+  attendanceRecords: [{
+    date: { type: Date, required: true },
+    studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true }
   }],
   // Keeping these for backwards compatibility with existing UI temporarily if needed
   courseName: { type: String },

@@ -67,7 +67,11 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     res.status(201).json(savedTeacher);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    if (error.code === 11000) {
+      res.status(400).json({ message: 'A teacher with this email already exists.' });
+    } else {
+      res.status(400).json({ message: error.message });
+    }
   }
 });
 

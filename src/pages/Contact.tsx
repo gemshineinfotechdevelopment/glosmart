@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import bgImage from '../assets/background-home.jpeg';
 
 // SVG Icons defined as components for cleanliness
@@ -328,7 +329,7 @@ export const Contact: React.FC = () => {
             ))}
           </div>
 
-          <span className="inline-block text-[14px] font-bold text-[#00668f] underline cursor-pointer hover:opacity-80 transition-opacity">View all FAQs</span>
+          <Link to="/faqs" className="inline-block text-[14px] font-bold text-[#00668f] underline cursor-pointer hover:opacity-80 transition-opacity no-underline" style={{ textDecoration: 'underline' }}>View all FAQs</Link>
         </section>
       </main>
 

@@ -192,6 +192,7 @@ const StudentFees: React.FC = () => {
       const studentRes = await fetch(`http://localhost:5000/api/students/${studentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enrolledCourses: updatedCourses, feeStatus: 'PAID' })
         body: JSON.stringify(updatePayload)
       });
 

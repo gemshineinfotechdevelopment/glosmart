@@ -285,8 +285,13 @@ const Teachers: React.FC = () => {
       if (res.ok) {
         setIsModalOpen(false);
         fetchTeachers();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.message || "Failed to save teacher");
+        console.error("Server Error:", errorData);
       }
     } catch (error) {
+      alert("Network or internal error when saving teacher.");
       console.error("Failed to save teacher", error);
     }
   };

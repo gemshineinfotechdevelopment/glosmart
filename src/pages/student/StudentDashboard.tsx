@@ -15,7 +15,8 @@ import {
   FiUser,
   FiCreditCard,
   FiImage,
-  FiStar
+  FiStar,
+  FiVideo
 } from 'react-icons/fi';
 
 const StudentDashboard: React.FC = () => {
@@ -38,18 +39,16 @@ const StudentDashboard: React.FC = () => {
       .then(res => res.json())
       .then(data => {
         if (data) {
-          let finalAttendance = '0%';
+          let finalAttendance = '0 Days';
           if (data.name === 'Sarah Jenkins') {
-            finalAttendance = (data.attendanceRate || 100) + '%';
+            finalAttendance = '114 Days';
           } else {
             const records = data.attendanceRecords || [];
             if (records.length > 0) {
               const presentOrLate = records.filter((r: any) => 
                 r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late'
               ).length;
-              finalAttendance = Math.round((presentOrLate / records.length) * 100) + '%';
-            } else {
-              finalAttendance = '0%';
+              finalAttendance = presentOrLate + ' Days';
             }
           }
 
@@ -65,6 +64,68 @@ const StudentDashboard: React.FC = () => {
       })
       .catch(err => console.error('Error fetching student data:', err));
   }, [user]);
+
+  // Fetch batches for enrolled courses to detect live classes
+  const [liveBatches, setLiveBatches] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (student.enrolledCourses.length === 0) return;
+
+    const fetchBatches = async () => {
+      try {
+        const coursesRes = await fetch('http://localhost:5000/api/courses');
+        const coursesData = await coursesRes.json();
+        const allCourses = coursesData.courses || [];
+
+        const allBatches: any[] = [];
+        for (const ec of student.enrolledCourses) {
+          const matched = allCourses.find((c: any) =>
+            c.courseName.toLowerCase() === ec.courseName.toLowerCase()
+          );
+          if (matched) {
+            try {
+              const batchRes = await fetch(`http://localhost:5000/api/batches/course/${matched._id}`);
+              const batchData = await batchRes.json();
+              for (const b of batchData) {
+                if (b.zoomLink) {
+                  allBatches.push({ ...b, courseName: ec.courseName });
+                }
+              }
+            } catch (err) {
+              console.error(`Error fetching batches for ${ec.courseName}:`, err);
+            }
+          }
+        }
+        setLiveBatches(allBatches);
+      } catch (err) {
+        console.error('Error fetching batch data for live check:', err);
+      }
+    };
+
+    fetchBatches();
+  }, [student.enrolledCourses]);
+
+  // Check if a batch class is currently live
+  const isBatchLive = (batch: any): boolean => {
+    if (!batch.zoomLink || batch.status !== 'ACTIVE') return false;
+    if (!batch.days || batch.days.length === 0 || !batch.startTime || !batch.endTime) return false;
+
+    const now = new Date();
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const todayName = dayNames[now.getDay()];
+
+    if (!batch.days.includes(todayName)) return false;
+
+    const [startH, startM] = batch.startTime.split(':').map(Number);
+    const [endH, endM] = batch.endTime.split(':').map(Number);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+
+    return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+  };
+
+  const currentLiveBatches = liveBatches.filter(isBatchLive);
 
   // Derive Schedule Timeline dynamically
   const schedule = student.enrolledCourses.length > 0
@@ -441,6 +502,43 @@ const StudentDashboard: React.FC = () => {
           ) : (
             // REGULAR USER DASHBOARD CONTENT
             <>
+              {/* Live Class Banner */}
+              {currentLiveBatches.length > 0 && (
+                <div className="space-y-3">
+                  {currentLiveBatches.map((batch: any) => (
+                    <div
+                      key={batch._id}
+                      className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-4 md:p-5 rounded-2xl shadow-lg shadow-emerald-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-pulse-subtle"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
+                          <FiVideo size={20} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="relative flex h-2.5 w-2.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                            </span>
+                            <span className="text-sm font-extrabold tracking-tight">Class is Live Now!</span>
+                          </div>
+                          <p className="text-emerald-100 text-xs font-semibold mt-0.5">
+                            {batch.courseName} — {batch.batchName} ({batch.startTime} - {batch.endTime})
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => window.open(batch.zoomLink, '_blank', 'noopener,noreferrer')}
+                        className="bg-white text-emerald-700 font-bold text-xs px-5 py-2.5 rounded-xl hover:bg-emerald-50 transition-colors shadow-sm border-none cursor-pointer flex items-center gap-2 shrink-0"
+                      >
+                        <FiVideo size={14} />
+                        Join Now
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Quick Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 

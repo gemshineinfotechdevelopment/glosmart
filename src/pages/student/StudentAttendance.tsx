@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   FiCheck, 
-  FiX, 
   FiChevronLeft, 
   FiChevronRight,
   FiBook,
@@ -25,15 +24,15 @@ const StudentAttendance: React.FC = () => {
   // Calendar month state
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   
-  const [attendanceRate, setAttendanceRate] = useState(100);
   const [totalPresent, setTotalPresent] = useState(0);
-  const [totalAbsent, setTotalAbsent] = useState(0);
   const [totalSessions, setTotalSessions] = useState(0);
   const [studentName, setStudentName] = useState('Student User');
   const [studentGrade, setStudentGrade] = useState('5th Grade');
   const [studentAvatar, setStudentAvatar] = useState('https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
+  const [activeBatches, setActiveBatches] = useState<any[]>([]);
+  const [selectedBatch, setSelectedBatch] = useState<string>('All');
 
   // Fetch student data on mount
   useEffect(() => {
@@ -44,42 +43,43 @@ const StudentAttendance: React.FC = () => {
         if (data) {
           const records = data.attendanceRecords || [];
           setAttendanceRecords(records);
-          
-          let rate = 0;
-          let presentCount = 0;
-          let absentCount = 0;
-          let sessionsCount = 0;
-
-          if (data.name === 'Sarah Jenkins') {
-            rate = data.attendanceRate || 100;
-            presentCount = 114;
-            absentCount = 2;
-            sessionsCount = 118;
-            setCurrentDate(new Date(2023, 9, 1)); // October 2023 for demo student
-          } else {
-            sessionsCount = records.length;
-            presentCount = records.filter((r: any) => r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late').length;
-            absentCount = records.filter((r: any) => r.status.toLowerCase() === 'absent').length;
-            if (sessionsCount > 0) {
-              rate = Math.round((presentCount / sessionsCount) * 100);
-            } else {
-              rate = 100; // Default to 100% when no sessions have happened yet
-            }
-            setCurrentDate(new Date());
-          }
-
-          setAttendanceRate(rate);
-          setTotalPresent(presentCount);
-          setTotalAbsent(absentCount);
-          setTotalSessions(sessionsCount);
           setStudentName(data.name || 'Student User');
           setStudentGrade(data.grade || '5th Grade');
           setStudentAvatar(data.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
           setEnrolledCourses(data.enrolledCourses || []);
+
+          // Fetch active sessions
+          fetch(`http://localhost:5000/api/attendance/sessions/active/${profileId}`)
+            .then(res => res.json())
+            .then(sessions => {
+              if (Array.isArray(sessions)) {
+                setActiveBatches(sessions);
+              }
+            });
         }
       })
       .catch(err => console.error('Error fetching student attendance details:', err));
   }, [user]);
+
+  const handleMarkAttendance = async (sessionId: string, batchId: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/attendance/records`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId: user?.profileId, sessionId, batchId }),
+      });
+      if (res.ok) {
+        alert("Attendance marked for today!");
+        window.location.reload();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.message || "Failed to mark attendance.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error marking attendance.");
+    }
+  };
 
 
 
@@ -107,6 +107,28 @@ const StudentAttendance: React.FC = () => {
 
   // Get total days in month
   const totalDays = new Date(year, month + 1, 0).getDate();
+
+  // Update metrics when selectedBatch or attendanceRecords changes
+  useEffect(() => {
+    let filteredRecords = attendanceRecords;
+    if (selectedBatch !== 'All' && studentName !== 'Sarah Jenkins') {
+      filteredRecords = attendanceRecords.filter((r: any) => r.activity && r.activity.toLowerCase() === selectedBatch.toLowerCase());
+    }
+
+    let presentCount = 0;
+    let sessionsCount = 0;
+
+    if (studentName === 'Sarah Jenkins' && selectedBatch === 'All') {
+      presentCount = 114;
+      sessionsCount = 118;
+    } else {
+      sessionsCount = filteredRecords.length;
+      presentCount = filteredRecords.filter((r: any) => r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late').length;
+    }
+
+    setTotalPresent(presentCount);
+    setTotalSessions(sessionsCount);
+  }, [selectedBatch, attendanceRecords, studentName]);
 
   // Hardcode attendance status for October 2023 to match the exact mockup for demo student
   // Sunday starts, Monday starts... Let's map days
@@ -137,7 +159,13 @@ const StudentAttendance: React.FC = () => {
 
     // For new students, check their actual database attendance records
     const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const record = attendanceRecords.find(r => r.date === formattedDate);
+    
+    let filteredRecords = attendanceRecords;
+    if (selectedBatch !== 'All') {
+      filteredRecords = attendanceRecords.filter((r: any) => r.activity && r.activity.toLowerCase() === selectedBatch.toLowerCase());
+    }
+
+    const record = filteredRecords.find(r => r.date === formattedDate);
     if (record) {
       if (record.status.toLowerCase() === 'present') return 'present';
       if (record.status.toLowerCase() === 'absent') return 'absent';
@@ -195,8 +223,45 @@ const StudentAttendance: React.FC = () => {
               onClick={() => navigate('/student/profile')}
             />
           </div>
-        </header>        {/* Outer Container */}
+        </header>
+        
+        {/* Outer Container */}
         <div className="px-6 lg:px-10 mt-8 space-y-8 flex-1">
+          
+          {/* Active Attendance Banners */}
+          {activeBatches.length > 0 ? (
+            <div className="space-y-4">
+              {activeBatches.map(session => (
+                <div key={session._id} className="bg-purple-50 border border-purple-200 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-lg flex items-center flex-wrap">
+                      <span className="text-[#4700b3] font-bold text-sm mr-2 uppercase tracking-wide">Attendance Open</span> 
+                      {session.batchId?.batchName} 
+                      {session.batchId?.courseName && (
+                        <span className="text-sm font-semibold text-slate-500 ml-2 bg-purple-100/50 px-2 py-0.5 rounded-md border border-purple-100">
+                          {session.batchId.courseName}
+                        </span>
+                      )}
+                    </h3>
+                    <p className="text-sm font-medium text-slate-500 mt-1.5">
+                      Session enabled by <span className="font-bold text-slate-700">{session.enabledByName || 'Admin'}</span> ({session.enabledByRole === 'admin' ? 'Administrator' : 'Instructor'})
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleMarkAttendance(session._id, session.batchId?._id)}
+                    className="bg-[#4700b3] hover:bg-[#38008c] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-md shadow-purple-200"
+                  >
+                    Mark Present
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center">
+              <p className="text-sm font-bold text-slate-500">Attendance is currently unavailable.</p>
+            </div>
+          )}
+
           {totalSessions === 0 && studentName !== 'Sarah Jenkins' ? (
             // Onboarding/Welcome Dashboard for new students
             <div className="bg-gradient-to-br from-[#4700b3]/5 to-[#6247df]/5 border border-purple-100 rounded-[2.5rem] p-8 md:p-12 text-center max-w-4xl mx-auto shadow-[0_20px_50px_rgba(71,0,179,0.02)]">
@@ -267,91 +332,82 @@ const StudentAttendance: React.FC = () => {
             </div>
           ) : (
             <>
-              {/* First Row: 3 Metric Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                
-                {/* Card 1: Overall Attendance */}
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 flex flex-col items-center justify-between min-h-[220px]">
-                  <h3 className="text-slate-700 text-sm font-semibold self-start">Overall Attendance</h3>
-                  
-                  <div className="relative flex items-center justify-center my-2">
-                    {/* SVG Progress Circle */}
-                    <svg className="w-32 h-32 transform -rotate-90">
-                      <circle 
-                        cx="64" 
-                        cy="64" 
-                        r="48" 
-                        stroke="#F1F5F9" 
-                        strokeWidth="10" 
-                        fill="transparent" 
-                      />
-                      <circle 
-                        cx="64" 
-                        cy="64" 
-                        r="48" 
-                        stroke="#4700b3" 
-                        strokeWidth="10" 
-                        fill="transparent" 
-                        strokeDasharray={301.6} 
-                        strokeDashoffset={301.6 - (301.6 * attendanceRate) / 100}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    {/* Inner Text */}
-                    <div className="absolute text-center">
-                      <span className="text-[28px] font-black text-slate-900 block leading-none">{attendanceRate}%</span>
-                      <span className="text-xs font-bold text-[#4700b3] mt-1 block">
-                        {attendanceRate >= 90 ? 'Excellent!' : attendanceRate >= 75 ? 'Good Job!' : 'Needs Action'}
-                      </span>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 mt-4">
+                <h2 className="text-xl font-extrabold text-slate-900">Attendance Overview</h2>
+                {enrolledCourses.length > 0 && (
+                  <select
+                    value={selectedBatch}
+                    onChange={(e) => setSelectedBatch(e.target.value)}
+                    className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4700b3]/20"
+                  >
+                    <option value="All">All Batches (Combined)</option>
+                    {enrolledCourses.map((c: any, i: number) => (
+                      <option key={i} value={c.batchName || c.courseName}>
+                        {c.batchName || c.courseName}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Metric Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {enrolledCourses.length > 0 ? (
+                  enrolledCourses
+                    .filter((c: any) => selectedBatch === 'All' || (c.batchName || c.courseName) === selectedBatch)
+                    .map((c: any, index: number) => {
+                      const batchName = c.batchName || c.courseName;
+                      let presentCount = 0;
+                      
+                      if (studentName === 'Sarah Jenkins') {
+                        if (batchName === 'Pencil Drawing - Advanced' || batchName === 'Pencil Drawing') presentCount = 42;
+                        else if (batchName === 'Digital Art - Pro') presentCount = 38;
+                        else if (batchName === 'Watercolor Basics') presentCount = 34;
+                        else presentCount = 30;
+                      } else {
+                        presentCount = attendanceRecords.filter((r: any) => 
+                          r.activity && r.activity.toLowerCase() === batchName.toLowerCase() &&
+                          (r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late')
+                        ).length;
+                      }
+
+                      return (
+                        <div key={index} className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between">
+                          <div>
+                            <p className="text-[10px] font-extrabold text-slate-400 tracking-widest uppercase mb-1 line-clamp-1" title={batchName}>
+                              {batchName}
+                            </p>
+                            <div className="flex items-baseline gap-2 mt-2">
+                              <span className="text-4xl font-black text-[#1c1c28] tracking-tight">{presentCount}</span>
+                              <span className="text-sm font-bold text-[#6247df]">{presentCount === 1 || presentCount === 0 ? 'Day' : 'Days'}</span>
+                            </div>
+                          </div>
+                          <div className="mt-4 pt-4 border-t border-slate-50 flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
+                              <FiCheck size={12} className="text-[#6247df] stroke-[3]" />
+                            </div>
+                            <p className="text-xs font-bold text-slate-500 leading-tight">Keep up the great work</p>
+                          </div>
+                        </div>
+                      );
+                    })
+                ) : (
+                  <div className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <p className="text-[10px] font-extrabold text-slate-400 tracking-widest uppercase mb-1">Total Days Attended</p>
+                      <div className="flex items-baseline gap-2 mt-2">
+                        <span className="text-4xl font-black text-[#1c1c28] tracking-tight">{totalPresent}</span>
+                        <span className="text-sm font-bold text-[#6247df]">{totalPresent === 1 || totalPresent === 0 ? 'Day' : 'Days'}</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-slate-50 flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
+                        <FiCheck size={12} className="text-[#6247df] stroke-[3]" />
+                      </div>
+                      <p className="text-xs font-bold text-slate-500 leading-tight">Keep up the great work</p>
                     </div>
                   </div>
-
-                  <p className="text-slate-500 text-xs text-center font-medium leading-relaxed max-w-[200px]">
-                    {studentName === 'Sarah Jenkins' 
-                      ? "You've missed only 2 days this semester. Keep it up!" 
-                      : totalSessions === 0 
-                        ? "No attendance records registered yet." 
-                        : `You've missed ${totalAbsent} day${totalAbsent === 1 ? '' : 's'} this semester.`}
-                  </p>
-                </div>
-
-                {/* Card 2: Total Present */}
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 flex flex-col justify-between min-h-[220px]">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-[#EEF2F6] text-[#4700b3] rounded-2xl">
-                      <FiCheck size={22} className="stroke-[2.5]" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Total Present</p>
-                      <h2 className="text-3xl font-black text-slate-950 tracking-tight mt-0.5">{totalPresent} <span className="text-slate-400 text-sm font-medium">/ {totalSessions}</span></h2>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="w-full bg-slate-100 rounded-full h-2">
-                      <div className="bg-[#4700b3] h-2 rounded-full" style={{ width: `${totalSessions > 0 ? (totalPresent / totalSessions) * 100 : 0}%` }}></div>
-                    </div>
-                    <p className="text-slate-500 text-xs font-medium">
-                      {totalSessions > 0 ? `${attendanceRate}%` : '0%'} Attendance rate in scheduled sessions
-                    </p>
-                  </div>
-                </div>
-
-                {/* Card 3: Total Absent */}
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 flex flex-col justify-between min-h-[220px]">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-red-50 text-red-650 rounded-2xl">
-                      <FiX size={22} className="stroke-[2.5]" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Total Absent</p>
-                      <h2 className="text-3xl font-black text-slate-950 tracking-tight mt-0.5">{String(totalAbsent).padStart(2, '0')}</h2>
-                    </div>
-                  </div>
-
-                  <p className="text-slate-500 text-xs font-medium">Please notify in advance for planned absences.</p>
-                </div>
-
+                )}
               </div>
 
               {/* Second Row: Calendar */}
@@ -445,15 +501,15 @@ const StudentAttendance: React.FC = () => {
 
               </div>
 
-              {/* Third Row: Course-wise Attendance table */}
+              {/* Third Row: Batch-wise Attendance table */}
               <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] p-6 sm:p-8">
-                <h3 className="text-slate-900 font-extrabold text-base tracking-tight mb-6">Course-wise Attendance</h3>
+                <h3 className="text-slate-900 font-extrabold text-base tracking-tight mb-6">Batch-wise Attendance</h3>
                 
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b border-slate-100 text-left">
-                        <th className="pb-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-4">Course Name</th>
+                        <th className="pb-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-4">Batch / Course Name</th>
                         <th className="pb-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Instructor</th>
                         <th className="pb-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Present</th>
                         <th className="pb-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Absent</th>
@@ -473,14 +529,15 @@ const StudentAttendance: React.FC = () => {
                             present = index === 0 ? 24 : index === 1 ? 30 : 28;
                             absent = index === 0 ? 0 : index === 1 ? 1 : 0;
                           } else {
-                            // Filter records matching the course name (in activity)
-                            const courseRecords = attendanceRecords.filter((r: any) => 
-                              r.activity && r.activity.toLowerCase() === c.courseName.toLowerCase()
+                            // Filter records matching the batch name (in activity)
+                            const targetName = c.batchName || c.courseName;
+                            const batchRecords = attendanceRecords.filter((r: any) => 
+                              r.activity && r.activity.toLowerCase() === targetName.toLowerCase()
                             );
-                            if (courseRecords.length > 0) {
-                              present = courseRecords.filter((r: any) => r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late').length;
-                              absent = courseRecords.filter((r: any) => r.status.toLowerCase() === 'absent').length;
-                              rate = Math.round((present / courseRecords.length) * 100);
+                            if (batchRecords.length > 0) {
+                              present = batchRecords.filter((r: any) => r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late').length;
+                              absent = batchRecords.filter((r: any) => r.status.toLowerCase() === 'absent').length;
+                              rate = Math.round((present / batchRecords.length) * 100);
                             } else {
                               rate = 100;
                               present = 0;
@@ -489,7 +546,14 @@ const StudentAttendance: React.FC = () => {
                           }
                           return (
                             <tr key={index} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="py-4 pl-4 font-bold text-slate-800 text-xs">{c.courseName}</td>
+                              <td className="py-4 pl-4">
+                                <div className="font-bold text-slate-800 text-xs">{c.courseName}</div>
+                                {c.batchName && (
+                                  <div className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">
+                                    {c.batchName}
+                                  </div>
+                                )}
+                              </td>
                               <td className="py-4 text-xs font-semibold text-slate-500">{c.instructor || 'TBD'}</td>
                               <td className="py-4 text-xs font-bold text-slate-700 text-center">{present}</td>
                               <td className="py-4 text-xs font-bold text-slate-700 text-center">{absent}</td>
