@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  FiSearch, FiCalendar, FiUpload,
+  FiSearch, FiUpload,
   FiClock,
   FiEye, FiFileText, FiChevronLeft, FiChevronRight,
   FiChevronRight as FiBreadcrumbRight, FiX, FiCheck, FiUser, FiUsers, FiTrash2

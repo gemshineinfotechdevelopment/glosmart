@@ -233,7 +233,7 @@ const StudentCourses: React.FC = () => {
               <p className="text-[14px] font-bold text-slate-900 leading-none">{studentName}</p>
               <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • {studentGrade}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-[#6247df] text-white flex items-center justify-center font-bold text-lg border border-slate-200 shadow-sm cursor-pointer shrink-0" onClick={() => navigate('/student/profile')}>{student.name.charAt(0).toUpperCase()}</div>
+            <div className="w-10 h-10 rounded-full bg-[#6247df] text-white flex items-center justify-center font-bold text-lg border border-slate-200 shadow-sm cursor-pointer shrink-0" onClick={() => navigate('/student/profile')}>{studentName.charAt(0).toUpperCase()}</div>
           </div>
         </header>
 

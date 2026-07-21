@@ -59,8 +59,6 @@ const TutorReports: React.FC = () => {
     );
   });
 
-  const totalMinutes = reports.reduce((acc, r) => acc + (r.durationMinutes || 0), 0);
-  const totalHours = (totalMinutes / 60).toFixed(1);
   const uniqueTutors = new Set(reports.map(r => r.teacherName)).size;
 
   const formatDuration = (mins: number) => {
