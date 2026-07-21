@@ -9,6 +9,7 @@
     "backend": "npm run dev:backend",
     "dev:backend": "cd server && npm run dev",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:backend\"",
+    "start:backend": "node server/server.js",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
