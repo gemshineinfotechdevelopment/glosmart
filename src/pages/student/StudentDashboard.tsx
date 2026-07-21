@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../config/api';
+import { API_BASE_URL, getImageUrl } from '../../config/api';
 import {
   FiBook,
   FiClock,
   FiChevronRight,
-  FiVolume2,
-  FiUserCheck,
   FiMail,
   FiArrowRight,
   FiUser,
@@ -75,6 +73,55 @@ const StudentDashboard: React.FC = () => {
       .catch(err => console.error('Error fetching student data:', err));
   }, [user]);
 
+  // Fetch teacher records from database
+  const [dbTeachers, setDbTeachers] = useState<any[]>([]);
+  const [loadingTeachers, setLoadingTeachers] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/teachers`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setDbTeachers(data);
+        }
+      })
+      .catch(err => console.error('Error fetching teachers:', err))
+      .finally(() => setLoadingTeachers(false));
+  }, []);
+
+  // Fetch gallery images from database for masterpiece showcase (first 3)
+  const [galleryItems, setGalleryItems] = useState<any[]>([]);
+  const [loadingGallery, setLoadingGallery] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/gallery?limit=10`)
+      .then(res => res.ok ? res.json() : Promise.reject('Failed to load gallery'))
+      .then(data => {
+        if (data && data.images && data.images.length > 0) {
+          const formatted = data.images.slice(0, 3).map((img: any) => {
+            const cat = img.category || 'Artwork';
+            let cleanedCat = cat.replace(/\b(beginner|advanced|intermediate)\b/gi, '')
+              .replace(/\(\s*\)/g, '')
+              .replace(/^[\s-–—:]+|[\s-–—:]+$/g, '')
+              .replace(/\s+/g, ' ')
+              .trim();
+            if (!cleanedCat) cleanedCat = 'Artwork';
+
+            return {
+              id: img._id,
+              title: img.title || 'Untitled Artwork',
+              author: img.description ? `${img.description}` : 'Student Artwork',
+              image: getImageUrl(img.imageUrl),
+              category: cleanedCat
+            };
+          });
+          setGalleryItems(formatted);
+        }
+      })
+      .catch(err => console.error('Error fetching gallery for dashboard showcase:', err))
+      .finally(() => setLoadingGallery(false));
+  }, []);
+
   // Fetch batches for enrolled courses to detect live classes
   const [liveBatches, setLiveBatches] = useState<any[]>([]);
 
@@ -101,7 +148,6 @@ const StudentDashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, [student.enrolledCourses]);
 
-
   // Check if a batch class is currently live — ONLY true if explicitly activated (isZoomActive === true)
   const isBatchLive = (batch: any): boolean => {
     return Boolean(batch.zoomLink && batch.isZoomActive === true && batch.status === 'ACTIVE');
@@ -121,60 +167,161 @@ const StudentDashboard: React.FC = () => {
     }))
     : [];
 
-  // Academy Announcements
-  const announcements = [
-    {
-      id: 'a1',
-      title: 'Annual Spring Art Exhibition 2026',
-      desc: 'Submissions for the digital & traditional gallery are officially open. Submit your portfolio before August 10.',
-      date: 'July 12, 2026',
-      tag: 'Exhibition',
-      tagColor: 'bg-purple-100 text-purple-700'
-    },
-    {
-      id: 'a2',
-      title: 'Academy Guest Lecture Series',
-      desc: 'Join renowned digital designer Alex Thorne for a masterclass on VR Sculpting this Friday in Studio D.',
-      date: 'July 10, 2026',
-      tag: 'Masterclass',
-      tagColor: 'bg-yellow-100 text-yellow-800'
-    }
-  ];
+  const TeachersWidget = () => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isTransitioning, setIsTransitioning] = useState(true);
+    const [isPaused, setIsPaused] = useState(false);
 
-  // Derive Instructors list dynamically
-  const instructors = student.enrolledCourses.length > 0
-    ? Array.from(new Set(student.enrolledCourses.map((c: any) => c.instructor)))
-      .filter(inst => inst && inst !== 'TBD' && inst !== 'TBD (Assigning)')
-      .map((name: any) => {
-        const course = student.enrolledCourses.find((c: any) => c.instructor === name);
-        return { name, courseName: course ? course.courseName : 'Art Course' };
-      })
-    : [];
+    const count = dbTeachers.length;
+    const shouldSlide = count > 3;
 
-  // Recent Activity Logs
-  const recentLogs = student.enrolledCourses.length > 0
-    ? [
-      {
-        id: 'log1',
-        action: 'Course Enrolled',
-        detail: `Enrolled in ${student.enrolledCourses[student.enrolledCourses.length - 1].courseName}`,
-        time: 'Recently'
-      },
-      ...student.enrolledCourses.slice(0, -1).map((c: any, idx: number) => ({
-        id: `log-${idx + 2}`,
-        action: 'Course Active',
-        detail: `Currently enrolled in ${c.courseName}`,
-        time: 'Ongoing'
-      }))
-    ]
-    : [
-      {
-        id: 'log-empty',
-        action: 'Account Registered',
-        detail: 'Welcome to GloSmart Academy! Please purchase a course to get started.',
-        time: 'Just Now'
+    useEffect(() => {
+      if (!shouldSlide || isPaused) return;
+
+      const interval = setInterval(() => {
+        setIsTransitioning(true);
+        setCurrentIndex((prev) => prev + 1);
+      }, 3000);
+
+      return () => clearInterval(interval);
+    }, [shouldSlide, isPaused, count]);
+
+    useEffect(() => {
+      if (!shouldSlide) return;
+
+      if (currentIndex === count) {
+        // Wait for the 700ms slide transition to finish, then reset to 0 seamlessly
+        const timer = setTimeout(() => {
+          setIsTransitioning(false);
+          setCurrentIndex(0);
+        }, 700);
+
+        return () => clearTimeout(timer);
       }
-    ];
+    }, [currentIndex, count, shouldSlide]);
+
+    const extendedTeachers = shouldSlide
+      ? [...dbTeachers, ...dbTeachers.slice(0, 3)]
+      : dbTeachers;
+
+    const ITEM_HEIGHT = 68; // 60px card height + 8px gap
+
+    return (
+      <div 
+        className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left overflow-hidden"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-black text-slate-900 tracking-tight">Our Art Instructors</h3>
+          <div className="flex items-center gap-0.5 text-amber-500 font-extrabold text-xs">
+            <FiStar className="fill-amber-500" size={12} /> <span>{dbTeachers.length} Active</span>
+          </div>
+        </div>
+
+        {loadingTeachers ? (
+          <p className="text-xs text-slate-400 italic text-center py-4">Loading teachers...</p>
+        ) : dbTeachers.length > 0 ? (
+          <div 
+            className="relative overflow-hidden"
+            style={{ height: `${Math.min(count, 3) * ITEM_HEIGHT - 8}px` }}
+          >
+            <div
+              className={`flex flex-col gap-2 ${
+                isTransitioning ? 'transition-transform duration-700 ease-in-out' : 'transition-none'
+              }`}
+              style={{
+                transform: `translateY(-${currentIndex * ITEM_HEIGHT}px)`
+              }}
+            >
+              {extendedTeachers.map((teacher: any, idx: number) => {
+                const avatarUrl = getImageUrl(teacher.avatar);
+                return (
+                  <div
+                    key={`${teacher._id}-${idx}`}
+                    className="flex items-center justify-between p-2.5 bg-slate-50/70 hover:bg-slate-100/80 rounded-xl transition-colors h-[60px] shrink-0"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#4700b3] flex items-center justify-center font-bold text-xs uppercase relative overflow-hidden shrink-0">
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt={teacher.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{teacher.name ? teacher.name.charAt(0) : 'T'}</span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-black text-slate-800 leading-none truncate">{teacher.name}</p>
+                        <p className="text-[9px] text-slate-400 font-semibold mt-1 truncate">{teacher.subject || teacher.qualification || 'Art & Design'}</p>
+                      </div>
+                    </div>
+                    {teacher.email && (
+                      <a
+                        href={`mailto:${teacher.email}`}
+                        title={`Email ${teacher.name}`}
+                        className="p-2 bg-white hover:bg-[#e6e6fa] hover:text-[#4700b3] text-slate-450 rounded-lg transition-colors shrink-0 shadow-sm"
+                      >
+                        <FiMail size={13} />
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-slate-400 italic text-center py-4">No teacher records found in database.</p>
+        )}
+      </div>
+    );
+  };
+
+  const MasterpieceShowcaseWidget = () => (
+    <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <FiImage size={20} className="text-[#4700b3]" />
+          <h3 className="text-lg font-black text-slate-900 tracking-tight">Academy Masterpiece Showcase</h3>
+        </div>
+        <button
+          onClick={() => navigate('/gallery')}
+          className="text-[#4700b3] hover:text-[#3d0099] font-extrabold text-xs bg-transparent border-none cursor-pointer"
+        >
+          View Gallery
+        </button>
+      </div>
+
+      {loadingGallery ? (
+        <p className="text-xs text-slate-400 italic text-center py-6">Loading gallery masterpieces...</p>
+      ) : galleryItems.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {galleryItems.map((item: any) => (
+            <div
+              key={item.id}
+              onClick={() => navigate('/gallery')}
+              className="space-y-2 group cursor-pointer"
+            >
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 relative">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded backdrop-blur-sm truncate max-w-[80%]">
+                  {item.category}
+                </span>
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-slate-800 truncate">{item.title}</h4>
+                <p className="text-[10px] text-slate-400 font-semibold truncate">{item.author}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-slate-400 italic text-center py-6">No gallery items available.</p>
+      )}
+    </div>
+  );
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
@@ -209,7 +356,7 @@ const StudentDashboard: React.FC = () => {
         <div className="px-4 sm:px-6 lg:px-10 mt-6 sm:mt-8 space-y-8 flex-1">
 
           {student.enrolledCourses.length === 0 ? (
-            // REDESIGNED NEW USER DASHBOARD
+            // NEW USER DASHBOARD
             <div className="space-y-8">
 
               {/* Welcome Jumbotron */}
@@ -238,118 +385,12 @@ const StudentDashboard: React.FC = () => {
 
                 {/* Left Column */}
                 <div className="space-y-8">
-
-                  {/* Weekly Art Challenge */}
-                  {/*<div className="bg-gradient-to-br from-amber-50/60 to-orange-50/40 p-6 md:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.01)] border border-amber-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 text-left">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="p-2 bg-amber-100 text-amber-700 rounded-xl">
-                          <FiAward size={18} className="stroke-[2.5]" />
-                        </span>
-                        <span className="text-[10px] font-black text-amber-800 uppercase tracking-widest">Prompt of the week</span>
-                      </div>
-                      <h3 className="text-lg font-black text-slate-900 tracking-tight">"Summer Sunset Reflections" 🌅</h3>
-                      <p className="text-slate-500 text-xs md:text-sm font-medium leading-relaxed max-w-xl">
-                        Unleash your creativity! Sketch or paint a vibrant sunset showing warm light reflecting on water. Use oil pastels, watercolors, or digital brushes. Submit by Sunday evening to get featured!
-                      </p>
-                    </div>
-                    <button 
-                      onClick={() => navigate('/student/courses')}
-                      className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-5 rounded-xl text-xs transition-all shadow-sm border-none cursor-pointer flex items-center gap-1.5 shrink-0"
-                    >
-                      Browse Inspiration <FiChevronRight size={14} />
-                    </button>
-                  </div>*/}
-
-                  {/* Student Gallery Spotlight */}
-                  <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-2">
-                        <FiImage size={20} className="text-[#4700b3]" />
-                        <h3 className="text-lg font-black text-slate-900 tracking-tight">Academy Masterpiece Showcase</h3>
-                      </div>
-                      <span className="text-slate-400 text-xs font-semibold">Weekly Highlights</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                      {/* Art 1 */}
-                      <div className="space-y-2 group cursor-pointer">
-                        <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 relative">
-                          <img
-                            src="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
-                            alt="Floral Still Life"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">Watercolor</span>
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800 truncate">Floral Harmony</h4>
-                          <p className="text-[10px] text-slate-400 font-semibold">by Chloe Wang (Grade 6)</p>
-                        </div>
-                      </div>
-
-                      {/* Art 2 */}
-                      <div className="space-y-2 group cursor-pointer">
-                        <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 relative">
-                          <img
-                            src="https://images.unsplash.com/photo-1541701494587-cb58502866ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
-                            alt="Abstract Fusion"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">Acrylic</span>
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800 truncate">Shattered Thoughts</h4>
-                          <p className="text-[10px] text-slate-400 font-semibold">by Ethan Davis (Grade 8)</p>
-                        </div>
-                      </div>
-
-                      {/* Art 3 */}
-                      <div className="space-y-2 group cursor-pointer">
-                        <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 relative">
-                          <img
-                            src="https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
-                            alt="Digital Splash"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">Digital</span>
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800 truncate">Neon Dreams</h4>
-                          <p className="text-[10px] text-slate-400 font-semibold">by Maya Patel (Grade 10)</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* General Announcements Widget */}
-                  <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
-                    <div className="flex items-center gap-2 mb-6">
-                      <FiVolume2 size={20} className="text-[#4700b3]" />
-                      <h3 className="text-lg font-black text-slate-900 tracking-tight">Academy Announcements</h3>
-                    </div>
-
-                    <div className="space-y-5">
-                      {announcements.map((ann) => (
-                        <div key={ann.id} className="pb-5 border-b border-slate-100 last:border-none last:pb-0 text-left">
-                          <div className="flex justify-between items-center gap-4 mb-2">
-                            <span className={`px-2.5 py-0.5 text-[9px] font-extrabold rounded-md uppercase ${ann.tagColor}`}>
-                              {ann.tag}
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-semibold">{ann.date}</span>
-                          </div>
-                          <h4 className="font-extrabold text-slate-800 text-sm">{ann.title}</h4>
-                          <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">{ann.desc}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
+                  {/* Student Gallery Spotlight (First 3 Gallery Images) */}
+                  <MasterpieceShowcaseWidget />
                 </div>
 
                 {/* Right Column */}
                 <div className="space-y-8">
-
                   {/* Action Shortcuts Panel */}
                   <div className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
                     <h3 className="text-lg font-black text-slate-900 tracking-tight mb-5">Quick Actions</h3>
@@ -388,96 +429,11 @@ const StudentDashboard: React.FC = () => {
                         </div>
                         <FiChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" size={16} />
                       </div>
-
                     </div>
                   </div>
 
-                  {/* Instructors Spotlight */}
-                  <div className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-black text-slate-900 tracking-tight">Our Art Instructors</h3>
-                      <div className="flex items-center gap-0.5 text-amber-500 font-extrabold text-xs">
-                        <FiStar className="fill-amber-500" size={12} /> <span>4.9 Avg</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      {/* Teacher 1 */}
-                      <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition-all">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#4700b3] flex items-center justify-center font-bold text-xs uppercase relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Sophia Martinez" className="w-full h-full object-cover" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-black text-slate-800 leading-none">Sophia Martinez</p>
-                            <p className="text-[9px] text-slate-400 font-semibold mt-1">Digital Art & Design</p>
-                          </div>
-                        </div>
-                        <button className="p-2 bg-slate-50 hover:bg-[#e6e6fa] hover:text-[#4700b3] text-slate-450 rounded-lg transition-colors border-none cursor-pointer">
-                          <FiMail size={13} />
-                        </button>
-                      </div>
-
-                      {/* Teacher 2 */}
-                      <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition-all">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#4700b3] flex items-center justify-center font-bold text-xs uppercase relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Liam Henderson" className="w-full h-full object-cover" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-black text-slate-800 leading-none">Liam Henderson</p>
-                            <p className="text-[9px] text-slate-400 font-semibold mt-1">Traditional Sketching</p>
-                          </div>
-                        </div>
-                        <button className="p-2 bg-slate-50 hover:bg-[#e6e6fa] hover:text-[#4700b3] text-slate-450 rounded-lg transition-colors border-none cursor-pointer">
-                          <FiMail size={13} />
-                        </button>
-                      </div>
-
-                      {/* Teacher 3 */}
-                      <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition-all">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#4700b3] flex items-center justify-center font-bold text-xs uppercase relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Olivia Chen" className="w-full h-full object-cover" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-black text-slate-800 leading-none">Olivia Chen</p>
-                            <p className="text-[9px] text-slate-400 font-semibold mt-1">3D Sculpting & Clay</p>
-                          </div>
-                        </div>
-                        <button className="p-2 bg-slate-50 hover:bg-[#e6e6fa] hover:text-[#4700b3] text-slate-450 rounded-lg transition-colors border-none cursor-pointer">
-                          <FiMail size={13} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Recent Activity Log Widget */}
-                  <div className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
-                    <h3 className="text-lg font-black text-slate-900 tracking-tight mb-5">Recent Activity</h3>
-
-                    <div className="space-y-4">
-                      {recentLogs.map((log) => (
-                        <div key={log.id} className="flex gap-3 text-left">
-                          <div className="p-2 bg-purple-50 text-[#4700b3] rounded-xl h-8 w-8 flex items-center justify-center shrink-0 mt-0.5">
-                            <FiUserCheck size={14} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-extrabold text-slate-800 leading-tight truncate">
-                              {log.action}
-                            </p>
-                            <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">
-                              {log.detail}
-                            </p>
-                            <span className="text-[9px] text-slate-400 font-bold block mt-1">
-                              {log.time}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
+                  {/* Instructors Spotlight from Database (Infinite Slide Ticker) */}
+                  <TeachersWidget />
                 </div>
 
               </div>
@@ -486,7 +442,6 @@ const StudentDashboard: React.FC = () => {
           ) : (
             // REGULAR USER DASHBOARD CONTENT
             <>
-
               {/* Live Class Banner */}
               {currentLiveBatches.length > 0 && (
                 <div className="space-y-3">
@@ -526,8 +481,6 @@ const StudentDashboard: React.FC = () => {
 
               {/* Quick Stats Grid */}
               <div className="grid grid-cols-1 gap-6">
-
-                {/* Stat 2: Active Courses */}
                 <div
                   onClick={() => navigate('/student/courses')}
                   className="bg-white p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow group"
@@ -543,17 +496,14 @@ const StudentDashboard: React.FC = () => {
                     <FiBook size={20} className="stroke-[2.5]" />
                   </div>
                 </div>
-
               </div>
 
               {/* Main Dashboard Panel Layout */}
               <div className="grid grid-cols-1 lg:grid-cols-[1.7fr_1.1fr] gap-8 items-start">
-
-                {/* Left Main Panel: Schedule & Announcements */}
+                {/* Left Main Panel: Schedule & Masterpiece Showcase */}
                 <div className="space-y-8">
-
                   {/* Schedule / Timeline Widget */}
-                  <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
+                  <div className="bg-[#fff] p-6 md:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
                     <div className="flex justify-between items-center mb-6">
                       <div>
                         <h3 className="text-lg font-black text-slate-900 tracking-tight">Weekly Study Schedule</h3>
@@ -605,90 +555,14 @@ const StudentDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Recent Announcements Widget */}
-                  <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
-                    <div className="flex items-center gap-2 mb-6">
-                      <FiVolume2 size={20} className="text-[#4700b3]" />
-                      <h3 className="text-lg font-black text-slate-900 tracking-tight">Academy Announcements</h3>
-                    </div>
-
-                    <div className="space-y-5">
-                      {announcements.map((ann) => (
-                        <div key={ann.id} className="pb-5 border-b border-slate-100 last:border-none last:pb-0 text-left">
-                          <div className="flex justify-between items-center gap-4 mb-2">
-                            <span className={`px-2.5 py-0.5 text-[9px] font-extrabold rounded-md uppercase ${ann.tagColor}`}>
-                              {ann.tag}
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-semibold">{ann.date}</span>
-                          </div>
-                          <h4 className="font-extrabold text-slate-800 text-sm">{ann.title}</h4>
-                          <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">{ann.desc}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
+                  {/* Student Gallery Spotlight (First 3 Gallery Images) */}
+                  <MasterpieceShowcaseWidget />
                 </div>
 
-                {/* Right Main Panel: Course Progress Spotlight & Log Tracker */}
+                {/* Right Main Panel: Instructors from Database (Infinite Slide Ticker) */}
                 <div className="space-y-8">
-
-                  {/* Recent Activity Log Widget */}
-                  <div className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
-                    <h3 className="text-lg font-black text-slate-900 tracking-tight mb-5">Recent Activity</h3>
-
-                    <div className="space-y-4">
-                      {recentLogs.map((log) => (
-                        <div key={log.id} className="flex gap-3 text-left">
-                          <div className="p-2 bg-purple-50 text-[#4700b3] rounded-xl h-8 w-8 flex items-center justify-center shrink-0 mt-0.5">
-                            <FiUserCheck size={14} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-extrabold text-slate-800 leading-tight truncate">
-                              {log.action}
-                            </p>
-                            <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">
-                              {log.detail}
-                            </p>
-                            <span className="text-[9px] text-slate-400 font-bold block mt-1">
-                              {log.time}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Quick Action Instructors Contact Widget */}
-                  <div className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
-                    <h3 className="text-lg font-black text-slate-900 tracking-tight mb-4">My Instructors</h3>
-
-                    <div className="space-y-3">
-                      {instructors.length > 0 ? (
-                        instructors.map((instructor: any, index: number) => (
-                          <div key={index} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition-all">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-purple-100 text-[#4700b3] flex items-center justify-center font-bold text-xs uppercase">
-                                {instructor.name.charAt(0)}
-                              </div>
-                              <div>
-                                <p className="text-xs font-bold text-slate-800 leading-none">{instructor.name}</p>
-                                <p className="text-[9px] text-slate-400 font-semibold mt-1">{instructor.courseName}</p>
-                              </div>
-                            </div>
-                            <button className="p-2 bg-slate-50 hover:bg-[#e6e6fa] hover:text-[#4700b3] text-slate-400 rounded-lg transition-colors border-none cursor-pointer">
-                              <FiMail size={14} />
-                            </button>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-slate-400 italic text-center py-4">No instructors assigned yet.</p>
-                      )}
-                    </div>
-                  </div>
-
+                  <TeachersWidget />
                 </div>
-
               </div>
             </>
           )}
