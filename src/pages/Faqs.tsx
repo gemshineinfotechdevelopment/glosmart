@@ -11,7 +11,6 @@ import {
   FiMail, 
   FiChevronDown, 
   FiChevronUp,
-  FiSearch,
   FiBookOpen,
   FiMonitor
 } from 'react-icons/fi';
@@ -37,8 +36,6 @@ interface CategoryData {
 export const Faqs: React.FC = () => {
   const [activeTab, setActiveTab] = useState<CategoryType>('enrollment');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [searchQuery, setSearchQuery] = useState('');
-
   const categories: CategoryData[] = [
     {
       id: 'enrollment',
@@ -207,13 +204,7 @@ export const Faqs: React.FC = () => {
   }, []);
 
   const currentCategoryData = categories.find((cat) => cat.id === activeTab);
-  const displayedItems = searchQuery
-    ? categories.flatMap((cat) => cat.items).filter(
-        (item) =>
-          item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.answer.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : currentCategoryData?.items || [];
+  const displayedItems = currentCategoryData?.items || [];
 
   return (
     <div
@@ -248,26 +239,14 @@ export const Faqs: React.FC = () => {
           Everything you need to know about our curriculum, enrollment process, and how we help young visionaries ignite their inner masterpiece.
         </p>
 
-        {/* Search Bar */}
-        <div className="relative max-w-xl w-full mb-12 shadow-md shadow-slate-100/30 rounded-full">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-5 text-slate-400">
-            <FiSearch className="w-5 h-5 text-slate-400" />
-          </span>
-          <input
-            type="text"
-            placeholder="Search for a question..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-13 pr-6 py-4 bg-white border border-white rounded-full outline-none text-slate-800 text-[15px] focus:ring-2 focus:ring-[#ff8aa1]/35 focus:border-[#ff8aa1]/50 transition-all duration-300 placeholder:text-slate-400 font-sans"
-          />
-        </div>
+  
 
         {/* Categories & FAQs Grid */}
         <div className="w-full grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start mb-16">
           {/* Sidebar selector - hidden if searching to avoid confusion, or kept as categories */}
           <div className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible gap-4 pb-2 lg:pb-0 w-full scrollbar-none shrink-0">
             {categories.map((cat) => {
-              const isActive = activeTab === cat.id && !searchQuery;
+              const isActive = activeTab === cat.id;
               return (
                 <button
                   key={cat.id}

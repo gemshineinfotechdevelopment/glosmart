@@ -7,6 +7,7 @@ import {
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import { API_BASE_URL } from '../../config/api';
+import { useAuth } from '../../context/AuthContext';
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
@@ -54,6 +55,7 @@ interface Teacher {
 }
 
 const Teachers: React.FC = () => {
+  const { user } = useAuth();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTeacherId, setEditingTeacherId] = useState<string | null>(null);
@@ -337,11 +339,7 @@ const Teachers: React.FC = () => {
                 <p className="text-sm font-bold text-[#1c1c28] leading-tight">Admin User</p>
                 <p className="text-[10px] font-medium text-slate-500">Administrator</p>
               </div>
-              <img 
-                src="https://i.pravatar.cc/150?img=11" 
-                alt="Admin Profile" 
-                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-              />
+              <div className="w-10 h-10 rounded-full bg-[#6247df] text-white flex items-center justify-center font-bold text-lg shadow-sm border-2 border-white">{user?.name ? user.name.charAt(0).toUpperCase() : 'A'}</div>
             </div>
           </div>
         </div>
@@ -396,13 +394,9 @@ const Teachers: React.FC = () => {
           {displayedTeachers.map((teacher) => (
             <div key={teacher._id} className="bg-white rounded-3xl p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-50/50 flex flex-col hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] transition-shadow">
               <div className="flex justify-between items-start mb-6">
-                {teacher.avatar ? (
-                  <img src={teacher.avatar} alt={teacher.name} className="w-16 h-16 rounded-2xl object-cover shadow-sm" />
-                ) : (
-                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-100 shadow-sm">
-                    <FiUser size={28} />
-                  </div>
-                )}
+                <div className="w-16 h-16 rounded-2xl bg-[#f3f0ff] text-[#6247df] flex items-center justify-center font-bold text-2xl shadow-sm">
+                  {teacher.name.charAt(0).toUpperCase()}
+                </div>
                 <span className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${teacher.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${teacher.status === 'Active' ? 'bg-green-600' : 'bg-slate-400'}`}></span> {teacher.status || 'Active'}
                 </span>
