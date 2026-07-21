@@ -191,10 +191,10 @@ const StudentDashboard: React.FC = () => {
               <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • {student.grade}</p>
             </div>
             <div
-              className="w-10 h-10 rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center border border-slate-200 shadow-sm cursor-pointer shrink-0"
+              className="w-10 h-10 rounded-full bg-[#6247df] text-white flex items-center justify-center font-bold text-lg border border-slate-200 shadow-sm cursor-pointer shrink-0"
               onClick={() => navigate('/student/profile')}
             >
-              <FiUser size={20} />
+              {student.name.charAt(0).toUpperCase()}
             </div>
           </div>
         </header>
@@ -399,8 +399,8 @@ const StudentDashboard: React.FC = () => {
                       {/* Teacher 1 */}
                       <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition-all">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#4700b3] flex items-center justify-center font-bold text-xs uppercase relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Sophia Martinez" className="w-full h-full object-cover" />
+                          <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#4700b3] flex items-center justify-center font-bold text-lg uppercase relative overflow-hidden">
+                            S
                           </div>
                           <div>
                             <p className="text-xs font-black text-slate-800 leading-none">Sophia Martinez</p>
@@ -415,8 +415,8 @@ const StudentDashboard: React.FC = () => {
                       {/* Teacher 2 */}
                       <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition-all">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#4700b3] flex items-center justify-center font-bold text-xs uppercase relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Liam Henderson" className="w-full h-full object-cover" />
+                          <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#4700b3] flex items-center justify-center font-bold text-lg uppercase relative overflow-hidden">
+                            L
                           </div>
                           <div>
                             <p className="text-xs font-black text-slate-800 leading-none">Liam Henderson</p>
@@ -431,8 +431,8 @@ const StudentDashboard: React.FC = () => {
                       {/* Teacher 3 */}
                       <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition-all">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#4700b3] flex items-center justify-center font-bold text-xs uppercase relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Olivia Chen" className="w-full h-full object-cover" />
+                          <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#4700b3] flex items-center justify-center font-bold text-lg uppercase relative overflow-hidden">
+                            O
                           </div>
                           <div>
                             <p className="text-xs font-black text-slate-800 leading-none">Olivia Chen</p>

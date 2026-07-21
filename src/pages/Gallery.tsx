@@ -291,9 +291,7 @@ export default function Gallery() {
             >
               Join the Academy
             </button>
-            <button className="bg-transparent text-white border-2 border-white font-bold px-8 py-3 rounded-full text-base cursor-pointer hover:bg-white/10 hover:-translate-y-0.5 transition-all shadow-md">
-              Request a Tour
-            </button>
+            
           </div>
         </div>
       </section>

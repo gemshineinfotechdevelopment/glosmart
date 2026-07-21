@@ -238,7 +238,7 @@ export const Faqs: React.FC = () => {
         {/* Subtitle */}
         <p className="text-base md:text-lg text-[#616c96] max-w-xl text-center mb-8">
           Everything you need to know about our curriculum, enrollment process, and how we help young visionaries ignite their inner masterpiece.
-        </p>
+        </p>  
 
         {/* Categories & FAQs Grid */}
         <div className="w-full grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start mb-16">

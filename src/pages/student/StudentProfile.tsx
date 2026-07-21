@@ -164,8 +164,8 @@ const StudentProfile: React.FC = () => {
             
             {/* Profile Icon Section */}
             <div className="relative mb-6">
-              <div className="w-[170px] h-[170px] rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center shadow-inner">
-                <FiUser size={72} />
+              <div className="w-[170px] h-[170px] rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center shadow-inner font-bold text-[72px]">
+                {profile.name.charAt(0).toUpperCase()}
               </div>
               <div className="absolute bottom-2 right-2 bg-[#4ade80] text-[#064e3b] text-[11px] font-bold px-4 py-1.5 rounded-full border-[3px] border-white uppercase tracking-wider shadow-sm">
                 Active

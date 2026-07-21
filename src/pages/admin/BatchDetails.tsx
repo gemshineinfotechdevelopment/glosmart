@@ -251,26 +251,12 @@ const BatchDetails: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-6 w-full md:w-auto">
-            <button className="text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-none cursor-pointer">
-              <FiCalendar size={20} />
-            </button>
-
-            <div className="w-px h-8 bg-slate-200 hidden md:block"></div>
-
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-[#1c1c28] leading-tight">
-                  {user?.name ? user.name : (user?.role === 'teacher' ? 'Tutor User' : 'Admin User')}
-                </p>
-                <p className="text-[10px] font-bold text-slate-400 tracking-wider">
-                  {user?.role === 'teacher' ? 'TUTOR' : 'DIRECTOR'}
-                </p>
+                <p className="text-sm font-bold text-[#1c1c28] leading-tight">Admin User</p>
+                <p className="text-[10px] font-medium text-slate-500">Administrator</p>
               </div>
-              <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop"
-                alt="Profile"
-                className="w-10 h-10 rounded-full object-cover border border-slate-100 shadow-sm"
-              />
+              <div className="w-10 h-10 rounded-full bg-[#6247df] text-white flex items-center justify-center font-bold text-lg shadow-sm border-2 border-white">{user?.name ? user.name.charAt(0).toUpperCase() : 'A'}</div>
             </div>
           </div>
         </div>
