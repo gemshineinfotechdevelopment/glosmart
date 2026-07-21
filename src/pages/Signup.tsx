@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiCheck } from 'react-icons/fi';
+import { FiCheck, FiArrowLeft } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
@@ -45,6 +45,18 @@ const Signup: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#fafbfc] flex flex-col font-sans relative overflow-hidden">
       
+      {/* Top Header Back Button */}
+      <div className="absolute top-6 left-6 sm:left-12 z-50">
+        <button
+          onClick={() => navigate(-1)}
+          className="lg:hidden p-2.5 rounded-2xl text-slate-700 hover:text-[#007b8b] bg-white shadow-md hover:shadow-lg border border-slate-100 transition-all cursor-pointer group flex items-center justify-center"
+          title="Go back"
+          aria-label="Go back"
+        >
+          <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" size={18} />
+        </button>
+      </div>
+
       <main className="flex-grow w-full max-w-[1280px] mx-auto px-6 pt-32 pb-20 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
         
         {/* Left Column - Branding */}

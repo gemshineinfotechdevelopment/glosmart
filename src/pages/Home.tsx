@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FiPlay, FiSmile, FiTrendingUp, FiImage, FiShield,
+  FiSmile, FiTrendingUp, FiImage, FiShield,
   FiStar, FiCheck, FiChevronDown, FiCalendar, FiEdit2
 } from 'react-icons/fi';
 import { MdOutlineDashboard } from 'react-icons/md';
@@ -20,11 +20,35 @@ const mockArtwork2 = "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a
 const mockArtwork3 = "https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=400&q=80";
 const mockArtwork4 = "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&q=80";
 
+const faqs = [
+  {
+    question: "What age group is this for?",
+    answer: "We offer specialized programs for children from ages 4 up to 18, tailored to developmental stages."
+  },
+  {
+    question: "Do I need to buy art supplies?",
+    answer: "Basic household items work for starter courses. We also provide a complete list of recommended materials and optional starter kits."
+  },
+  {
+    question: "Are the live sessions recorded?",
+    answer: "Yes! All live sessions are recorded and made available in your student dashboard so you can rewatch anytime."
+  },
+  {
+    question: "Can we cancel the subscription?",
+    answer: "Yes, you can cancel or modify your subscription at any time from your account settings with no hidden fees."
+  }
+];
+
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const [courses, setCourses] = useState<any[]>([]);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [openFaqs, setOpenFaqs] = useState<Record<number, boolean>>({});
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaqs(prev => ({ ...prev, [index]: !prev[index] }));
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -85,17 +109,6 @@ const Home: React.FC = () => {
             <p className="text-slate-600 text-base sm:text-lg max-w-md leading-relaxed">
               Learn the core of art, involve in growth today! Over 100+ new courses in this month, bring new learning program.
             </p>
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6 mt-2 sm:mt-4">
-              <button className="bg-[#005577] text-white px-7 sm:px-8 py-3 sm:py-3.5 rounded-full font-bold hover:bg-[#003d55] hover:shadow-xl transition-all hover:-translate-y-1">
-                Start for free
-              </button>
-              <button className="flex items-center gap-3 text-slate-600 font-bold hover:text-[#005577] transition-all group">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-                  <FiPlay className="text-[#005577] ml-1" />
-                </div>
-                Watch Video
-              </button>
-            </div>
           </div>
 
           {/* Hero Image Side */}
@@ -444,37 +457,25 @@ const Home: React.FC = () => {
       <section className="py-24 px-6">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-extrabold text-[#1A254C] text-center mb-12">Common Questions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col gap-4">
-              <div className="flex justify-between items-start">
-                <h4 className="font-bold text-[#1A254C]">What age group is this for?</h4>
-                <FiChevronDown className="text-slate-400 mt-1" />
-              </div>
-              <p className="text-sm text-slate-500">We offer specialized programs for children from ages 4 up to 18, tailored to developmental stages.</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col gap-4">
-              <div className="flex justify-between items-start">
-                <h4 className="font-bold text-[#1A254C]">Do I need to buy art supplies?</h4>
-                <FiChevronDown className="text-slate-400 mt-1" />
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col gap-4">
-              <div className="flex justify-between items-start">
-                <h4 className="font-bold text-[#1A254C]">Are the live sessions recorded?</h4>
-                <FiChevronDown className="text-slate-400 mt-1" />
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col gap-4">
-              <div className="flex justify-between items-start">
-                <h4 className="font-bold text-[#1A254C]">Can we cancel the subscription?</h4>
-                <FiChevronDown className="text-slate-400 mt-1" />
-              </div>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            {faqs.map((faq, index) => {
+              const isOpen = !!openFaqs[index];
+              return (
+                <div
+                  key={index}
+                  onClick={() => toggleFaq(index)}
+                  className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col gap-4 cursor-pointer hover:border-slate-200 transition-all select-none"
+                >
+                  <div className="flex justify-between items-center gap-4">
+                    <h4 className="font-bold text-[#1A254C]">{faq.question}</h4>
+                    <FiChevronDown className={`text-slate-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#005577]' : ''}`} />
+                  </div>
+                  {isOpen && (
+                    <p className="text-sm text-slate-500 leading-relaxed border-t border-slate-100 pt-3">{faq.answer}</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
