@@ -119,14 +119,6 @@ export const FeesPayments: React.FC = () => {
             <h2 className="text-2xl sm:text-3xl font-black text-[#1c1c28] tracking-tight">Fees & Payments</h2>
             <p className="text-slate-500 font-semibold text-sm mt-1">Manage tuition fees, track collections and generate student invoices.</p>
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <button className="bg-[#f0effb] text-[#6247df] border-none px-5 py-3.5 rounded-xl font-bold text-xs hover:bg-[#e4e1f7] transition-all cursor-pointer flex items-center gap-2">
-              <FiDownload size={14} className="stroke-[2.5]" /> Download PDF
-            </button>
-            <button className="bg-[#6247df] text-white border-none px-5 py-3.5 rounded-xl font-bold text-xs hover:bg-[#5035c9] transition-all cursor-pointer flex items-center gap-2 shadow-md shadow-purple-900/15">
-              <FiPlus size={14} className="stroke-[2.5]" /> Generate Invoice
-            </button>
-          </div>
         </div>
 
         {/* Overview Metric Cards */}
@@ -220,9 +212,6 @@ export const FeesPayments: React.FC = () => {
               <button className="bg-transparent border border-slate-200 text-slate-400 hover:text-slate-600 w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all">
                 <FiFilter size={16} />
               </button>
-              <button className="bg-transparent border border-slate-200 text-slate-400 hover:text-slate-600 w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all">
-                <FiGrid size={16} />
-              </button>
             </div>
           </div>
 
@@ -281,7 +270,7 @@ export const FeesPayments: React.FC = () => {
                     </td>
                     <td className="py-4 px-6 text-center">
                       {row.status === 'Successful' && (
-                        <button className="bg-transparent border-none text-slate-400 hover:text-slate-600 cursor-pointer p-1">
+                        <button onClick={() => window.print()} className="bg-transparent border-none text-slate-400 hover:text-slate-600 cursor-pointer p-1">
                           <FiDownload size={16} />
                         </button>
                       )}

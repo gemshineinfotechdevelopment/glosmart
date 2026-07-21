@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -34,6 +34,7 @@ import StudentCourses from './pages/student/StudentCourses';
 import StudentAssignments from './pages/student/StudentAssignments';
 import StudentFees from './pages/student/StudentFees';
 import StudentDashboard from './pages/student/StudentDashboard';
+import StudentLayout from './layouts/StudentLayout';
 
 import { AuthProvider } from './context/AuthContext';
 
@@ -81,13 +82,16 @@ function AppContent(): React.JSX.Element {
             <Route path="tutor-reports" element={<TutorReports />} />
           </Route>
 
-          {/* Student Routes */}
-          <Route path="/student/profile" element={<ProtectedRoute allowedRoles={['student']}><StudentProfile /></ProtectedRoute>} />
-          <Route path="/student/attendance" element={<ProtectedRoute allowedRoles={['student']}><StudentAttendance /></ProtectedRoute>} />
-          <Route path="/student/courses" element={<ProtectedRoute allowedRoles={['student']}><StudentCourses /></ProtectedRoute>} />
-          <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={['student']}><StudentAssignments /></ProtectedRoute>} />
-          <Route path="/student/fees" element={<ProtectedRoute allowedRoles={['student']}><StudentFees /></ProtectedRoute>} />
-          <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
+          {/* Student Routes — nested under StudentLayout */}
+          <Route path="/student" element={<ProtectedRoute allowedRoles={['student']}><StudentLayout /></ProtectedRoute>}>
+            <Route index element={<Navigate to="/student/dashboard" replace />} />
+            <Route path="dashboard" element={<StudentDashboard />} />
+            <Route path="profile" element={<StudentProfile />} />
+            <Route path="attendance" element={<StudentAttendance />} />
+            <Route path="courses" element={<StudentCourses />} />
+            <Route path="assignments" element={<StudentAssignments />} />
+            <Route path="fees" element={<StudentFees />} />
+          </Route>
 
           {/* Fallback route back to About page */}
           <Route path="*" element={<About />} />

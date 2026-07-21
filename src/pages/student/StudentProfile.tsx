@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import StudentSidebar from '../../components/student/StudentSidebar';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/api';
 import { FiEdit2, FiX, FiCheck, FiCheckCircle, FiUser } from 'react-icons/fi';
@@ -17,6 +17,7 @@ interface ProfileData {
 }
 
 const StudentProfile: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   // State for student details
@@ -127,10 +128,7 @@ const StudentProfile: React.FC = () => {
 
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[#F9FAFB] w-full font-sans">
-      <StudentSidebar />
-      
-      <main className="flex-1 flex flex-col min-h-screen relative w-full min-w-0">
+    <div className="flex flex-col relative w-full min-w-0">
         
         {/* Toast Notification */}
         {showToast && (
@@ -143,7 +141,7 @@ const StudentProfile: React.FC = () => {
         )}
 
         {/* Top Header */}
-        <div className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-4 sm:py-8">
+        <div className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-4 sm:py-8 bg-white border-b border-slate-100 sticky top-0 z-30">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#111827]">Student Profile</h1>
             <p className="text-[#6B7280] text-[13px] sm:text-[15px] mt-1">View and manage your academic profile</p>
@@ -166,8 +164,8 @@ const StudentProfile: React.FC = () => {
             
             {/* Profile Icon Section */}
             <div className="relative mb-6">
-              <div className="w-[170px] h-[170px] rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center shadow-inner">
-                <FiUser size={72} />
+              <div className="w-[170px] h-[170px] rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center shadow-inner font-bold text-[72px]">
+                {profile.name.charAt(0).toUpperCase()}
               </div>
               <div className="absolute bottom-2 right-2 bg-[#4ade80] text-[#064e3b] text-[11px] font-bold px-4 py-1.5 rounded-full border-[3px] border-white uppercase tracking-wider shadow-sm">
                 Active
@@ -346,7 +344,6 @@ const StudentProfile: React.FC = () => {
           </div>
         )}
 
-      </main>
     </div>
   );
 };

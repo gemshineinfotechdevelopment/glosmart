@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL, getImageUrl } from '../../config/api';
@@ -324,12 +323,7 @@ const StudentDashboard: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
-      {/* Left Sidebar */}
-      <StudentSidebar />
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden pb-12 w-full min-w-0">
+    <div className="flex flex-col relative overflow-x-hidden pb-12 w-full min-w-0">
 
         {/* Top Header */}
         <header className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-4 sm:py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
@@ -344,10 +338,10 @@ const StudentDashboard: React.FC = () => {
               <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • {student.grade}</p>
             </div>
             <div
-              className="w-10 h-10 rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center border border-slate-200 shadow-sm cursor-pointer shrink-0"
+              className="w-10 h-10 rounded-full bg-[#6247df] text-white flex items-center justify-center font-bold text-lg border border-slate-200 shadow-sm cursor-pointer shrink-0"
               onClick={() => navigate('/student/profile')}
             >
-              <FiUser size={20} />
+              {student.name.charAt(0).toUpperCase()}
             </div>
           </div>
         </header>
@@ -427,7 +421,6 @@ const StudentDashboard: React.FC = () => {
                             <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Manage receipts & billing</p>
                           </div>
                         </div>
-                        <FiChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" size={16} />
                       </div>
                     </div>
                   </div>
@@ -568,7 +561,6 @@ const StudentDashboard: React.FC = () => {
           )}
         </div>
 
-      </main>
     </div>
   );
 };

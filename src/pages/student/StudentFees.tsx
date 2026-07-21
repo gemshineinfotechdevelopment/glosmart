@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import StudentSidebar from '../../components/student/StudentSidebar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/api';
@@ -309,12 +308,7 @@ const StudentFees: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[#F8FAFC] w-full font-sans text-slate-800">
-      {/* Left Sidebar */}
-      <StudentSidebar />
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden pb-12 w-full min-w-0">
+    <div className="flex flex-col relative overflow-x-hidden pb-12 w-full min-w-0">
         
         {/* Top Header */}
         <header className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-4 sm:py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
@@ -328,12 +322,7 @@ const StudentFees: React.FC = () => {
               <p className="text-[14px] font-bold text-slate-900 leading-none">{studentName}</p>
               <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • {studentGrade}</p>
             </div>
-            <div 
-              className="w-10 h-10 rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center border border-slate-200 shadow-sm cursor-pointer shrink-0"
-              onClick={() => navigate('/student/profile')}
-            >
-              <FiUser size={20} />
-            </div>
+            <div className="w-10 h-10 rounded-full bg-[#6247df] text-white flex items-center justify-center font-bold text-lg border border-slate-200 shadow-sm cursor-pointer shrink-0" onClick={() => navigate('/student/profile')}>{student.name.charAt(0).toUpperCase()}</div>
           </div>
         </header>
 
@@ -469,7 +458,6 @@ const StudentFees: React.FC = () => {
 
         </div>
 
-      </main>
     </div>
   );
 };
