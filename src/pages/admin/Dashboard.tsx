@@ -1,5 +1,5 @@
  import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import {
   FiUsers, FiBookOpen,
   FiCalendar as FiCal,
@@ -11,7 +11,7 @@ import { API_BASE_URL } from '../../config/api';
 
 
 const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
+
   const { user } = useAuth();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [stats, setStats] = useState<any>({});
@@ -186,100 +186,56 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Bottom Section: Revenue & Quick Actions */}
-        <div className={`grid grid-cols-1 ${user?.role !== 'teacher' ? 'lg:grid-cols-[2fr_1fr]' : ''} gap-6`}>
-
-          {/* Revenue Bar Chart */}
-          {user?.role !== 'teacher' && (
-            <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col h-[350px]">
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-xl font-bold text-[#1c1c28]">Revenue Comparison</h3>
-                <div className="flex gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#a36319]"></div>
-                    <span className="text-xs font-semibold text-slate-600">This Month</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#e3dbe7]"></div>
-                    <span className="text-xs font-semibold text-slate-600">Last Month</span>
-                  </div>
+        {/* Bottom Section: Revenue */}
+        {user?.role !== 'teacher' && (
+          <div className="bg-white rounded-[1.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col h-[350px]">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-xl font-bold text-[#1c1c28]">Revenue Comparison</h3>
+              <div className="flex gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#a36319]"></div>
+                  <span className="text-xs font-semibold text-slate-600">This Month</span>
                 </div>
-              </div>
-
-              {/* CSS Bar Chart */}
-              <div className="flex-1 flex items-end justify-around pb-6 mt-4 relative">
-                {/* Bars Week 1 */}
-                <div className="flex items-end gap-2 h-full">
-                  <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[40%]"></div>
-                  <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[50%]"></div>
-                </div>
-                {/* Bars Week 2 */}
-                <div className="flex items-end gap-2 h-full">
-                  <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[60%]"></div>
-                  <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[75%]"></div>
-                </div>
-                {/* Bars Week 3 */}
-                <div className="flex items-end gap-2 h-full">
-                  <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[45%]"></div>
-                  <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[40%]"></div>
-                </div>
-                {/* Bars Week 4 */}
-                <div className="flex items-end gap-2 h-full">
-                  <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[70%]"></div>
-                  <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[85%]"></div>
-                </div>
-
-                {/* X-Axis Labels */}
-                <div className="absolute -bottom-1 left-0 right-0 flex justify-around text-xs font-semibold text-slate-400">
-                  <span>Week 1</span>
-                  <span>Week 2</span>
-                  <span>Week 3</span>
-                  <span>Week 4</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#e3dbe7]"></div>
+                  <span className="text-xs font-semibold text-slate-600">Last Month</span>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Quick Actions */}
-          <div className="flex flex-col gap-4">
-            <h3 className="text-xl font-bold text-[#1c1c28] mb-2">Quick Actions</h3>
-
-            <button onClick={() => navigate('/admin/students')} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center gap-5 hover:border-purple-200 hover:shadow-md transition-all text-left group">
-              <div className="w-12 h-12 rounded-xl bg-purple-100 text-[#6247df] flex items-center justify-center group-hover:scale-110 transition-transform">
-                <FiUsers size={20} />
+            {/* CSS Bar Chart */}
+            <div className="flex-1 flex items-end justify-around pb-6 mt-4 relative">
+              {/* Bars Week 1 */}
+              <div className="flex items-end gap-2 h-full">
+                <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[40%]"></div>
+                <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[50%]"></div>
               </div>
-              <div>
-                <h4 className="font-bold text-[#1c1c28]">Add Student</h4>
-                <p className="text-xs text-slate-500 mt-1">Register new enrollment</p>
+              {/* Bars Week 2 */}
+              <div className="flex items-end gap-2 h-full">
+                <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[60%]"></div>
+                <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[75%]"></div>
               </div>
-            </button>
+              {/* Bars Week 3 */}
+              <div className="flex items-end gap-2 h-full">
+                <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[45%]"></div>
+                <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[40%]"></div>
+              </div>
+              {/* Bars Week 4 */}
+              <div className="flex items-end gap-2 h-full">
+                <div className="w-4 sm:w-6 bg-[#e3dbe7] rounded-t-lg h-[70%]"></div>
+                <div className="w-4 sm:w-6 bg-[#a36319] rounded-t-lg h-[85%]"></div>
+              </div>
 
-            {user?.role === 'admin' && (
-              <>
-                <button onClick={() => navigate('/admin/courses/new')} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center gap-5 hover:border-cyan-200 hover:shadow-md transition-all text-left group">
-                  <div className="w-12 h-12 rounded-xl bg-cyan-100 text-cyan-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <FiBookOpen size={20} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-[#1c1c28]">Create Course</h4>
-                    <p className="text-xs text-slate-500 mt-1">Design a new curriculum</p>
-                  </div>
-                </button>
-
-                <button onClick={() => navigate('/admin/fees')} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex items-center gap-5 hover:border-orange-200 hover:shadow-md transition-all text-left group">
-                  <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <MdCurrencyRupee size={20} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-[#1c1c28]">Collect Fees</h4>
-                    <p className="text-xs text-slate-500 mt-1">Manage pending payments</p>
-                  </div>
-                </button>
-              </>
-            )}
-
+              {/* X-Axis Labels */}
+              <div className="absolute -bottom-1 left-0 right-0 flex justify-around text-xs font-semibold text-slate-400">
+                <span>Week 1</span>
+                <span>Week 2</span>
+                <span>Week 3</span>
+                <span>Week 4</span>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
   ); 
