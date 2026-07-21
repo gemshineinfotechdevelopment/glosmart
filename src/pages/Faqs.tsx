@@ -2,16 +2,15 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import bgImage from '../assets/background-home.jpeg';
 import mobileBg from '../assets/background.png';
-import { 
-  FiStar, 
-  FiRefreshCw, 
-  FiEdit3, 
-  FiUsers, 
-  FiAward, 
-  FiMail, 
-  FiChevronDown, 
+import {
+  FiStar,
+  FiRefreshCw,
+  FiEdit3,
+  FiUsers,
+  FiAward,
+  FiMail,
+  FiChevronDown,
   FiChevronUp,
-  FiSearch,
   FiBookOpen,
   FiMonitor
 } from 'react-icons/fi';
@@ -37,7 +36,6 @@ interface CategoryData {
 export const Faqs: React.FC = () => {
   const [activeTab, setActiveTab] = useState<CategoryType>('enrollment');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const categories: CategoryData[] = [
     {
@@ -207,13 +205,7 @@ export const Faqs: React.FC = () => {
   }, []);
 
   const currentCategoryData = categories.find((cat) => cat.id === activeTab);
-  const displayedItems = searchQuery
-    ? categories.flatMap((cat) => cat.items).filter(
-        (item) =>
-          item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.answer.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : currentCategoryData?.items || [];
+  const displayedItems = currentCategoryData?.items || [];
 
   return (
     <div
@@ -248,39 +240,23 @@ export const Faqs: React.FC = () => {
           Everything you need to know about our curriculum, enrollment process, and how we help young visionaries ignite their inner masterpiece.
         </p>
 
-        {/* Search Bar */}
-        <div className="relative max-w-xl w-full mb-12 shadow-md shadow-slate-100/30 rounded-full">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-5 text-slate-400">
-            <FiSearch className="w-5 h-5 text-slate-400" />
-          </span>
-          <input
-            type="text"
-            placeholder="Search for a question..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-13 pr-6 py-4 bg-white border border-white rounded-full outline-none text-slate-800 text-[15px] focus:ring-2 focus:ring-[#ff8aa1]/35 focus:border-[#ff8aa1]/50 transition-all duration-300 placeholder:text-slate-400 font-sans"
-          />
-        </div>
-
         {/* Categories & FAQs Grid */}
         <div className="w-full grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start mb-16">
-          {/* Sidebar selector - hidden if searching to avoid confusion, or kept as categories */}
+          {/* Sidebar selector */}
           <div className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible gap-4 pb-2 lg:pb-0 w-full scrollbar-none shrink-0">
             {categories.map((cat) => {
-              const isActive = activeTab === cat.id && !searchQuery;
+              const isActive = activeTab === cat.id;
               return (
                 <button
                   key={cat.id}
                   onClick={() => handleTabChange(cat.id)}
-                  className={`flex items-center gap-3.5 px-6 py-4 rounded-[18px] text-[15px] font-bold text-left cursor-pointer transition-all duration-300 border outline-none shrink-0 w-auto lg:w-full ${
-                    isActive
+                  className={`flex items-center gap-3.5 px-6 py-4 rounded-[18px] text-[15px] font-bold text-left cursor-pointer transition-all duration-300 border outline-none shrink-0 w-auto lg:w-full ${isActive
                       ? 'bg-[#004b73] border-[#004b73] text-white shadow-lg shadow-teal-900/10'
                       : 'bg-white border-white text-[#1b2559] hover:bg-slate-50 shadow-sm shadow-slate-100/40'
-                  }`}
+                    }`}
                 >
-                  <span className={`flex items-center justify-center w-8 h-8 rounded-full transition-colors ${
-                    isActive ? 'bg-[#003c5d] text-white' : 'bg-slate-50 border border-slate-100 text-[#00668f]'
-                  }`}>
+                  <span className={`flex items-center justify-center w-8 h-8 rounded-full transition-colors ${isActive ? 'bg-[#003c5d] text-white' : 'bg-slate-50 border border-slate-100 text-[#00668f]'
+                    }`}>
                     {cat.icon}
                   </span>
                   <span>{cat.name}</span>
@@ -297,11 +273,10 @@ export const Faqs: React.FC = () => {
                 return (
                   <div
                     key={item.question}
-                    className={`bg-white rounded-[24px] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden ${
-                      isOpen
+                    className={`bg-white rounded-[24px] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden ${isOpen
                         ? 'border-2 border-[#ff8aa1] shadow-md shadow-pink-100/10'
                         : 'border border-white shadow-slate-100/40'
-                    }`}
+                      }`}
                   >
                     <button
                       className="w-full bg-transparent border-none flex justify-between items-center py-5 px-6 text-left cursor-pointer outline-none font-sans"
@@ -315,11 +290,10 @@ export const Faqs: React.FC = () => {
                           {item.question}
                         </span>
                       </div>
-                      <span className={`flex items-center justify-center w-8 h-8 rounded-full border shrink-0 transition-all duration-300 ${
-                        isOpen 
-                          ? 'bg-[#00668f] border-[#00668f] text-white' 
+                      <span className={`flex items-center justify-center w-8 h-8 rounded-full border shrink-0 transition-all duration-300 ${isOpen
+                          ? 'bg-[#00668f] border-[#00668f] text-white'
                           : 'bg-transparent border-slate-200 text-[#1b2559]'
-                      }`}>
+                        }`}>
                         {isOpen ? <FiChevronUp className="w-4 h-4" /> : <FiChevronDown className="w-4 h-4" />}
                       </span>
                     </button>
@@ -344,14 +318,14 @@ export const Faqs: React.FC = () => {
           {/* Overlay glow/light elements */}
           <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-sky-400/10 rounded-full blur-[60px] pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-[#ff8aa1]/5 rounded-full blur-[40px] pointer-events-none"></div>
-          
+
           <h2 className="font-fredoka text-3xl md:text-4xl font-bold mb-3 tracking-tight relative z-10">
             Still have questions?
           </h2>
           <p className="text-[15px] md:text-[16px] text-slate-200/90 max-w-xl mx-auto mb-8 leading-relaxed relative z-10">
             Can't find the answer you're looking for? Our team of friendly mentors is here to help you guide your child's creative journey.
           </p>
-          
+
           <div className="flex justify-center items-center relative z-10">
             <Link
               to="/contact"
