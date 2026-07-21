@@ -90,28 +90,28 @@ export default function Course() {
     <div 
       className="min-h-screen font-['Outfit',sans-serif] overflow-hidden"
       style={{ 
-        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${courseBg})`, 
-        backgroundSize: 'cover', 
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.85)), url(${courseBg})`, 
+        backgroundSize: '100% auto', 
         backgroundPosition: 'top center', 
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'repeat-y'
       }}
     >
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-4 flex flex-col items-center text-center z-10">
-        <div className="absolute top-10 right-10 w-48 md:w-80 lg:w-96 animate-bounce-slow opacity-80 pointer-events-none">
+      <section className="relative pt-28 pb-16 md:pt-32 md:pb-20 lg:pt-48 lg:pb-32 px-4 flex flex-col items-center text-center z-10">
+        <div className="absolute top-16 right-3 sm:top-20 sm:right-6 md:top-10 md:right-10 w-24 sm:w-36 md:w-72 lg:w-96 animate-bounce-slow opacity-80 pointer-events-none z-0">
           <img src={crayon} alt="Decorative Brush" className="w-full h-auto drop-shadow-2xl -rotate-12" />
         </div>
         
-        <div className="bg-yellow-300 text-yellow-900 px-4 py-2 rounded-full font-semibold flex items-center gap-2 mb-6 shadow-sm">
+        <div className="relative z-10 bg-yellow-300 text-yellow-900 px-4 py-2 rounded-full font-semibold flex items-center gap-2 mb-6 shadow-sm">
           <Star className="w-4 h-4 fill-yellow-900" />
           Discovery Awaits
         </div>
         
-        <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-[#00668A] mb-6 max-w-3xl leading-tight">
+        <h1 className="relative z-10 text-5xl md:text-6xl lg:text-7xl font-extrabold text-[#00668A] mb-6 max-w-3xl leading-tight">
           Explore the Curriculum
         </h1>
         
-        <p className="text-gray-700 max-w-2xl text-lg md:text-xl font-medium leading-relaxed">
+        <p className="relative z-10 text-gray-700 max-w-2xl text-lg md:text-xl font-medium leading-relaxed">
           Find the perfect creative path for every age and skill level. From tactile sensory play to advanced digital masterclasses.
         </p>
       </section>

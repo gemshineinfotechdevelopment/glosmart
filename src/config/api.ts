@@ -1,5 +1,7 @@
 // Centralized API configuration for Vercel and Render deployment
-export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000')
+  .replace(/\/$/, '')
+  .replace(/\/api$/, '');
 
 export const getApiUrl = (endpoint: string): string => {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
