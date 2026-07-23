@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/api';
 import { FiEdit2, FiX, FiCheck, FiCheckCircle, FiUser } from 'react-icons/fi';
@@ -17,7 +16,6 @@ interface ProfileData {
 }
 
 const StudentProfile: React.FC = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   // State for student details
