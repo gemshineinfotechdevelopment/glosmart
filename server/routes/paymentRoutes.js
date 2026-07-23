@@ -164,7 +164,7 @@ router.post('/razorpay-verify', async (req, res) => {
       name: student.name,
       email: student.email,
       phone: student.phone || '',
-      message: `Student ${student.name} successfully purchased ${paymentDetails.course} (Amount: ${paymentDetails.amount}). Invoice No: ${paymentDetails.invoiceNo}`,
+      message: `Student ${student.name} successfully enrolled in - ${paymentDetails.course} (Amount: ${paymentDetails.amount}). Invoice No: ${paymentDetails.invoiceNo}`,
       notificationType: isBatchPurchase ? 'batch_purchase' : 'course_purchase',
       purchaseAmount: paymentDetails.amount,
       courseName: updatePayload?.course || paymentDetails.course

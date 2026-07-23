@@ -230,7 +230,7 @@ const Teachers: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this teacher?")) {
+    if (window.confirm("Are you sure you want to delete this tutor?")) {
       try {
         const res = await fetch(`${API_BASE_URL}/api/teachers/${id}`, {
           method: 'DELETE'
@@ -289,11 +289,11 @@ const Teachers: React.FC = () => {
         fetchTeachers();
       } else {
         const errorData = await res.json();
-        alert(errorData.message || "Failed to save teacher");
+        alert(errorData.message || "Failed to save tutor");
         console.error("Server Error:", errorData);
       }
     } catch (error) {
-      alert("Network or internal error when saving teacher.");
+      alert("Network or internal error when saving tutor.");
       console.error("Failed to save teacher", error);
     }
   };
@@ -321,13 +321,13 @@ const Teachers: React.FC = () => {
     <div className="p-4 sm:p-6 md:p-10">
         {/* Top bar */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-10 gap-4">
-          <h1 className="text-2xl sm:text-[28px] font-bold text-[#1c1c28]">Teachers</h1>
+          <h1 className="text-2xl sm:text-[28px] font-bold text-[#1c1c28]">Tutors</h1>
           <div className="flex items-center gap-6 w-full md:w-auto">
             <div className="relative w-full md:w-72">
               <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input 
                 type="text" 
-                placeholder="Search Teachers..." 
+                placeholder="Search Tutors..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-slate-50 border-none rounded-full py-2.5 pl-11 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-100 placeholder:text-slate-400"
@@ -347,9 +347,9 @@ const Teachers: React.FC = () => {
         {/* Header Section */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end mb-8 gap-6">
           <div className="max-w-xl">
-            <h2 className="text-3xl font-extrabold text-[#1c1c28] mb-2 tracking-tight">Teacher Management</h2>
+            <h2 className="text-3xl font-extrabold text-[#1c1c28] mb-2 tracking-tight">Tutor Management</h2>
             <p className="text-slate-500 font-medium text-[15px] leading-relaxed">
-              Manage instructors, view their schedules, and add new teaching staff.
+              Manage tutors, view their schedules, and add new tutoring staff.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-4">
@@ -384,7 +384,7 @@ const Teachers: React.FC = () => {
               onClick={openAddModal}
               className="flex items-center gap-2 bg-[#6247df] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-purple-200 hover:bg-[#5035c9] transition-colors h-full"
             >
-              <FiPlus size={16} /> <span className="leading-tight">Add<br/>New Teacher</span>
+              <FiPlus size={16} /> <span className="leading-tight">Add<br/>New Tutor</span>
             </button>
           </div>
         </div>
@@ -435,7 +435,7 @@ const Teachers: React.FC = () => {
               <div className="p-8">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-2xl font-extrabold text-[#1c1c28]">
-                    {editingTeacherId ? 'Edit Teacher' : 'Add New Teacher'}
+                    {editingTeacherId ? 'Edit Tutor' : 'Add New Tutor'}
                   </h3>
                   <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors">
                     ✕
@@ -444,7 +444,7 @@ const Teachers: React.FC = () => {
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="flex flex-col gap-2 mb-4">
-                    <label className="block text-sm font-bold text-slate-700">Teacher Photo</label>
+                    <label className="block text-sm font-bold text-slate-700">Tutor Photo</label>
                     <input 
                       type="file" 
                       accept=".jpg,.jpeg,.png"
@@ -508,7 +508,7 @@ const Teachers: React.FC = () => {
                           <div className="relative w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 shadow-sm shrink-0 bg-slate-50">
                             <img 
                               src={previewUrl} 
-                              alt="Teacher Preview" 
+                              alt="Tutor Preview" 
                               className="w-full h-full object-cover"
                             />
                           </div>
@@ -657,7 +657,7 @@ const Teachers: React.FC = () => {
                       type="submit"
                       className="px-6 py-3 rounded-xl font-bold text-white bg-[#6247df] hover:bg-[#5035c9] shadow-lg shadow-purple-200 transition-colors"
                     >
-                      {editingTeacherId ? 'Save Changes' : 'Save Teacher'}
+                      {editingTeacherId ? 'Save Changes' : 'Save Tutor'}
                     </button>
                   </div>
                 </form>

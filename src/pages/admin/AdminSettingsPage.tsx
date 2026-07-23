@@ -158,7 +158,7 @@ const AdminSettingsPage: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
             <div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c28] mb-1">
-                {isAdmin ? 'Academy Settings' : 'Teacher Profile Settings'}
+                {isAdmin ? 'Academy Settings' : 'Tutor Profile Settings'}
               </h2>
               <p className="text-slate-500 font-medium">
                 {isAdmin ? 'Manage profile details and public contact information.' : 'Manage your profile details and security settings.'}

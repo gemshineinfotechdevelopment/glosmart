@@ -212,14 +212,14 @@ const StudentDashboard: React.FC = () => {
         onMouseLeave={() => setIsPaused(false)}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-black text-slate-900 tracking-tight">Our Art Instructors</h3>
+          <h3 className="text-lg font-black text-slate-900 tracking-tight">Our Art Tutors</h3>
           <div className="flex items-center gap-0.5 text-amber-500 font-extrabold text-xs">
             <FiStar className="fill-amber-500" size={12} /> <span>{dbTeachers.length} Active</span>
           </div>
         </div>
 
         {loadingTeachers ? (
-          <p className="text-xs text-slate-400 italic text-center py-4">Loading teachers...</p>
+          <p className="text-xs text-slate-400 italic text-center py-4">Loading tutors...</p>
         ) : dbTeachers.length > 0 ? (
           <div 
             className="relative overflow-hidden"
@@ -268,7 +268,7 @@ const StudentDashboard: React.FC = () => {
             </div>
           </div>
         ) : (
-          <p className="text-xs text-slate-400 italic text-center py-4">No teacher records found in database.</p>
+          <p className="text-xs text-slate-400 italic text-center py-4">No tutor records found in database.</p>
         )}
       </div>
     );

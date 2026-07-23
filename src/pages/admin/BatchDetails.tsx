@@ -556,7 +556,7 @@ const BatchDetails: React.FC = () => {
                       <p className="text-sm font-extrabold text-slate-700">{selectedStudent.course}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 mb-0.5 uppercase">Teacher</p>
+                      <p className="text-[10px] font-bold text-slate-400 mb-0.5 uppercase">Tutor</p>
                       <p className="text-sm font-extrabold text-slate-700">{selectedStudent.teacher}</p>
                     </div>
                     <div>
