@@ -5,12 +5,14 @@ import {
   FiStar, FiCheck, FiChevronDown, FiCalendar, FiEdit2
 } from 'react-icons/fi';
 import { MdOutlineDashboard } from 'react-icons/md';
-import { FaPalette, FaRocket, FaPaintBrush } from 'react-icons/fa';
+import { FaPalette, FaRocket } from 'react-icons/fa';
 
 import { API_BASE_URL, getImageUrl } from '../config/api';
 
 import bgImage from '../assets/background-home.jpeg';
 import mobileBg from '../assets/background.png';
+import homeStudent from '../assets/home-student.png';
+import crayon from '../assets/crayon.png';
 
 // Mock images since we don't have the exact ones from the design
 const mockAvatar1 = "https://i.pravatar.cc/150?img=1";
@@ -113,13 +115,15 @@ const Home: React.FC = () => {
 
           {/* Hero Image Side */}
           <div className="relative flex justify-center">
-            <div className="w-full max-w-[480px] aspect-square rounded-full bg-teal-100/50 flex items-center justify-center p-8 relative shadow-[0_0_60px_rgba(102,194,227,0.3)]">
-              {/* Note: In a real app we'd use the provided tablet illustration here */}
-              <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-inner overflow-hidden border-8 border-white relative">
-                <div className="absolute inset-0 bg-[#e0f7f4]"></div>
-                <FaPaintBrush className="text-9xl text-teal-300 relative z-10" />
+            <div className="w-full max-w-[440px] sm:max-w-[480px] aspect-square rounded-full bg-teal-100/50 flex items-center justify-center p-4 sm:p-6 relative shadow-[0_0_60px_rgba(102,194,227,0.3)]">
+              <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-inner overflow-hidden border-4 sm:border-8 border-white relative">
+                <img
+                  src={homeStudent}
+                  alt="GloSmart Student"
+                  className="w-full h-full object-cover relative z-10"
+                />
               </div>
-              <div className="absolute top-10 right-10 bg-yellow-300 text-yellow-800 text-xs font-bold px-4 py-2 rounded-full rotate-12 shadow-lg">
+              <div className="absolute top-4 right-4 sm:top-8 sm:right-8 bg-yellow-300 text-yellow-800 text-xs font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full rotate-12 shadow-lg z-20">
                 Top Rated
               </div>
             </div>
@@ -132,7 +136,7 @@ const Home: React.FC = () => {
         <div className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.05)] py-8 px-10 flex flex-wrap justify-around items-center border border-slate-50 gap-6">
           <div className="flex flex-col items-center">
             <span className="text-3xl font-extrabold text-[#1A254C] relative">
-              50<span className="text-[#66c2e3]">+</span>
+              10<span className="text-[#66c2e3]">+</span>
               <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-1 bg-[#66c2e3] rounded-full"></div>
             </span>
             <span className="text-slate-500 font-semibold mt-4">Mentors</span>
@@ -148,7 +152,7 @@ const Home: React.FC = () => {
           <div className="w-px h-12 bg-slate-100 hidden md:block"></div>
           <div className="flex flex-col items-center">
             <span className="text-3xl font-extrabold text-[#1A254C] relative">
-              40<span className="text-green-400">+</span>
+              20<span className="text-green-400">+</span>
               <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-1 bg-green-400 rounded-full"></div>
             </span>
             <span className="text-slate-500 font-semibold mt-4">Courses</span>
@@ -156,7 +160,7 @@ const Home: React.FC = () => {
           <div className="w-px h-12 bg-slate-100 hidden md:block"></div>
           <div className="flex flex-col items-center">
             <span className="text-3xl font-extrabold text-[#1A254C] relative">
-              1M<span className="text-purple-400">+</span>
+              200<span className="text-purple-400">+</span>
               <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-1 bg-purple-400 rounded-full"></div>
             </span>
             <span className="text-slate-500 font-semibold mt-4">Students</span>
@@ -442,12 +446,12 @@ const Home: React.FC = () => {
           </div>
 
           <div className="flex-1 z-10 flex justify-center md:justify-end">
-            <div className="w-64 h-64 bg-white/40 rounded-full flex items-center justify-center backdrop-blur-sm p-8 shadow-inner border-4 border-white/50">
-              {/* Placeholder for Crayon Box */}
-              <div className="text-center text-[#1A254C]">
-                <FaPalette className="text-6xl mx-auto mb-4 text-[#005577]" />
-                <span className="font-bold">Creative Box</span>
-              </div>
+            <div className="w-60 h-60 sm:w-72 sm:h-72 bg-white/40 rounded-full flex items-center justify-center backdrop-blur-sm p-6 shadow-inner border-4 border-white/50">
+              <img 
+                src={crayon} 
+                alt="Creative Crayon Box" 
+                className="w-full h-full object-contain drop-shadow-xl hover:scale-105 transition-transform duration-300" 
+              />
             </div>
           </div>
         </div>

@@ -38,7 +38,7 @@ export default function AdminCoursePage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">Course Management</h1>
-              <p className="text-slate-500">Streamline academy operations: track active batches, monitor teacher performance, and manage student enrollment schedules.</p>
+              <p className="text-slate-500">Streamline academy operations: track active batches, monitor tutor performance, and manage student enrollment schedules.</p>
             </div>
             {user?.role === 'admin' && (
               <button 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  FiSearch, FiCalendar, FiFilter, FiPlus, 
+  FiSearch, FiFilter, FiPlus, 
   FiArrowRight,
   FiUserPlus, FiUser, FiX, FiSave, FiBookOpen,
   FiCheck, FiTrash2
@@ -267,26 +267,14 @@ const Students: React.FC = () => {
               />
             </div>
             
-            <button className="text-slate-400 hover:text-slate-600 transition-colors">
-              <FiCalendar size={20} />
-            </button>
-            
             <div className="w-px h-8 bg-slate-200 hidden md:block"></div>
             
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-[#1c1c28] leading-tight">
-                  {user?.name ? user.name : (user?.role === 'teacher' ? 'Tutor User' : 'Admin User')}
-                </p>
-                <p className="text-[10px] font-medium text-slate-500">
-                  {user?.role === 'teacher' ? 'Tutor' : 'Administrator'}
-                </p>
+                <p className="text-sm font-bold text-[#1c1c28] leading-tight">Admin User</p>
+                <p className="text-[10px] font-medium text-slate-500">Administrator</p>
               </div>
-              <img 
-                src="https://i.pravatar.cc/150?img=11" 
-                alt="Profile" 
-                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-              />
+              <div className="w-10 h-10 rounded-full bg-[#6247df] text-white flex items-center justify-center font-bold text-lg shadow-sm border-2 border-white">{user?.name ? user.name.charAt(0).toUpperCase() : 'A'}</div>
             </div>
           </div>
         </div>
@@ -415,7 +403,9 @@ const Students: React.FC = () => {
                   <p className="text-slate-500 font-medium text-sm mb-6">Course: {batch.courseId?.courseName || batch.courseName}</p>
                   
                   <div className="flex items-center gap-3 mb-8">
-                    <img src={batch.instructorAvatar || "https://i.pravatar.cc/150?img=5"} alt="Instructor" className="w-10 h-10 rounded-full object-cover" />
+                    <div className="w-10 h-10 rounded-full bg-purple-100 text-[#6247df] flex items-center justify-center font-bold text-lg shadow-sm">
+                      {batch.instructor ? batch.instructor.charAt(0).toUpperCase() : 'I'}
+                    </div>
                     <div>
                       <p className="text-sm font-bold text-[#1c1c28]">{batch.instructor}</p>
                       <p className="text-[11px] font-medium text-slate-500">Instructor</p>

@@ -41,30 +41,6 @@ const defaultMentors: Mentor[] = [
     badgeBg: 'bg-emerald-100',
     badgeColor: 'text-emerald-600',
   },
-  {
-    name: 'Marcus Chen',
-    role: 'Concept Art Tutor',
-    description: 'Expert in character design, environment design, and world building.',
-    badgeIcon: FiEdit3,
-    badgeBg: 'bg-pink-100',
-    badgeColor: 'text-pink-600',
-  },
-  {
-    name: 'Sarah Bloom',
-    role: 'Illustration Tutor',
-    description: 'Passionate about children\'s book illustration and mixed media painting.',
-    badgeIcon: FiFeather,
-    badgeBg: 'bg-sky-100',
-    badgeColor: 'text-sky-600',
-  },
-  {
-    name: 'David Rossi',
-    role: 'Color Theory Tutor',
-    description: 'Master of color theory, comic art, and digital painting techniques.',
-    badgeIcon: FiSettings,
-    badgeBg: 'bg-lime-100',
-    badgeColor: 'text-lime-600',
-  },
 ];
 
 const badgeIconsList: IconType[] = [FaPalette, FiEdit3, FiFeather, FiSettings];

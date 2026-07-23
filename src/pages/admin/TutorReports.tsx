@@ -59,8 +59,6 @@ const TutorReports: React.FC = () => {
     );
   });
 
-  const totalMinutes = reports.reduce((acc, r) => acc + (r.durationMinutes || 0), 0);
-  const totalHours = (totalMinutes / 60).toFixed(1);
   const uniqueTutors = new Set(reports.map(r => r.teacherName)).size;
 
   const formatDuration = (mins: number) => {
@@ -97,7 +95,7 @@ const TutorReports: React.FC = () => {
           </div>
 
           {/* Stats Summary Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.015)] flex items-center justify-between">
               <div>
                 <p className="text-slate-400 font-bold text-xs uppercase tracking-wider">Total Reports</p>
@@ -105,16 +103,6 @@ const TutorReports: React.FC = () => {
               </div>
               <div className="p-3 bg-purple-50 text-[#6247df] rounded-xl">
                 <FiFileText size={22} />
-              </div>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.015)] flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-wider">Total Class Hours</p>
-                <h3 className="text-2xl font-black text-slate-900 mt-1">{totalHours} hrs</h3>
-              </div>
-              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                <FiClock size={22} />
               </div>
             </div>
 

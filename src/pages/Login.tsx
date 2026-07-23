@@ -141,7 +141,7 @@ const Login: React.FC = () => {
               <p className="font-bold mb-2">Demo Credentials:</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li><span className="font-semibold">Admin:</span> admin@glosmart.com / admin</li>
-                <li><span className="font-semibold">Teacher:</span> teacher@glosmart.com / teacher</li>
+                <li><span className="font-semibold">Tutor:</span> teacher@glosmart.com / teacher</li>
                 <li><span className="font-semibold">Student:</span> student@glosmart.com / student</li>
               </ul>
             </div>

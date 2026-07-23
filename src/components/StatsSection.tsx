@@ -8,16 +8,16 @@ interface StatItem {
 
 const StatsSection: React.FC = () => {
   const stats: StatItem[] = [
-    { value: '120+', label: 'Courses' },
-    { value: '40+', label: 'Countries' },
-    { value: '1M+', label: 'Creations' },
-    { value: '4.9', label: 'Rating' },
+    { value: '20+', label: 'Courses' },
+    { value: '10+', label: 'Countries' },
+    { value: '500+', label: 'Creations' },
+    { value: '4.5', label: 'Rating' },
   ];
 
   return (
     <section className="my-16 px-4 md:px-0">
       <div className="bg-[#0b3142] text-white rounded-3xl md:rounded-[2.5rem] p-10 md:p-16 text-center relative overflow-hidden shadow-2xl max-w-7xl mx-auto">
-        
+
         {/* Background Decorative Graphic (Faded Circles) */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-sky-950/40 border border-sky-900/30 -mr-20 pointer-events-none"></div>
         <div className="absolute left-0 bottom-0 w-60 h-60 rounded-full bg-sky-950/20 border border-sky-900/20 -ml-20 pointer-events-none"></div>
