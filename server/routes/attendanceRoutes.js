@@ -3,6 +3,7 @@ import AttendanceSession from '../models/AttendanceSession.js';
 import AttendanceRecord from '../models/AttendanceRecord.js';
 import Batch from '../models/Batch.js';
 import Student from '../models/Student.js';
+import TemporaryBatchTransfer from '../models/TemporaryBatchTransfer.js';
 
 const router = express.Router();
 
@@ -110,9 +111,24 @@ router.get('/sessions/active/:studentId', async (req, res) => {
 
 
 
-    const enrolledBatchIds = student.enrolledCourses.map(c => c.batchId).filter(Boolean);
-    if (student.batchId) {
-       enrolledBatchIds.push(student.batchId);
+    // Check if student has an active temporary transfer today
+    const activeTransfer = await TemporaryBatchTransfer.findOne({
+      studentId: student._id,
+      status: 'active'
+    });
+
+    const enrolledBatchIds = [];
+    if (activeTransfer) {
+      enrolledBatchIds.push(activeTransfer.temporaryBatchId);
+    } else {
+      if (student.batchId) {
+        enrolledBatchIds.push(student.batchId);
+      }
+      student.enrolledCourses.forEach(c => {
+        if (c.batchId && !enrolledBatchIds.includes(c.batchId)) {
+          enrolledBatchIds.push(c.batchId);
+        }
+      });
     }
 
     const activeSessions = await AttendanceSession.find({

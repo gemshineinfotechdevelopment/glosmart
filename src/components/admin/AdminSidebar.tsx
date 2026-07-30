@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   FiGrid, FiUsers, FiBookOpen, FiUserCheck,
   FiBell, FiSettings, FiLogOut, FiImage, FiFileText,
-  FiMenu, FiX
+  FiMenu, FiX, FiCalendar
 } from 'react-icons/fi';
 import { MdCurrencyRupee } from 'react-icons/md';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -46,7 +46,8 @@ const AdminSidebar: React.FC = () => {
     ...(user?.role === 'admin' ? [
       { name: 'Tutors', path: '/admin/teachers', icon: <FiUserCheck size={20} /> },
       { name: 'Fees & Payments', path: '/admin/fees', icon: <MdCurrencyRupee size={20} /> },
-      { name: 'Tutor Reports', path: '/admin/tutor-reports', icon: <FiFileText size={20} /> }
+      { name: 'Tutor Reports', path: '/admin/tutor-reports', icon: <FiFileText size={20} /> },
+      { name: 'Batch Transfers', path: '/admin/transfers', icon: <FiCalendar size={20} /> }
     ] : []),
     { name: 'Gallery', path: '/admin/gallery', icon: <FiImage size={20} /> },
     { name: 'Attendance', path: '/admin/attendance', icon: <FiUserCheck size={20} /> },

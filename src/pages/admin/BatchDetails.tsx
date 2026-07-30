@@ -3,12 +3,16 @@ import {
   FiSearch, FiUpload,
   FiClock,
   FiEye, FiFileText, FiChevronLeft, FiChevronRight,
-  FiChevronRight as FiBreadcrumbRight, FiX, FiCheck, FiUser, FiUsers, FiTrash2
+  FiChevronRight as FiBreadcrumbRight, FiX, FiCheck, FiUser, FiUsers, FiTrash2,
+  FiArrowRight, FiCalendar
 } from 'react-icons/fi';
 import { Link, useParams } from 'react-router-dom';
 
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/api';
+import TemporaryTransferModal from '../../components/admin/TemporaryTransferModal';
+import BatchConversionModal from '../../components/admin/BatchConversionModal';
+import EffectiveBatchBadge from '../../components/admin/EffectiveBatchBadge';
 
 interface Student {
   _id?: string;
@@ -60,6 +64,15 @@ const BatchDetails: React.FC = () => {
 
   const [batches, setBatches] = useState<any[]>([]);
   const [activeSession, setActiveSession] = useState<any>(null);
+
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showConversionModal, setShowConversionModal] = useState(false);
+  const [studentTransfers, setStudentTransfers] = useState<any[]>([]);
+  const [studentConversions, setStudentConversions] = useState<any[]>([]);
+
+  const [transferDefaultValues, setTransferDefaultValues] = useState<any>(null);
+  const [conversionDefaultValues, setConversionDefaultValues] = useState<any>(null);
+  const [deletingTransferId, setDeletingTransferId] = useState<string | null>(null);
 
   const currentBatch = batches.find(b => b._id === batchId);
 
@@ -122,9 +135,10 @@ const BatchDetails: React.FC = () => {
   };
 
   const fetchStudentsAndBatches = async () => {
+    if (!batchId) return;
     try {
       const [studentsRes, batchesRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/students`),
+        fetch(`${API_BASE_URL}/api/students/effective-batch/${batchId}`),
         fetch(`${API_BASE_URL}/api/batches`)
       ]);
       const studentsData = await studentsRes.json();
@@ -135,6 +149,51 @@ const BatchDetails: React.FC = () => {
       console.error("Failed to load students and batches from API", err);
     }
   };
+
+  useEffect(() => {
+    if (selectedStudent && selectedStudent._id) {
+      const headers = {
+        'Authorization': `Bearer ${user?.token}`
+      };
+
+      // Debug: verify studentId is defined and valid before API calls
+      console.log('[BatchDetails] Fetching transfers for studentId:', selectedStudent._id);
+
+      fetch(`${API_BASE_URL}/api/transfers?studentId=${selectedStudent._id}`, { headers })
+        .then(async res => {
+          if (!res.ok) {
+            const errText = await res.text();
+            console.error(`[BatchDetails] GET /api/transfers failed — ${res.status}:`, errText);
+            return [];
+          }
+          return res.json();
+        })
+        .then(data => {
+          if (Array.isArray(data)) setStudentTransfers(data);
+        })
+        .catch(err => console.error('[BatchDetails] Transfers fetch error:', err));
+
+      // Debug: verify studentId before batch-conversions call
+      console.log('[BatchDetails] Fetching batch-conversions for studentId:', selectedStudent._id);
+
+      fetch(`${API_BASE_URL}/api/transfers/batch-conversions?studentId=${selectedStudent._id}`, { headers })
+        .then(async res => {
+          if (!res.ok) {
+            const errText = await res.text();
+            console.error(`[BatchDetails] GET /api/transfers/batch-conversions failed — ${res.status}:`, errText);
+            return [];
+          }
+          return res.json();
+        })
+        .then(data => {
+          if (Array.isArray(data)) setStudentConversions(data);
+        })
+        .catch(err => console.error('[BatchDetails] Conversions fetch error:', err));
+    } else {
+      setStudentTransfers([]);
+      setStudentConversions([]);
+    }
+  }, [selectedStudent, user]);
 
   const handleUpdateStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,14 +238,39 @@ const BatchDetails: React.FC = () => {
     }
   };
 
-  const studentsInBatch = studentsList.filter(student => {
-    if (!currentBatch || !currentBatch._id) return false;
-    const sBatchId = (student.batchId && typeof student.batchId === 'object')
-      ? student.batchId._id
-      : student.batchId;
-    return (sBatchId?.toString() === currentBatch._id.toString()) ||
-      (student.batch === currentBatch.batchName);
-  });
+  const handleDeleteTransfer = async (transferId: string, status: string) => {
+    if (status === 'active') {
+      alert('⚠️ This transfer is currently active. Please cancel it first before deleting.');
+      return;
+    }
+    const confirmed = window.confirm(
+      'Delete Transfer Record\n\nThis will permanently remove this transfer record. This action cannot be undone.\n\nAre you sure?'
+    );
+    if (!confirmed) return;
+
+    setDeletingTransferId(transferId);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/transfers/${transferId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${user?.token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStudentTransfers((prev: any[]) => prev.filter((t: any) => t._id !== transferId));
+        alert('✅ Transfer record deleted successfully.');
+      } else {
+        alert(`❌ ${data.message || 'Failed to delete transfer record.'}`);
+      }
+    } catch (err) {
+      console.error('Delete transfer error:', err);
+      alert('❌ Network error. Could not delete transfer.');
+    } finally {
+      setDeletingTransferId(null);
+    }
+  };
+
+  const studentsInBatch = studentsList;
+
 
   useEffect(() => {
     fetchStudentsAndBatches();
@@ -393,6 +477,20 @@ const BatchDetails: React.FC = () => {
                         {student.name}
                       </div>
                       <div className="text-[11px] text-slate-400 font-medium mt-0.5">{student.phone}</div>
+                      {(() => {
+                        const sBatchId = (student.batchId && typeof student.batchId === 'object') ? student.batchId._id : student.batchId;
+                        const isTransferred = sBatchId?.toString() !== batchId?.toString();
+                        const origName = (student.batchId && typeof student.batchId === 'object') ? student.batchId.batchName : student.batch;
+                        return (
+                          <div className="mt-1">
+                            <EffectiveBatchBadge
+                              isTransferred={isTransferred}
+                              effectiveBatchName={currentBatch?.batchName || ''}
+                              originalBatchName={origName}
+                            />
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="py-4 px-4 text-sm font-medium text-slate-600">{student.age} / {student.gender || 'Male'}</td>
                     <td className="py-4 px-4 text-sm font-medium text-slate-600">{student.joiningDate}</td>
@@ -607,6 +705,151 @@ const BatchDetails: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Batch Transfer / Conversion Actions */}
+                {user?.role === 'admin' && (
+                  <div className="px-8 py-4 border-t border-slate-100/50">
+                    <div className="flex items-center gap-2.5 mb-3 text-[#1c1c28]">
+                      <span className="text-[#6247df]"><FiCalendar size={18} /></span>
+                      <h4 className="text-[15px] font-bold">Schedule Actions</h4>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => { setTransferDefaultValues(null); setShowTransferModal(true); }}
+                        className="flex-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold py-3.5 rounded-2xl text-xs transition-colors focus:outline-none cursor-pointer"
+                      >
+                        Temporary Transfer
+                      </button>
+                      <button
+                        onClick={() => { setConversionDefaultValues(null); setShowConversionModal(true); }}
+                        className="flex-1 bg-purple-50 hover:bg-purple-100 text-[#6247df] border border-purple-200 font-bold py-3.5 rounded-2xl text-xs transition-colors focus:outline-none cursor-pointer"
+                      >
+                        Convert Batch
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Student Transfer History */}
+                {studentTransfers.length > 0 && (
+                  <div className="px-8 py-4 border-t border-slate-100/50">
+                    <div className="flex items-center gap-2.5 mb-3 text-[#1c1c28]">
+                      <span className="text-[#6247df]"><FiClock size={18} /></span>
+                      <h4 className="text-[15px] font-bold">Schedule History</h4>
+                    </div>
+                    <div className="space-y-3 max-h-[160px] overflow-y-auto pr-1">
+                      {studentTransfers.map((t: any) => (
+                        <div key={t._id} className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-semibold text-slate-600 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">
+                              {new Date(t.startDate).toLocaleDateString()} - {new Date(t.endDate).toLocaleDateString()}
+                            </span>
+                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
+                              t.status === 'active' ? 'bg-green-100 text-green-700' :
+                              t.status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
+                              t.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                              'bg-slate-200 text-slate-600'
+                            }`}>
+                              {t.status}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 font-bold">
+                            <span className="text-slate-400 line-through text-[11px]">{t.originalBatchId?.batchName}</span>
+                            <FiArrowRight className="text-slate-400" size={12} />
+                            <span className="text-[#6247df]">{t.temporaryBatchId?.batchName}</span>
+                          </div>
+                          {t.reason && <p className="text-[11px] text-slate-500 font-medium italic mb-1">Reason: "{t.reason}"</p>}
+                          
+                          <div className="flex justify-between items-center pt-1.5 border-t border-slate-100 mt-2">
+                            <span className="text-[9px] text-slate-400 font-bold uppercase">Temporary Shift</span>
+                            {user?.role === 'admin' && (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    setTransferDefaultValues({
+                                      transferBatchId: t.temporaryBatchId?._id || t.temporaryBatchId,
+                                      startDate: new Date().toISOString().split('T')[0],
+                                      endDate: '',
+                                      reason: t.reason,
+                                      notes: t.notes
+                                    });
+                                    setShowTransferModal(true);
+                                  }}
+                                  className="text-amber-600 hover:text-amber-700 font-extrabold text-[10px] bg-transparent border-none cursor-pointer p-0"
+                                >
+                                  Redo Transfer
+                                </button>
+                                <span className="text-slate-200">|</span>
+                                <button
+                                  onClick={() => handleDeleteTransfer(t._id, t.status)}
+                                  disabled={deletingTransferId === t._id}
+                                  title={t.status === 'active' ? 'Cancel this transfer first to delete it' : 'Delete transfer record'}
+                                  className={`flex items-center gap-1 font-extrabold text-[10px] border-none cursor-pointer p-0 transition-colors ${
+                                    t.status === 'active'
+                                      ? 'text-slate-300 cursor-not-allowed'
+                                      : 'text-red-500 hover:text-red-700'
+                                  } ${deletingTransferId === t._id ? 'opacity-50' : ''}`}
+                                >
+                                  <FiTrash2 size={11} />
+                                  {deletingTransferId === t._id ? 'Deleting...' : 'Delete'}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Student Conversion History */}
+                {studentConversions.length > 0 && (
+                  <div className="px-8 py-4 border-t border-slate-100/50">
+                    <div className="flex items-center gap-2.5 mb-3 text-[#1c1c28]">
+                      <span className="text-[#6247df]"><FiClock size={18} /></span>
+                      <h4 className="text-[15px] font-bold">Conversion History</h4>
+                    </div>
+                    <div className="space-y-3 max-h-[160px] overflow-y-auto pr-1">
+                      {studentConversions.map((c: any) => (
+                        <div key={c._id} className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-semibold text-slate-600 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">
+                              Effective: {new Date(c.effectiveDate).toLocaleDateString()}
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-100 text-purple-700 uppercase">
+                              Converted
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 font-bold">
+                            <span className="text-slate-400 text-[11px]">{c.oldBatchId?.batchName || 'None'}</span>
+                            <FiArrowRight className="text-slate-400" size={12} />
+                            <span className="text-green-600">{c.newBatchId?.batchName}</span>
+                          </div>
+                          {c.reason && <p className="text-[11px] text-slate-500 font-medium italic">Reason: "{c.reason}"</p>}
+                          
+                          <div className="flex justify-between items-center pt-1.5 border-t border-slate-100 mt-2">
+                            <span className="text-[9px] text-slate-400 font-bold uppercase">Permanent Conversion</span>
+                            {user?.role === 'admin' && (
+                              <button
+                                onClick={() => {
+                                  setConversionDefaultValues({
+                                    newBatchId: c.newBatchId?._id || c.newBatchId,
+                                    effectiveDate: new Date().toISOString().split('T')[0],
+                                    reason: c.reason
+                                  });
+                                  setShowConversionModal(true);
+                                }}
+                                className="text-[#6247df] hover:text-[#5035c9] font-extrabold text-[10px] bg-transparent border-none cursor-pointer p-0"
+                              >
+                                Redo Conversion
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Bottom Actions */}
                 <div className="p-6 border-t border-slate-100 flex gap-4 bg-slate-50 shrink-0">
                   {user?.role === 'admin' && (
@@ -770,6 +1013,68 @@ const BatchDetails: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {showTransferModal && selectedStudent && (
+        <TemporaryTransferModal
+          isOpen={showTransferModal}
+          onClose={() => setShowTransferModal(false)}
+          onSuccess={() => {
+            fetchStudentsAndBatches();
+            if (selectedStudent?._id) {
+              fetch(`${API_BASE_URL}/api/transfers?studentId=${selectedStudent._id}`, {
+                headers: {
+                  'Authorization': `Bearer ${user?.token}`
+                }
+              })
+                .then(res => res.ok ? res.json() : [])
+                .then(data => {
+                  if (Array.isArray(data)) setStudentTransfers(data);
+                });
+            }
+          }}
+          student={{
+            _id: selectedStudent._id || '',
+            name: selectedStudent.name,
+            course: selectedStudent.course || '',
+            courseId: (selectedStudent.courseId && typeof selectedStudent.courseId === 'object') 
+              ? (selectedStudent.courseId as any)._id 
+              : (selectedStudent.courseId || currentBatch?.courseId?._id || ''),
+            batch: (selectedStudent.batchId && typeof selectedStudent.batchId === 'object') 
+              ? (selectedStudent.batchId as any).batchName 
+              : (selectedStudent.batch || ''),
+            batchId: (selectedStudent.batchId && typeof selectedStudent.batchId === 'object') 
+              ? (selectedStudent.batchId as any)._id 
+              : (selectedStudent.batchId || '')
+          }}
+          defaultValues={transferDefaultValues}
+        />
+      )}
+
+      {showConversionModal && selectedStudent && (
+        <BatchConversionModal
+          isOpen={showConversionModal}
+          onClose={() => setShowConversionModal(false)}
+          onSuccess={() => {
+            fetchStudentsAndBatches();
+            setSelectedStudent(null);
+          }}
+          student={{
+            _id: selectedStudent._id || '',
+            name: selectedStudent.name,
+            course: selectedStudent.course || '',
+            courseId: (selectedStudent.courseId && typeof selectedStudent.courseId === 'object') 
+              ? (selectedStudent.courseId as any)._id 
+              : (selectedStudent.courseId || currentBatch?.courseId?._id || ''),
+            batch: (selectedStudent.batchId && typeof selectedStudent.batchId === 'object') 
+              ? (selectedStudent.batchId as any).batchName 
+              : (selectedStudent.batch || ''),
+            batchId: (selectedStudent.batchId && typeof selectedStudent.batchId === 'object') 
+              ? (selectedStudent.batchId as any)._id 
+              : (selectedStudent.batchId || '')
+          }}
+          defaultValues={conversionDefaultValues}
+        />
       )}
     </div>
   );

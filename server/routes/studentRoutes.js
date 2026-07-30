@@ -4,6 +4,7 @@ import Student from '../models/Student.js';
 import Batch from '../models/Batch.js';
 import Course from '../models/Course.js';
 import User from '../models/User.js';
+import TemporaryBatchTransfer from '../models/TemporaryBatchTransfer.js';
 
 const router = express.Router();
 
@@ -363,6 +364,94 @@ router.delete('/:id', async (req, res) => {
     await User.deleteMany({ profileId: student._id });
     await Student.findByIdAndDelete(req.params.id);
     res.json({ message: 'Student deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET effective batch of student
+router.get('/:id/effective-batch', async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id)
+      .populate('batchId', 'batchName instructor')
+      .populate('courseId', 'courseName');
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Find active temporary transfer
+    const activeTransfer = await TemporaryBatchTransfer.findOne({
+      studentId: student._id,
+      status: 'active'
+    }).populate('temporaryBatchId', 'batchName instructor');
+
+    if (activeTransfer && activeTransfer.temporaryBatchId) {
+      return res.json({
+        isTransferred: true,
+        effectiveBatchId: activeTransfer.temporaryBatchId._id,
+        effectiveBatchName: activeTransfer.temporaryBatchId.batchName,
+        instructor: activeTransfer.temporaryBatchId.instructor || student.teacher,
+        originalBatchId: student.batchId?._id || student.batchId,
+        originalBatchName: student.batchId?.batchName || student.batch,
+        transferDetails: activeTransfer
+      });
+    }
+
+    return res.json({
+      isTransferred: false,
+      effectiveBatchId: student.batchId?._id || student.batchId,
+      effectiveBatchName: student.batchId?.batchName || student.batch,
+      instructor: student.teacher,
+      originalBatchId: student.batchId?._id || student.batchId,
+      originalBatchName: student.batchId?.batchName || student.batch
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET students whose effective batch today is batchId
+router.get('/effective-batch/:batchId', async (req, res) => {
+  try {
+    const { batchId } = req.params;
+
+    // 1. Find all active transfers TO this batch today
+    const transfersTo = await TemporaryBatchTransfer.find({
+      temporaryBatchId: batchId,
+      status: 'active'
+    });
+    const transferredInStudentIds = transfersTo.map(t => t.studentId);
+
+    // 2. Find all active transfers AWAY from this batch today
+    const transfersAway = await TemporaryBatchTransfer.find({
+      originalBatchId: batchId,
+      status: 'active'
+    });
+    const transferredOutStudentIds = transfersAway.map(t => t.studentId.toString());
+
+    // 3. Find students enrolled in this batch who are NOT transferred away
+    const enrolledStudents = await Student.find({
+      batchId,
+      _id: { $nin: transferredOutStudentIds }
+    });
+
+    // 4. Find the students who are transferred in
+    const transferredInStudents = await Student.find({
+      _id: { $in: transferredInStudentIds }
+    });
+
+    // Combine them, ensuring no duplicates
+    const combinedStudents = [...enrolledStudents];
+    const combinedIds = new Set(combinedStudents.map(s => s._id.toString()));
+
+    transferredInStudents.forEach(student => {
+      if (!combinedIds.has(student._id.toString())) {
+        combinedStudents.push(student);
+      }
+    });
+
+    res.json(combinedStudents);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

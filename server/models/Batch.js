@@ -20,6 +20,7 @@ const batchSchema = new mongoose.Schema({
   zoomActivatedAt: { type: Date },
   status: { type: String, enum: ['ACTIVE', 'UPCOMING', 'COMPLETED', 'WEEKEND', 'INACTIVE'], default: 'UPCOMING' },
   statusColor: { type: String, default: "bg-teal-500" },
+  maxCapacity: { type: Number, default: 30 },
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
   assignments: [{
     title: { type: String, required: true },

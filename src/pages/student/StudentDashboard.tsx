@@ -13,6 +13,7 @@ import {
   FiImage,
   FiStar,
   FiVideo,
+  FiCalendar,
 } from 'react-icons/fi';
 
 const StudentDashboard: React.FC = () => {
@@ -35,6 +36,7 @@ const StudentDashboard: React.FC = () => {
     avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
     enrolledCourses: [] as any[]
   });
+  const [effectiveBatchInfo, setEffectiveBatchInfo] = useState<any>(null);
 
   useEffect(() => {
     const profileId = user?.profileId;
@@ -70,6 +72,13 @@ const StudentDashboard: React.FC = () => {
         }
       })
       .catch(err => console.error('Error fetching student data:', err));
+
+    fetch(`${API_BASE_URL}/api/students/${profileId}/effective-batch`)
+      .then(res => res.ok ? res.json() : null)
+      .then(info => {
+        if (info) setEffectiveBatchInfo(info);
+      })
+      .catch(err => console.error('Error fetching effective batch:', err));
   }, [user]);
 
   // Fetch teacher records from database
@@ -472,8 +481,31 @@ const StudentDashboard: React.FC = () => {
                 </div>
               )}
 
+              {/* Temporary Batch Transfer Notification Banner */}
+              {effectiveBatchInfo?.isTransferred && (
+                <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-5 rounded-3xl shadow-lg shadow-orange-100 flex items-center justify-between gap-4 animate-fade-in font-sans text-left">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/20 rounded-2xl shrink-0">
+                      <FiClock size={22} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm sm:text-base font-black tracking-tight">Temporary Schedule Shift Active 🗓️</h3>
+                      <p className="text-orange-55 text-xs font-semibold mt-1">
+                        You have been temporarily transferred to the <strong className="text-white">{effectiveBatchInfo.effectiveBatchName}</strong> (Tutor: {effectiveBatchInfo.instructor}).
+                      </p>
+                      <p className="text-orange-100 text-[10px] font-bold uppercase tracking-wider mt-1.5">
+                        Valid Until: {new Date(effectiveBatchInfo.transferDetails.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="hidden sm:block shrink-0 px-4 py-2 bg-white/10 rounded-xl border border-white/25 text-[10px] font-black uppercase tracking-wider">
+                    Temporary
+                  </div>
+                </div>
+              )}
+
               {/* Quick Stats Grid */}
-              <div className="grid grid-cols-1 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div
                   onClick={() => navigate('/student/courses')}
                   className="bg-white p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow group"
@@ -487,6 +519,29 @@ const StudentDashboard: React.FC = () => {
                   </div>
                   <div className="p-4 bg-purple-50 text-[#4700b3] rounded-2xl group-hover:bg-[#4700b3] group-hover:text-white transition-colors duration-300">
                     <FiBook size={20} className="stroke-[2.5]" />
+                  </div>
+                </div>
+
+                <div
+                  className="bg-white p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow group"
+                >
+                  <div>
+                    <span className="text-slate-400 font-bold text-xs uppercase tracking-wider">Current Active Batch</span>
+                    <h3 className="text-lg font-black text-slate-900 mt-1">
+                      {effectiveBatchInfo?.effectiveBatchName || 'Morning Batch'}
+                    </h3>
+                    <span className="text-xs text-slate-400 font-semibold flex items-center gap-0.5 mt-1">
+                      {effectiveBatchInfo?.isTransferred ? (
+                        <span className="text-amber-600 font-extrabold animate-pulse">TEMPORARILY TRANSFERRED</span>
+                      ) : (
+                        <span>STANDARD ENROLLMENT</span>
+                      )}
+                    </span>
+                  </div>
+                  <div className={`p-4 rounded-2xl transition-colors duration-300 ${
+                    effectiveBatchInfo?.isTransferred ? 'bg-amber-50 text-amber-655' : 'bg-green-50 text-green-655'
+                  }`}>
+                    <FiCalendar size={20} className="stroke-[2.5]" />
                   </div>
                 </div>
               </div>

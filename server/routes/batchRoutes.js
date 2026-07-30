@@ -2,6 +2,7 @@ import express from 'express';
 import Batch from '../models/Batch.js';
 import Course from '../models/Course.js';
 import Student from '../models/Student.js';
+import { getBatchEffectiveStudentCount } from './transferRoutes.js';
 
 const router = express.Router();
 
@@ -29,6 +30,12 @@ router.get('/', async (req, res) => {
   try {
     let batches = await Batch.find().sort({ createdAt: -1 }).populate('courseId').lean();
     batches = batches.map(b => ({ ...b, status: calculateBatchStatus(b) }));
+    
+    // Add effective count dynamically
+    for (let b of batches) {
+      b.effectiveStudentsCount = await getBatchEffectiveStudentCount(b._id, new Date());
+    }
+
     res.json(batches);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -40,6 +47,12 @@ router.get('/course/:courseId', async (req, res) => {
   try {
     let batches = await Batch.find({ courseId: req.params.courseId }).sort({ createdAt: -1 }).lean();
     batches = batches.map(b => ({ ...b, status: calculateBatchStatus(b) }));
+    
+    // Add effective count dynamically
+    for (let b of batches) {
+      b.effectiveStudentsCount = await getBatchEffectiveStudentCount(b._id, new Date());
+    }
+
     res.json(batches);
   } catch (error) {
     res.status(500).json({ message: error.message });

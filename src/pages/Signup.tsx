@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FiCheck, FiArrowLeft } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
 import { API_BASE_URL } from '../config/api';
 import loginImg from '../assets/login.png';
 import crayonImg from '../assets/crayon.png';
@@ -14,6 +15,28 @@ const Signup: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  const googleSignup = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: tokenResponse.access_token })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          navigate('/login', { state: { signupSuccess: true } });
+        } else {
+          setError(data.message || 'Google signup failed');
+        }
+      } catch (err) {
+        setError('An error occurred during Google signup');
+      }
+    },
+    onError: () => setError('Google signup failed'),
+  });
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +142,10 @@ const Signup: React.FC = () => {
               <p className="text-slate-500 text-sm">Fill in your details to start sparking ideas!</p>
             </div>
 
-            <button className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl py-3.5 flex items-center justify-center gap-3 transition-colors shadow-sm mb-6">
+            <button 
+              onClick={() => googleSignup()}
+              className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl py-3.5 flex items-center justify-center gap-3 transition-colors shadow-sm mb-6"
+            >
               <FcGoogle size={20} />
               Sign up with Google
             </button>

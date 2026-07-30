@@ -44,7 +44,8 @@ export default function AdminCourseBatchesPage() {
     status: 'UPCOMING',
     batchFee: '',
     image: '',
-    zoomLink: ''
+    zoomLink: '',
+    maxCapacity: '30'
   });
   const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -133,7 +134,8 @@ export default function AdminCourseBatchesPage() {
       const payload = {
         ...formData,
         courseId: id,
-        batchFee: formData.batchFee ? Number(formData.batchFee) : undefined
+        batchFee: formData.batchFee ? Number(formData.batchFee) : undefined,
+        maxCapacity: formData.maxCapacity ? Number(formData.maxCapacity) : 30
       };
 
       const url = editingBatch 
@@ -183,7 +185,8 @@ export default function AdminCourseBatchesPage() {
       status: 'UPCOMING',
       batchFee: '',
       image: '',
-      zoomLink: ''
+      zoomLink: '',
+      maxCapacity: '30'
     });
   };
 
@@ -200,7 +203,8 @@ export default function AdminCourseBatchesPage() {
       status: batch.status || 'UPCOMING',
       batchFee: batch.batchFee?.toString() || '',
       image: batch.image || '',
-      zoomLink: batch.zoomLink || ''
+      zoomLink: batch.zoomLink || '',
+      maxCapacity: batch.maxCapacity?.toString() || '30'
     });
     setShowModal(true);
   };
@@ -730,6 +734,11 @@ export default function AdminCourseBatchesPage() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Batch Fee Override (₹)</label>
                   <input type="number" name="batchFee" value={formData.batchFee} onChange={handleInputChange} placeholder="Leave blank to use course fee" className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Student Limit (Capacity)</label>
+                  <input type="number" name="maxCapacity" value={formData.maxCapacity} onChange={handleInputChange} placeholder="Default is 30" className="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
 
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FiCheck } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config/api';
 import loginImg from '../assets/login.png';
@@ -15,6 +16,49 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const signupSuccess = location.state?.signupSuccess;
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: tokenResponse.access_token })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          login(data);
+          if (data.role === 'student') {
+            if (location.state?.redirectTo) {
+              navigate(location.state.redirectTo, { state: { pendingEnrollment: location.state.pendingEnrollment } });
+              return;
+            }
+            try {
+              const studentRes = await fetch(`${API_BASE_URL}/api/students/${data.profileId}`);
+              if (studentRes.ok) {
+                const studentData = await studentRes.json();
+                if (!studentData.enrolledCourses || studentData.enrolledCourses.length === 0) {
+                  navigate('/student/courses', { state: { fromRestricted: true } });
+                  return;
+                }
+              }
+            } catch (err) {
+              console.error('Error checking student enrollment on login:', err);
+            }
+            navigate('/student/dashboard');
+          } else {
+            navigate('/admin');
+          }
+        } else {
+          setError(data.message || 'Google login failed');
+        }
+      } catch (err) {
+        setError('An error occurred during Google login');
+      }
+    },
+    onError: () => setError('Google login failed'),
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,7 +238,10 @@ const Login: React.FC = () => {
               <div className="flex-1 h-px bg-slate-200"></div>
             </div>
 
-            <button className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl py-3.5 flex items-center justify-center gap-3 transition-colors shadow-sm">
+            <button 
+              onClick={() => googleLogin()}
+              className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl py-3.5 flex items-center justify-center gap-3 transition-colors shadow-sm"
+            >
               <FcGoogle size={20} />
               Log in with Google
             </button>
