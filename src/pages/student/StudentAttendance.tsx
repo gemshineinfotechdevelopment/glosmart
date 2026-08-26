@@ -26,8 +26,8 @@ const StudentAttendance: React.FC = () => {
   
   const [totalPresent, setTotalPresent] = useState(0);
   const [totalSessions, setTotalSessions] = useState(0);
-  const [studentName, setStudentName] = useState('Student User');
-  const [studentGrade, setStudentGrade] = useState('5th Grade');
+  const [studentName, setStudentName] = useState(user?.name || '');
+  const [studentGrade, setStudentGrade] = useState('');
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
   const [activeBatches, setActiveBatches] = useState<any[]>([]);
@@ -35,15 +35,16 @@ const StudentAttendance: React.FC = () => {
 
   // Fetch student data on mount
   useEffect(() => {
-    const profileId = user?.profileId || 'first';
+    const profileId = user?.profileId;
+    if (!profileId) return;
     fetch(`${API_BASE_URL}/api/students/${profileId}`)
       .then(res => res.json())
       .then(data => {
         if (data) {
           const records = data.attendanceRecords || [];
           setAttendanceRecords(records);
-          setStudentName(data.name || 'Student User');
-          setStudentGrade(data.grade || '5th Grade');
+          setStudentName(data.name || user?.name || 'Student User');
+          setStudentGrade(data.grade || 'Grade Not Set');
           setEnrolledCourses(data.enrolledCourses || []);
 
           // Fetch active sessions

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const attendanceSessionSchema = new mongoose.Schema({
-  batchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch', required: true },
+  batchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch', required: true, index: true },
   enabledByUserId: { type: String, required: true },
   enabledByName: { type: String, required: true },
   enabledByRole: { type: String, enum: ['admin', 'teacher'], required: true },

@@ -7,6 +7,7 @@ import { API_BASE_URL } from '../../config/api';
 
 interface NotificationItem {
   _id: string;
+  title?: string;
   name: string;
   phone?: string;
   email: string;
@@ -16,6 +17,7 @@ interface NotificationItem {
   notificationType?: 'batch_purchase' | 'course_purchase';
   purchaseAmount?: string;
   courseName?: string;
+  recipientType?: 'Admin' | 'Tutor' | 'Student' | string;
 }
 
 const AdminNotificationsPage: React.FC = () => {
@@ -24,6 +26,7 @@ const AdminNotificationsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'All' | 'Admin' | 'Tutor' | 'Student'>('All');
 
   useEffect(() => {
     fetchNotifications();
@@ -77,8 +80,16 @@ const AdminNotificationsPage: React.FC = () => {
     }
   };
 
-  const totalCount = notifications.length;
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const filteredNotifications = notifications.filter(n => {
+    if (activeTab === 'All') return true;
+    if (activeTab === 'Admin') return n.recipientType === 'Admin' || !n.recipientType; // Legacy as admin
+    if (activeTab === 'Tutor') return n.recipientType === 'Tutor';
+    if (activeTab === 'Student') return n.recipientType === 'Student';
+    return true;
+  });
+
+  const totalCount = filteredNotifications.length;
+  const unreadCount = filteredNotifications.filter(n => !n.isRead).length;
 
   return (
     <div className="p-4 sm:p-6 md:p-10 pb-24">
@@ -105,6 +116,23 @@ const AdminNotificationsPage: React.FC = () => {
               {error}
             </div>
           )}
+
+          {/* Tabs */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {['All', 'Admin', 'Tutor', 'Student'].map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as any)}
+                className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                  activeTab === tab
+                    ? 'bg-[#6247df] text-white shadow-md'
+                    : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                {tab} {tab !== 'All' ? 'Alerts' : 'Notifications'}
+              </button>
+            ))}
+          </div>
 
           {/* Stats Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
@@ -143,8 +171,8 @@ const AdminNotificationsPage: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {notifications.map((notif) => {
-                const displayName = user?.role === 'teacher' && notif.notificationType ? 'Student' : notif.name;
+              {filteredNotifications.map((notif) => {
+                const displayName = notif.title || (user?.role === 'teacher' && notif.notificationType ? 'Student' : notif.name);
                 const showContacts = !(user?.role === 'teacher' && notif.notificationType);
                 let displayMessage = notif.message;
                 if (user?.role === 'teacher') {

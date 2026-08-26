@@ -30,6 +30,10 @@ const Login: React.FC = () => {
         if (res.ok) {
           login(data);
           if (data.role === 'student') {
+            if (!data.isProfileComplete) {
+              navigate('/student/profile?firstTime=true');
+              return;
+            }
             if (location.state?.redirectTo) {
               navigate(location.state.redirectTo, { state: { pendingEnrollment: location.state.pendingEnrollment } });
               return;
@@ -38,6 +42,10 @@ const Login: React.FC = () => {
               const studentRes = await fetch(`${API_BASE_URL}/api/students/${data.profileId}`);
               if (studentRes.ok) {
                 const studentData = await studentRes.json();
+                if (!studentData.isProfileComplete) {
+                  navigate('/student/profile?firstTime=true');
+                  return;
+                }
                 if (!studentData.enrolledCourses || studentData.enrolledCourses.length === 0) {
                   navigate('/student/courses', { state: { fromRestricted: true } });
                   return;
@@ -74,6 +82,10 @@ const Login: React.FC = () => {
       if (res.ok) {
         login(data);
         if (data.role === 'student') {
+          if (!data.isProfileComplete) {
+            navigate('/student/profile?firstTime=true');
+            return;
+          }
           if (location.state?.redirectTo) {
             navigate(location.state.redirectTo, { state: { pendingEnrollment: location.state.pendingEnrollment } });
             return;
@@ -82,6 +94,10 @@ const Login: React.FC = () => {
             const studentRes = await fetch(`${API_BASE_URL}/api/students/${data.profileId}`);
             if (studentRes.ok) {
               const studentData = await studentRes.json();
+              if (!studentData.isProfileComplete) {
+                navigate('/student/profile?firstTime=true');
+                return;
+              }
               if (!studentData.enrolledCourses || studentData.enrolledCourses.length === 0) {
                 navigate('/student/courses', { state: { fromRestricted: true } });
                 return;

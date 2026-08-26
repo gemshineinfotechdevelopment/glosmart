@@ -23,8 +23,8 @@ const StudentAssignments: React.FC = () => {
   const { user } = useAuth();
   
   // States
-  const [studentName, setStudentName] = useState('Student User');
-  const [studentGrade, setStudentGrade] = useState('5th Grade');
+  const [studentName, setStudentName] = useState(user?.name || '');
+  const [studentGrade, setStudentGrade] = useState('');
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [enrolledCourseNames, setEnrolledCourseNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,15 +34,19 @@ const StudentAssignments: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const profileId = user?.profileId || 'first';
+        const profileId = user?.profileId;
+        if (!profileId) {
+          setLoading(false);
+          return;
+        }
         
         // 1. Fetch student
         const studentRes = await fetch(`${API_BASE_URL}/api/students/${profileId}`);
         const studentData = await studentRes.json();
         
         if (studentData) {
-          if (studentData.name) setStudentName(studentData.name);
-          if (studentData.grade) setStudentGrade(studentData.grade);
+          setStudentName(studentData.name || user?.name || 'Student User');
+          setStudentGrade(studentData.grade || 'Grade Not Set');
 
           const enrolledCourses = studentData.enrolledCourses || [];
           const courseNames = enrolledCourses.map((c: any) => c.courseName);

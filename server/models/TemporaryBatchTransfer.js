@@ -11,15 +11,22 @@ const temporaryBatchTransferSchema = new mongoose.Schema({
     ref: 'Course',
     required: true
   },
+  originalCourseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+    required: true
+  },
   originalBatchId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Batch',
-    required: true
+    required: true,
+    index: true
   },
   temporaryBatchId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Batch',
-    required: true
+    required: true,
+    index: true
   },
   startDate: {
     type: Date,

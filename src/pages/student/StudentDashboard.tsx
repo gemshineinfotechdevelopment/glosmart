@@ -6,41 +6,74 @@ import {
   FiBook,
   FiClock,
   FiChevronRight,
-  FiMail,
   FiArrowRight,
   FiUser,
-  FiCreditCard,
-  FiImage,
   FiStar,
-  FiVideo,
-  FiCalendar,
+  FiAward,
+  FiSearch,
+  FiFilter,
+  FiTarget,
+  FiLayers,
+  FiSmile
 } from 'react-icons/fi';
+
+interface RecommendationItem {
+  courseId: string;
+  courseName: string;
+  thumbnailImage: string;
+  description: string;
+  targetAgeGroups: string[];
+  difficulty: string;
+  drawingCategory: string;
+  duration: string;
+  lessonsCount: number;
+  price: string;
+  rating: number;
+  instructor: string;
+  score: number;
+  reason: string;
+  reasonsList?: string[];
+  course?: any;
+}
 
 const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Ticking clock — updates every minute so time-based banners refresh automatically
-  const [, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Student state
+  // Student profile state
   const [student, setStudent] = useState({
-    name: 'Student User',
-    grade: '5th Grade',
-    attendance: '100%',
+    name: user?.name || '',
+    dob: '',
+    age: null as number | null,
+    ageCategory: 'All Ages',
+    grade: '',
+    drawingExperience: 'Beginner',
+    skillLevel: 'Beginner',
+    interests: [] as string[],
+    learningGoals: [] as string[],
+    attendance: '0 Days',
     activeCoursesCount: 0,
     avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
     enrolledCourses: [] as any[]
   });
-  const [effectiveBatchInfo, setEffectiveBatchInfo] = useState<any>(null);
 
+  // Recommendations state
+  const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(true);
+
+  // Explore all courses state
+  const [allCourses, setAllCourses] = useState<any[]>([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState('All');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('All');
+  const [sortBy, setSortBy] = useState('rating');
+
+  // Fetch Student data on mount
   useEffect(() => {
     const profileId = user?.profileId;
-    if (!profileId) return; // no valid ID — skip fetch, show defaults
+    if (!profileId) return;
+
     fetch(`${API_BASE_URL}/api/students/${profileId}`)
       .then(res => {
         if (!res.ok) throw new Error(`Server error ${res.status}`);
@@ -49,21 +82,50 @@ const StudentDashboard: React.FC = () => {
       .then(data => {
         if (data) {
           let finalAttendance = '0 Days';
-          if (data.name === 'Sarah Jenkins') {
-            finalAttendance = '114 Days';
-          } else {
-            const records = data.attendanceRecords || [];
-            if (records.length > 0) {
-              const presentOrLate = records.filter((r: any) =>
-                r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late'
-              ).length;
-              finalAttendance = presentOrLate + ' Days';
+          const records = data.attendanceRecords || [];
+          if (records.length > 0) {
+            const presentOrLate = records.filter((r: any) =>
+              r.status.toLowerCase() === 'present' || r.status.toLowerCase() === 'late'
+            ).length;
+            finalAttendance = presentOrLate + ' Days';
+          }
+
+          // Compute age and age category from DOB
+          let age: number | null = null;
+          if (data.dob) {
+            const birthDate = new Date(data.dob);
+            if (!isNaN(birthDate.getTime())) {
+              const today = new Date();
+              age = today.getFullYear() - birthDate.getFullYear();
+              const m = today.getMonth() - birthDate.getMonth();
+              if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+              }
+              age = age >= 0 ? age : 0;
             }
+          } else if (data.age) {
+            const parsed = parseInt(data.age, 10);
+            if (!isNaN(parsed)) age = parsed;
+          }
+
+          let ageCategory = 'All Ages';
+          if (age !== null) {
+            if (age <= 6) ageCategory = 'Pre-Junior';
+            else if (age >= 7 && age <= 9) ageCategory = 'Junior';
+            else if (age >= 10 && age <= 12) ageCategory = 'Senior';
+            else ageCategory = 'Special';
           }
 
           setStudent({
-            name: data.name || 'Student User',
-            grade: data.grade || '5th Grade',
+            name: data.name || user?.name || 'Student User',
+            dob: data.dob || '',
+            age: age,
+            ageCategory: ageCategory,
+            grade: data.grade || 'Grade Not Set',
+            drawingExperience: data.drawingExperience || 'Beginner',
+            skillLevel: data.skillLevel || 'Beginner',
+            interests: data.interests || ['Basic drawing', 'Coloring'],
+            learningGoals: data.learningGoals || [],
             attendance: finalAttendance,
             activeCoursesCount: data.enrolledCourses ? data.enrolledCourses.length : 0,
             avatar: data.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
@@ -72,550 +134,552 @@ const StudentDashboard: React.FC = () => {
         }
       })
       .catch(err => console.error('Error fetching student data:', err));
-
-    fetch(`${API_BASE_URL}/api/students/${profileId}/effective-batch`)
-      .then(res => res.ok ? res.json() : null)
-      .then(info => {
-        if (info) setEffectiveBatchInfo(info);
-      })
-      .catch(err => console.error('Error fetching effective batch:', err));
   }, [user]);
 
-  // Fetch teacher records from database
-  const [dbTeachers, setDbTeachers] = useState<any[]>([]);
-  const [loadingTeachers, setLoadingTeachers] = useState(true);
-
+  // Fetch Recommended Courses
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/teachers`)
+    const profileId = user?.profileId;
+    const url = profileId 
+      ? `${API_BASE_URL}/api/courses/recommended?studentId=${profileId}`
+      : `${API_BASE_URL}/api/courses/recommended`;
+
+    setLoadingRecommendations(true);
+    fetch(url)
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
-          setDbTeachers(data);
+        if (data && Array.isArray(data.recommendations)) {
+          setRecommendations(data.recommendations);
         }
       })
-      .catch(err => console.error('Error fetching teachers:', err))
-      .finally(() => setLoadingTeachers(false));
-  }, []);
+      .catch(err => console.error('Error loading recommendations:', err))
+      .finally(() => setLoadingRecommendations(false));
+  }, [user, student.interests, student.age, student.skillLevel]);
 
-  // Fetch gallery images from database for masterpiece showcase (first 3)
-  const [galleryItems, setGalleryItems] = useState<any[]>([]);
-  const [loadingGallery, setLoadingGallery] = useState(true);
-
+  // Fetch All Courses for "Explore All Courses"
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/gallery?limit=10`)
-      .then(res => res.ok ? res.json() : Promise.reject('Failed to load gallery'))
+    setLoadingCourses(true);
+    fetch(`${API_BASE_URL}/api/courses?limit=100`)
+      .then(res => res.json())
       .then(data => {
-        if (data && data.images && data.images.length > 0) {
-          const formatted = data.images.slice(0, 3).map((img: any) => {
-            const cat = img.category || 'Artwork';
-            let cleanedCat = cat.replace(/\b(beginner|advanced|intermediate)\b/gi, '')
-              .replace(/\(\s*\)/g, '')
-              .replace(/^[\s-–—:]+|[\s-–—:]+$/g, '')
-              .replace(/\s+/g, ' ')
-              .trim();
-            if (!cleanedCat) cleanedCat = 'Artwork';
-
-            return {
-              id: img._id,
-              title: img.title || 'Untitled Artwork',
-              author: img.description ? `${img.description}` : 'Student Artwork',
-              image: getImageUrl(img.imageUrl),
-              category: cleanedCat
-            };
-          });
-          setGalleryItems(formatted);
+        if (data && Array.isArray(data.courses)) {
+          setAllCourses(data.courses);
         }
       })
-      .catch(err => console.error('Error fetching gallery for dashboard showcase:', err))
-      .finally(() => setLoadingGallery(false));
+      .catch(err => console.error('Error fetching all courses:', err))
+      .finally(() => setLoadingCourses(false));
   }, []);
 
-  // Fetch batches for enrolled courses to detect live classes
-  const [liveBatches, setLiveBatches] = useState<any[]>([]);
+  // Filter and sort for Explore All Courses section
+  const filteredExploreCourses = allCourses.filter(course => {
+    if (course.status && course.status !== 'Active') return false;
 
-  useEffect(() => {
-    const fetchBatches = async () => {
-      try {
-        const batchRes = await fetch(`${API_BASE_URL}/api/batches`, { cache: 'no-store' });
-        if (!batchRes.ok) return;
-        const allBatches = await batchRes.json();
+    // Search query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchName = (course.courseName || '').toLowerCase().includes(q);
+      const matchDesc = (course.description || '').toLowerCase().includes(q);
+      const matchCat = (course.drawingCategory || '').toLowerCase().includes(q);
+      if (!matchName && !matchDesc && !matchCat) return false;
+    }
 
-        // ONLY include batches where Zoom link is explicitly activated by teacher/admin (isZoomActive === true)
-        const activeBatches = allBatches.filter(
-          (b: any) => b.zoomLink && b.isZoomActive === true && b.status === 'ACTIVE'
-        );
+    // Age Group filter
+    if (selectedAgeGroup !== 'All') {
+      const groups = course.targetAgeGroups || ['All Ages'];
+      const hasGroup = groups.includes(selectedAgeGroup) || groups.includes('All Ages');
+      if (!hasGroup) return false;
+    }
 
-        setLiveBatches(activeBatches);
-      } catch (err) {
-        console.error('Error fetching batch data for live check:', err);
-      }
-    };
+    // Difficulty filter
+    if (selectedDifficulty !== 'All') {
+      const diff = (course.difficulty || course.skillLevel || 'Beginner').toLowerCase();
+      if (diff !== selectedDifficulty.toLowerCase()) return false;
+    }
 
-    fetchBatches();
-    const interval = setInterval(fetchBatches, 10000);
-    return () => clearInterval(interval);
-  }, [student.enrolledCourses]);
+    return true;
+  }).sort((a, b) => {
+    if (sortBy === 'rating') return (b.rating || 4.8) - (a.rating || 4.8);
+    if (sortBy === 'priceLow') {
+      const priceA = parseInt((a.price || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      const priceB = parseInt((b.price || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      return priceA - priceB;
+    }
+    if (sortBy === 'priceHigh') {
+      const priceA = parseInt((a.price || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      const priceB = parseInt((b.price || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      return priceB - priceA;
+    }
+    return 0;
+  });
 
-  // Check if a batch class is currently live — ONLY true if explicitly activated (isZoomActive === true)
-  const isBatchLive = (batch: any): boolean => {
-    return Boolean(batch.zoomLink && batch.isZoomActive === true && batch.status === 'ACTIVE');
+  const getAgeGroupBadgeColor = (group: string) => {
+    switch (group) {
+      case 'Pre-Junior':
+        return 'bg-pink-100 text-pink-700 border-pink-200';
+      case 'Junior':
+        return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'Senior':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'Special':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      default:
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+    }
   };
-
-  const currentLiveBatches = liveBatches.filter(isBatchLive);
-
-  // Derive Schedule Timeline dynamically
-  const schedule = student.enrolledCourses.length > 0
-    ? student.enrolledCourses.map((c: any, index: number) => ({
-      id: `s-${index}`,
-      time: c.nextSession || 'Schedule TBD',
-      courseName: c.courseName,
-      room: `Studio ${String.fromCharCode(65 + index)}`,
-      instructor: c.instructor || 'TBD',
-      day: 'Every Weekday'
-    }))
-    : [];
-
-  const TeachersWidget = () => {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [isTransitioning, setIsTransitioning] = useState(true);
-    const [isPaused, setIsPaused] = useState(false);
-
-    const count = dbTeachers.length;
-    const shouldSlide = count > 3;
-
-    useEffect(() => {
-      if (!shouldSlide || isPaused) return;
-
-      const interval = setInterval(() => {
-        setIsTransitioning(true);
-        setCurrentIndex((prev) => prev + 1);
-      }, 3000);
-
-      return () => clearInterval(interval);
-    }, [shouldSlide, isPaused, count]);
-
-    useEffect(() => {
-      if (!shouldSlide) return;
-
-      if (currentIndex === count) {
-        // Wait for the 700ms slide transition to finish, then reset to 0 seamlessly
-        const timer = setTimeout(() => {
-          setIsTransitioning(false);
-          setCurrentIndex(0);
-        }, 700);
-
-        return () => clearTimeout(timer);
-      }
-    }, [currentIndex, count, shouldSlide]);
-
-    const extendedTeachers = shouldSlide
-      ? [...dbTeachers, ...dbTeachers.slice(0, 3)]
-      : dbTeachers;
-
-    const ITEM_HEIGHT = 68; // 60px card height + 8px gap
-
-    return (
-      <div 
-        className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left overflow-hidden"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-black text-slate-900 tracking-tight">Our Art Tutors</h3>
-          <div className="flex items-center gap-0.5 text-amber-500 font-extrabold text-xs">
-            <FiStar className="fill-amber-500" size={12} /> <span>{dbTeachers.length} Active</span>
-          </div>
-        </div>
-
-        {loadingTeachers ? (
-          <p className="text-xs text-slate-400 italic text-center py-4">Loading tutors...</p>
-        ) : dbTeachers.length > 0 ? (
-          <div 
-            className="relative overflow-hidden"
-            style={{ height: `${Math.min(count, 3) * ITEM_HEIGHT - 8}px` }}
-          >
-            <div
-              className={`flex flex-col gap-2 ${
-                isTransitioning ? 'transition-transform duration-700 ease-in-out' : 'transition-none'
-              }`}
-              style={{
-                transform: `translateY(-${currentIndex * ITEM_HEIGHT}px)`
-              }}
-            >
-              {extendedTeachers.map((teacher: any, idx: number) => {
-                const avatarUrl = getImageUrl(teacher.avatar);
-                return (
-                  <div
-                    key={`${teacher._id}-${idx}`}
-                    className="flex items-center justify-between p-2.5 bg-slate-50/70 hover:bg-slate-100/80 rounded-xl transition-colors h-[60px] shrink-0"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#4700b3] flex items-center justify-center font-bold text-xs uppercase relative overflow-hidden shrink-0">
-                        {avatarUrl ? (
-                          <img src={avatarUrl} alt={teacher.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span>{teacher.name ? teacher.name.charAt(0) : 'T'}</span>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-black text-slate-800 leading-none truncate">{teacher.name}</p>
-                        <p className="text-[9px] text-slate-400 font-semibold mt-1 truncate">{teacher.subject || teacher.qualification || 'Art & Design'}</p>
-                      </div>
-                    </div>
-                    {teacher.email && (
-                      <a
-                        href={`mailto:${teacher.email}`}
-                        title={`Email ${teacher.name}`}
-                        className="p-2 bg-white hover:bg-[#e6e6fa] hover:text-[#4700b3] text-slate-450 rounded-lg transition-colors shrink-0 shadow-sm"
-                      >
-                        <FiMail size={13} />
-                      </a>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ) : (
-          <p className="text-xs text-slate-400 italic text-center py-4">No tutor records found in database.</p>
-        )}
-      </div>
-    );
-  };
-
-  const MasterpieceShowcaseWidget = () => (
-    <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <FiImage size={20} className="text-[#4700b3]" />
-          <h3 className="text-lg font-black text-slate-900 tracking-tight">Academy Masterpiece Showcase</h3>
-        </div>
-        <button
-          onClick={() => navigate('/gallery')}
-          className="text-[#4700b3] hover:text-[#3d0099] font-extrabold text-xs bg-transparent border-none cursor-pointer"
-        >
-          View Gallery
-        </button>
-      </div>
-
-      {loadingGallery ? (
-        <p className="text-xs text-slate-400 italic text-center py-6">Loading gallery masterpieces...</p>
-      ) : galleryItems.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {galleryItems.map((item: any) => (
-            <div
-              key={item.id}
-              onClick={() => navigate('/gallery')}
-              className="space-y-2 group cursor-pointer"
-            >
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 relative">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] font-bold px-2 py-0.5 rounded backdrop-blur-sm truncate max-w-[80%]">
-                  {item.category}
-                </span>
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-800 truncate">{item.title}</h4>
-                <p className="text-[10px] text-slate-400 font-semibold truncate">{item.author}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-xs text-slate-400 italic text-center py-6">No gallery items available.</p>
-      )}
-    </div>
-  );
 
   return (
-    <div className="flex flex-col relative overflow-x-hidden pb-12 w-full min-w-0">
+    <div className="flex flex-col relative w-full min-w-0 bg-[#fbfaff]">
+      
+      {/* Top Header */}
+      <div className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-5 bg-white border-b border-slate-100 sticky top-0 z-30 shadow-2xs">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-[#111827] tracking-tight">Student Learning Hub</h1>
+          <p className="text-[#6B7280] text-xs sm:text-sm mt-0.5">Personalized recommendations and creative art classes</p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="text-right hidden sm:block">
+            <p className="text-sm font-bold text-[#111827] leading-none">{student.name || 'Student User'}</p>
+            <p className="text-xs text-[#6B7280] mt-1 font-semibold">
+              {student.age !== null ? `${student.age} yrs • ` : ''}{student.ageCategory}
+            </p>
+          </div>
+          <div 
+            onClick={() => navigate('/student/profile')}
+            className="w-10 h-10 rounded-full bg-[#f0e8ff] text-[#4700b3] flex items-center justify-center shadow-sm border border-slate-200 shrink-0 cursor-pointer hover:bg-purple-100 transition-colors"
+            title="View Profile"
+          >
+            <FiUser size={20} />
+          </div>
+        </div>
+      </div>
 
-        {/* Top Header */}
-        <header className="flex justify-between items-center px-4 sm:px-6 lg:px-10 py-4 sm:py-6 bg-white border-b border-slate-100 sticky top-0 z-30">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1>
-            <p className="text-slate-500 text-[13px] sm:text-[14px] mt-0.5">Welcome back, {student.name.split(' ')[0]}! Explore your progress.</p>
+      <div className="p-4 sm:p-6 lg:p-10 max-w-[1400px] mx-auto w-full space-y-10">
+        
+        {/* ========================================================================= */}
+        {/* 1. WELCOME SECTION & STUDENT PROFILE SUMMARY */}
+        {/* ========================================================================= */}
+        <section className="bg-gradient-to-r from-[#4700b3] via-[#5c16c5] to-[#7c25d9] rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-purple-900/10 relative overflow-hidden">
+          <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 pointer-events-none flex items-center justify-center text-9xl">
+            🎨
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <p className="text-[14px] font-bold text-slate-900 leading-none">{student.name}</p>
-              <p className="text-[11px] font-semibold text-slate-500 mt-1 uppercase tracking-wider">Student • {student.grade}</p>
-            </div>
-            <div
-              className="w-10 h-10 rounded-full bg-[#6247df] text-white flex items-center justify-center font-bold text-lg border border-slate-200 shadow-sm cursor-pointer shrink-0"
-              onClick={() => navigate('/student/profile')}
-            >
-              {student.name.charAt(0).toUpperCase()}
-            </div>
-          </div>
-        </header>
+          <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="space-y-3 max-w-2xl">
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider text-purple-100">
+                <FiSmile size={14} /> Ready to Create Art
+              </div>
+              <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
+                Welcome back, <span className="text-amber-300">{student.name || 'Artist'}!</span>
+              </h2>
+              <p className="text-purple-100 text-sm sm:text-base leading-relaxed">
+                Your recommendations are tailored for your age group <span className="font-bold underline text-white">{student.ageCategory}</span> and your favorite drawing topics.
+              </p>
 
-        {/* Outer Dashboard Content Container */}
-        <div className="px-4 sm:px-6 lg:px-10 mt-6 sm:mt-8 space-y-8 flex-1">
-
-          {student.enrolledCourses.length === 0 ? (
-            // NEW USER DASHBOARD
-            <div className="space-y-8">
-
-              {/* Welcome Jumbotron */}
-              <div className="bg-gradient-to-r from-[#4700b3]/10 via-[#6247df]/5 to-[#4700b3]/5 border border-purple-100 rounded-[2.5rem] p-8 md:p-12 text-left relative overflow-hidden shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div className="space-y-3 max-w-2xl">
-                  <span className="bg-purple-150 text-[#4700b3] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
-                    New Student Portal Active 🚀
+              {/* Profile Summary Badges */}
+              <div className="flex flex-wrap items-center gap-2 pt-2">
+                <span className="bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-bold text-white border border-white/20">
+                  🎂 Age: {student.age !== null ? `${student.age} Years` : 'DOB Needed'}
+                </span>
+                <span className="bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-bold text-white border border-white/20">
+                  🏷️ Category: {student.ageCategory}
+                </span>
+                <span className="bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-bold text-white border border-white/20">
+                  ⚡ Skill: {student.skillLevel}
+                </span>
+                {student.interests.slice(0, 3).map(interest => (
+                  <span key={interest} className="bg-amber-400/30 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-bold text-amber-200 border border-amber-300/30">
+                    ✨ {interest}
                   </span>
-                  <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                    Welcome to GloSmart Academy, {student.name.split(' ')[0]}! ✨
-                  </h2>
-                  <p className="text-slate-500 text-sm md:text-base font-medium leading-relaxed">
-                    We are thrilled to help you unlock your artistic potential! To start your classes, view your schedules, submit assignments, and track attendance, please enroll in a course.
-                  </p>
-                </div>
-                <button
-                  onClick={() => navigate('/student/courses')}
-                  className="bg-[#4700b3] hover:bg-[#3d0099] text-white font-bold py-3.5 px-6 rounded-2xl text-sm transition-all shadow-md shadow-purple-200 shrink-0 border-none cursor-pointer flex items-center gap-2"
-                >
-                  Browse & Enroll in Courses <FiArrowRight size={16} />
-                </button>
+                ))}
               </div>
+            </div>
 
-              {/* Grid Layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-[1.7fr_1.1fr] gap-8 items-start">
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 w-full lg:w-auto shrink-0">
+              <button
+                onClick={() => navigate('/student/profile')}
+                className="bg-amber-400 hover:bg-amber-300 text-purple-950 px-6 py-3.5 rounded-2xl font-black text-sm transition-all shadow-lg hover:shadow-amber-400/30 cursor-pointer border-none flex items-center justify-center gap-2"
+              >
+                <FiTarget size={16} /> Customize Preferences
+              </button>
+              <button
+                onClick={() => {
+                  const el = document.getElementById('explore-courses-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="bg-white/15 hover:bg-white/25 text-white px-6 py-3.5 rounded-2xl font-bold text-sm transition-all border border-white/20 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <FiBook size={16} /> Browse All Courses
+              </button>
+            </div>
+          </div>
+        </section>
 
-                {/* Left Column */}
-                <div className="space-y-8">
-                  {/* Student Gallery Spotlight (First 3 Gallery Images) */}
-                  <MasterpieceShowcaseWidget />
+        {/* ========================================================================= */}
+        {/* 2. "RECOMMENDED FOR YOU" SECTION */}
+        {/* ========================================================================= */}
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                  <FiAward size={18} />
                 </div>
-
-                {/* Right Column */}
-                <div className="space-y-8">
-                  {/* Action Shortcuts Panel */}
-                  <div className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
-                    <h3 className="text-lg font-black text-slate-900 tracking-tight mb-5">Quick Actions</h3>
-
-                    <div className="space-y-4">
-                      {/* Action 1 */}
-                      <div
-                        onClick={() => navigate('/student/profile')}
-                        className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-[#4700b3]/5 border border-slate-150 rounded-2xl cursor-pointer transition-all group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2.5 bg-pink-50 text-pink-655 rounded-xl">
-                            <FiUser size={18} className="stroke-[2.5]" />
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-black text-slate-800">Student Profile</h4>
-                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Fill details & set avatar</p>
-                          </div>
-                        </div>
-                        <FiChevronRight className="text-slate-400 group-hover:translate-x-1 transition-transform" size={16} />
-                      </div>
-
-                      {/* Action 2 */}
-                      <div
-                        onClick={() => navigate('/student/fees')}
-                        className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-[#4700b3]/5 border border-slate-150 rounded-2xl cursor-pointer transition-all group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2.5 bg-teal-50 text-teal-655 rounded-xl">
-                            <FiCreditCard size={18} className="stroke-[2.5]" />
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-black text-slate-800">Fees & Payments</h4>
-                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Manage receipts & billing</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Instructors Spotlight from Database (Infinite Slide Ticker) */}
-                  <TeachersWidget />
-                </div>
-
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  Recommended For You
+                </h3>
               </div>
+              <p className="text-slate-500 text-xs sm:text-sm mt-1">
+                Personalized for <span className="font-bold text-[#4700b3]">{student.ageCategory}</span> ({student.age !== null ? `${student.age} yrs` : 'your age'}) based on your interests & skill level.
+              </p>
+            </div>
 
+            <span className="text-xs font-bold text-purple-900 bg-purple-50 border border-purple-200 px-3.5 py-1.5 rounded-full self-start sm:self-auto">
+              🎯 Multi-Factor Match Engine
+            </span>
+          </div>
+
+          {loadingRecommendations ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map(n => (
+                <div key={n} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm animate-pulse h-80"></div>
+              ))}
+            </div>
+          ) : recommendations.length === 0 ? (
+            <div className="bg-white rounded-3xl p-10 border border-slate-100 text-center space-y-3">
+              <div className="text-4xl">🎨</div>
+              <h4 className="text-lg font-bold text-slate-800">You're Enrolled in All Current Recommendations!</h4>
+              <p className="text-sm text-slate-500 max-w-md mx-auto">Explore all available courses below or check out new drawing categories.</p>
             </div>
           ) : (
-            // REGULAR USER DASHBOARD CONTENT
-            <>
-              {/* Live Class Banner */}
-              {currentLiveBatches.length > 0 && (
-                <div className="space-y-3">
-                  {currentLiveBatches.map((batch: any) => (
-                    <div
-                      key={batch._id}
-                      className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-4 md:p-5 rounded-2xl shadow-lg shadow-emerald-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-pulse-subtle"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
-                          <FiVideo size={20} />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="relative flex h-2.5 w-2.5">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
-                            </span>
-                            <span className="text-sm font-extrabold tracking-tight">Class is Live Now!</span>
-                          </div>
-                          <p className="text-emerald-100 text-xs font-semibold mt-0.5">
-                            {batch.courseName} — {batch.batchName} · Live Session Active
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => window.open(batch.zoomLink, '_blank', 'noopener,noreferrer')}
-                        className="bg-white text-emerald-700 font-bold text-xs px-5 py-2.5 rounded-xl hover:bg-emerald-50 transition-colors shadow-sm border-none cursor-pointer flex items-center gap-2 shrink-0"
-                      >
-                        <FiVideo size={14} />
-                        Join Now
-                      </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recommendations.slice(0, 6).map((item) => (
+                <div 
+                  key={item.courseId}
+                  className="bg-white rounded-[2rem] border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] hover:shadow-xl hover:border-purple-200 transition-all duration-300 flex flex-col overflow-hidden group text-left"
+                >
+                  {/* Thumbnail Image with Badges */}
+                  <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                    <img 
+                      src={getImageUrl(item.thumbnailImage) || 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'} 
+                      alt={item.courseName}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                    />
+                    
+                    {/* Recommendation Reason Tag */}
+                    <div className="absolute top-3 left-3 bg-[#4700b3]/95 backdrop-blur-md text-white text-[11px] font-extrabold px-3 py-1 rounded-full shadow-md flex items-center gap-1.5">
+                      <FiStar className="fill-amber-300 text-amber-300" size={12} />
+                      <span>{item.reason}</span>
                     </div>
-                  ))}
-                </div>
-              )}
 
-              {/* Temporary Batch Transfer Notification Banner */}
-              {effectiveBatchInfo?.isTransferred && (
-                <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-5 rounded-3xl shadow-lg shadow-orange-100 flex items-center justify-between gap-4 animate-fade-in font-sans text-left">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-white/20 rounded-2xl shrink-0">
-                      <FiClock size={22} className="text-white" />
+                    {/* Age Group Tag at Bottom of Image */}
+                    <div className="absolute bottom-3 left-3 flex gap-1.5">
+                      {(item.targetAgeGroups || ['All Ages']).map(ag => (
+                        <span key={ag} className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-xs ${getAgeGroupBadgeColor(ag)}`}>
+                          {ag}
+                        </span>
+                      ))}
                     </div>
+                  </div>
+
+                  {/* Course Details */}
+                  <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                     <div>
-                      <h3 className="text-sm sm:text-base font-black tracking-tight">Temporary Schedule Shift Active 🗓️</h3>
-                      <p className="text-orange-55 text-xs font-semibold mt-1">
-                        You have been temporarily transferred to the <strong className="text-white">{effectiveBatchInfo.effectiveBatchName}</strong> (Tutor: {effectiveBatchInfo.instructor}).
-                      </p>
-                      <p className="text-orange-100 text-[10px] font-bold uppercase tracking-wider mt-1.5">
-                        Valid Until: {new Date(effectiveBatchInfo.transferDetails.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      <div className="flex items-center justify-between text-xs text-slate-400 font-semibold mb-2">
+                        <span>{item.drawingCategory || 'Drawing Class'}</span>
+                        <span className="flex items-center gap-1 text-amber-500 font-bold">
+                          <FiStar className="fill-amber-400" size={13} /> {item.rating || 4.8}
+                        </span>
+                      </div>
+
+                      <h4 className="text-lg font-black text-slate-900 line-clamp-1 group-hover:text-[#4700b3] transition-colors">
+                        {item.courseName}
+                      </h4>
+
+                      <p className="text-slate-500 text-xs mt-1.5 line-clamp-2 leading-relaxed">
+                        {item.description || 'Learn comprehensive drawing techniques with step-by-step guidance from expert tutors.'}
                       </p>
                     </div>
-                  </div>
-                  <div className="hidden sm:block shrink-0 px-4 py-2 bg-white/10 rounded-xl border border-white/25 text-[10px] font-black uppercase tracking-wider">
-                    Temporary
-                  </div>
-                </div>
-              )}
 
-              {/* Quick Stats Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div
-                  onClick={() => navigate('/student/courses')}
-                  className="bg-white p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow group"
-                >
-                  <div>
-                    <span className="text-slate-400 font-bold text-xs uppercase tracking-wider">My Courses</span>
-                    <h3 className="text-2xl font-black text-slate-900 mt-1">{student.activeCoursesCount} Active</h3>
-                    <span className="text-xs text-slate-400 font-semibold flex items-center gap-0.5 mt-1">
-                      Ongoing curriculum
-                    </span>
-                  </div>
-                  <div className="p-4 bg-purple-50 text-[#4700b3] rounded-2xl group-hover:bg-[#4700b3] group-hover:text-white transition-colors duration-300">
-                    <FiBook size={20} className="stroke-[2.5]" />
-                  </div>
-                </div>
-
-                <div
-                  className="bg-white p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow group"
-                >
-                  <div>
-                    <span className="text-slate-400 font-bold text-xs uppercase tracking-wider">Current Active Batch</span>
-                    <h3 className="text-lg font-black text-slate-900 mt-1">
-                      {effectiveBatchInfo?.effectiveBatchName || 'Morning Batch'}
-                    </h3>
-                    <span className="text-xs text-slate-400 font-semibold flex items-center gap-0.5 mt-1">
-                      {effectiveBatchInfo?.isTransferred ? (
-                        <span className="text-amber-600 font-extrabold animate-pulse">TEMPORARILY TRANSFERRED</span>
-                      ) : (
-                        <span>STANDARD ENROLLMENT</span>
-                      )}
-                    </span>
-                  </div>
-                  <div className={`p-4 rounded-2xl transition-colors duration-300 ${
-                    effectiveBatchInfo?.isTransferred ? 'bg-amber-50 text-amber-655' : 'bg-green-50 text-green-655'
-                  }`}>
-                    <FiCalendar size={20} className="stroke-[2.5]" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Main Dashboard Panel Layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-[1.7fr_1.1fr] gap-8 items-start">
-                {/* Left Main Panel: Schedule & Masterpiece Showcase */}
-                <div className="space-y-8">
-                  {/* Schedule / Timeline Widget */}
-                  <div className="bg-[#fff] p-6 md:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.015)] border border-slate-100 flex flex-col text-left">
-                    <div className="flex justify-between items-center mb-6">
-                      <div>
-                        <h3 className="text-lg font-black text-slate-900 tracking-tight">Weekly Study Schedule</h3>
-                        <p className="text-slate-400 text-xs mt-0.5">Your scheduled classes at GloSmart Academy</p>
+                    {/* Metadata Row */}
+                    <div className="grid grid-cols-2 gap-2 py-3 border-y border-slate-100 text-xs text-slate-600 font-semibold">
+                      <div className="flex items-center gap-1.5">
+                        <FiClock className="text-slate-400" size={14} />
+                        <span>{item.duration || '8 Weeks'}</span>
                       </div>
+                      <div className="flex items-center gap-1.5">
+                        <FiLayers className="text-slate-400" size={14} />
+                        <span>{item.lessonsCount || 16} Lessons</span>
+                      </div>
+                    </div>
+
+                    {/* Price & Action CTA */}
+                    <div className="flex items-center justify-between pt-1">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">Tuition Fee</span>
+                        <span className="text-lg font-black text-[#4700b3]">{item.price || '₹3,999'}</span>
+                      </div>
+
                       <button
                         onClick={() => navigate('/student/courses')}
-                        className="text-[#4700b3] hover:text-[#3d0099] font-bold text-xs flex items-center gap-0.5 bg-transparent border-none cursor-pointer"
+                        className="bg-[#4700b3] hover:bg-[#3d0099] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer border-none flex items-center gap-1.5"
                       >
-                        View Courses <FiChevronRight size={14} />
+                        Enroll Now <FiArrowRight size={13} />
                       </button>
                     </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
-                    <div className="space-y-4">
-                      {schedule.length > 0 ? (
-                        schedule.map((item) => (
-                          <div
-                            key={item.id}
-                            className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col md:flex-row justify-between md:items-center gap-4 hover:border-purple-100 transition-colors"
-                          >
-                            <div className="flex items-center gap-4 text-left">
-                              <div className="p-3 bg-purple-50 text-[#4700b3] rounded-xl shrink-0 font-extrabold text-[11px] uppercase tracking-wider text-center w-28">
-                                {item.day.split(' ')[1] || 'Session'}
-                              </div>
-                              <div>
-                                <h4 className="font-extrabold text-slate-800 text-sm leading-tight">{item.courseName}</h4>
-                                <p className="text-slate-400 text-[11px] font-bold mt-1 uppercase tracking-wider leading-none">
-                                  {item.instructor} • Room {item.room}
-                                </p>
-                              </div>
-                            </div>
+        {/* ========================================================================= */}
+        {/* 3. "CONTINUE LEARNING" / ENROLLED COURSES */}
+        {/* ========================================================================= */}
+        <section className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-purple-100 text-[#4700b3] flex items-center justify-center font-bold">
+                <FiBook size={18} />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                Continue Learning ({student.enrolledCourses.length})
+              </h3>
+            </div>
 
-                            <span className="text-xs font-bold text-slate-650 flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-slate-150 shrink-0 w-fit">
-                              <FiClock size={12} className="text-[#4700b3]" /> {item.time}
-                            </span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-center py-8 text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
-                          <p className="font-semibold text-sm">No scheduled classes yet.</p>
-                          <button
-                            onClick={() => navigate('/student/courses')}
-                            className="mt-3 px-4 py-2 bg-[#4700b3] text-white rounded-xl font-bold text-xs hover:bg-[#3d0099] border-none cursor-pointer"
-                          >
-                            Explore & Purchase Courses
-                          </button>
-                        </div>
-                      )}
+            <button 
+              onClick={() => navigate('/student/courses')}
+              className="text-xs font-bold text-[#4700b3] hover:underline flex items-center gap-1 bg-transparent border-none cursor-pointer"
+            >
+              View My Courses <FiChevronRight size={14} />
+            </button>
+          </div>
+
+          {student.enrolledCourses.length === 0 ? (
+            <div className="bg-white rounded-3xl p-8 border border-slate-100 text-center space-y-3">
+              <p className="text-sm font-semibold text-slate-600">You haven't enrolled in any courses yet.</p>
+              <button
+                onClick={() => {
+                  const el = document.getElementById('explore-courses-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="bg-[#4700b3] text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer border-none"
+              >
+                Explore Courses & Enroll
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {student.enrolledCourses.map((course: any, idx: number) => (
+                <div 
+                  key={course.courseId || idx}
+                  className="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm flex flex-col justify-between space-y-4 text-left"
+                >
+                  <div className="flex items-start gap-4">
+                    <img 
+                      src={getImageUrl(course.thumbnailImage) || 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'}
+                      alt={course.courseName}
+                      className="w-16 h-16 rounded-2xl object-cover shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold text-purple-700 uppercase bg-purple-50 px-2 py-0.5 rounded-md">Enrolled Course</span>
+                      <h4 className="text-base font-bold text-slate-900 truncate mt-1">{course.courseName}</h4>
+                      <p className="text-xs text-slate-400 mt-0.5">{course.instructor || 'TBD'}</p>
                     </div>
                   </div>
 
-                  {/* Student Gallery Spotlight (First 3 Gallery Images) */}
-                  <MasterpieceShowcaseWidget />
-                </div>
+                  <div>
+                    <div className="flex justify-between text-xs font-bold text-slate-700 mb-1.5">
+                      <span>Progress</span>
+                      <span>{course.progress || 25}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                      <div className="bg-[#4700b3] h-full rounded-full transition-all" style={{ width: `${course.progress || 25}%` }}></div>
+                    </div>
+                  </div>
 
-                {/* Right Main Panel: Instructors from Database (Infinite Slide Ticker) */}
-                <div className="space-y-8">
-                  <TeachersWidget />
+                  <button
+                    onClick={() => navigate('/student/courses')}
+                    className="w-full bg-purple-50 hover:bg-purple-100 text-[#4700b3] py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer border-none flex items-center justify-center gap-1.5"
+                  >
+                    Resume Learning <FiArrowRight size={13} />
+                  </button>
                 </div>
-              </div>
-            </>
+              ))}
+            </div>
           )}
-        </div>
+        </section>
 
+        {/* ========================================================================= */}
+        {/* 4. "EXPLORE ALL COURSES" (Full Catalog - Non-restricted) */}
+        {/* ========================================================================= */}
+        <section id="explore-courses-section" className="space-y-6 pt-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
+                  <FiLayers size={18} />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  Explore All Courses
+                </h3>
+              </div>
+              <p className="text-slate-500 text-xs sm:text-sm mt-1">
+                Browse our complete course catalog across all age categories and skill levels.
+              </p>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full md:w-72">
+              <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input 
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search all courses..."
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#4700b3] shadow-2xs"
+              />
+            </div>
+          </div>
+
+          {/* Filter Tabs Bar */}
+          <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+            
+            {/* Age Group Filter Tabs */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-bold text-slate-400 mr-1 flex items-center gap-1">
+                <FiFilter size={12} /> Age Group:
+              </span>
+              {[
+                { id: 'All', label: 'All Courses' },
+                { id: 'Pre-Junior', label: 'Pre-Junior (4–6)' },
+                { id: 'Junior', label: 'Junior (7–9)' },
+                { id: 'Senior', label: 'Senior (10–12)' },
+                { id: 'Special', label: 'Special (12+)' },
+                { id: 'All Ages', label: 'All Ages' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSelectedAgeGroup(tab.id)}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all cursor-pointer border ${
+                    selectedAgeGroup === tab.id
+                      ? 'bg-[#4700b3] text-white border-[#4700b3] shadow-xs'
+                      : 'bg-slate-50 text-slate-600 border-slate-100 hover:bg-slate-100'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Difficulty & Sort Controls */}
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedDifficulty}
+                onChange={(e) => setSelectedDifficulty(e.target.value)}
+                className="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl px-3 py-1.5 focus:outline-none"
+              >
+                <option value="All">All Difficulties</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl px-3 py-1.5 focus:outline-none"
+              >
+                <option value="rating">Top Rated</option>
+                <option value="priceLow">Price: Low to High</option>
+                <option value="priceHigh">Price: High to Low</option>
+              </select>
+            </div>
+
+          </div>
+
+          {/* Catalog Grid */}
+          {loadingCourses ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map(n => (
+                <div key={n} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm animate-pulse h-72"></div>
+              ))}
+            </div>
+          ) : filteredExploreCourses.length === 0 ? (
+            <div className="bg-white rounded-3xl p-12 border border-slate-100 text-center space-y-3">
+              <p className="text-slate-500 text-sm font-semibold">No courses match the selected filters.</p>
+              <button
+                onClick={() => {
+                  setSelectedAgeGroup('All');
+                  setSelectedDifficulty('All');
+                  setSearchQuery('');
+                }}
+                className="text-[#4700b3] font-bold text-xs underline bg-transparent border-none cursor-pointer"
+              >
+                Reset Filters
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredExploreCourses.map((course: any) => (
+                <div 
+                  key={course._id}
+                  className="bg-white rounded-[2rem] border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] hover:shadow-lg hover:border-slate-200 transition-all flex flex-col justify-between overflow-hidden text-left"
+                >
+                  <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                    <img 
+                      src={getImageUrl(course.thumbnailImage) || 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'}
+                      alt={course.courseName}
+                      className="w-full h-full object-cover"
+                    />
+
+                    <div className="absolute top-3 left-3 flex gap-1.5">
+                      {(course.targetAgeGroups || ['All Ages']).map((ag: string) => (
+                        <span key={ag} className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-xs ${getAgeGroupBadgeColor(ag)}`}>
+                          {ag}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {course.skillLevel || 'Beginner'}
+                    </div>
+                  </div>
+
+                  <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between text-xs text-slate-400 font-semibold mb-1.5">
+                        <span>{course.drawingCategory || 'Art & Drawing'}</span>
+                        <span className="flex items-center gap-1 text-amber-500 font-bold">
+                          <FiStar className="fill-amber-400" size={13} /> {course.rating || 4.8}
+                        </span>
+                      </div>
+
+                      <h4 className="text-base font-bold text-slate-900 line-clamp-1">{course.courseName}</h4>
+                      <p className="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">{course.description || 'Comprehensive curriculum for artistic growth.'}</p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">Fee</span>
+                        <span className="text-base font-black text-slate-900">{course.price || '₹3,999'}</span>
+                      </div>
+
+                      <button
+                        onClick={() => navigate('/student/courses')}
+                        className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl font-bold text-xs transition-colors cursor-pointer border-none"
+                      >
+                        View & Enroll
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+      </div>
     </div>
   );
 };

@@ -136,7 +136,7 @@ const BatchTransferManagement: React.FC = () => {
     setRedoLoadingId(t._id);
     try {
       const config = { headers: { Authorization: `Bearer ${user?.token}` } };
-      const res = await axios.post(`${API_BASE_URL}/api/transfers/redo-transfer/${t._id}`, {}, config);
+      const res = await axios.post(`${API_BASE_URL}/api/transfers/redo/${t._id}`, {}, config);
       alert(`✅ Success: ${res.data.message}`);
       fetchData();
     } catch (err: any) {
@@ -157,7 +157,7 @@ const BatchTransferManagement: React.FC = () => {
     setRedoLoadingId(c._id);
     try {
       const config = { headers: { Authorization: `Bearer ${user?.token}` } };
-      const res = await axios.post(`${API_BASE_URL}/api/transfers/redo-conversion/${c._id}`, {}, config);
+      const res = await axios.post(`${API_BASE_URL}/api/batch-conversions/redo/${c._id}`, {}, config);
       alert(`✅ Success: ${res.data.message}`);
       fetchData();
     } catch (err: any) {

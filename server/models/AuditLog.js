@@ -19,16 +19,26 @@ const auditLogSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  oldCourseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course'
+  },
+  newCourseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course'
+  },
   oldBatchId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Batch'
+    ref: 'Batch',
+    index: true
   },
   oldBatchName: {
     type: String
   },
   newBatchId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Batch'
+    ref: 'Batch',
+    index: true
   },
   newBatchName: {
     type: String

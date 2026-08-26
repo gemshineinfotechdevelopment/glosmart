@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
+import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import Student from '../models/Student.js';
 import Teacher from '../models/Teacher.js';
@@ -8,7 +9,10 @@ import logger from '../utils/logger.js';
 const router = express.Router();
 
 const generateToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET || 'fallback_secret', {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not defined in environment variables');
+  }
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
     expiresIn: '30d',
   });
 };
@@ -17,8 +21,18 @@ const generateToken = (id, role) => {
 // @desc    Register a new student user
 // @route   POST /api/auth/signup
 // @access  Public
-router.post('/signup', async (req, res) => {
+router.post('/signup', [
+  body('email').isEmail().withMessage('Please provide a valid email').normalizeEmail(),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+  body('fullName').optional().trim().escape(),
+  body('phoneNumber').optional().trim().escape()
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array()[0].msg, errors: errors.array() });
+    }
+
     const { fullName, phoneNumber, email, password } = req.body;
     logger.info(`Signup attempt for email: ${email}`);
 
@@ -43,6 +57,7 @@ router.post('/signup', async (req, res) => {
         feeStatus: 'PENDING',
         attendanceRate: 100,
         avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+        isProfileComplete: false,
         enrolledCourses: [],
         attendanceRecords: [],
         assignments: [],
@@ -60,7 +75,8 @@ router.post('/signup', async (req, res) => {
       email,
       password,
       role: 'student',
-      profileId: student._id
+      profileId: student._id,
+      isProfileComplete: student.isProfileComplete || false
     });
     await user.save();
 
@@ -70,6 +86,8 @@ router.post('/signup', async (req, res) => {
       email: user.email,
       role: user.role,
       profileId: student._id,
+      name: student.name,
+      isProfileComplete: student.isProfileComplete || false,
       token: generateToken(user._id, user.role),
     });
   } catch (error) {
@@ -81,38 +99,84 @@ router.post('/signup', async (req, res) => {
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
 // @access  Public
-router.post('/login', async (req, res) => {
+router.post('/login', [
+  body('email').isEmail().withMessage('Please provide a valid email').normalizeEmail(),
+  body('password').notEmpty().withMessage('Please provide a password')
+], async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      logger.warn('Login failed: Missing email or password');
-      return res.status(400).json({ message: 'Please provide email and password' });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array()[0].msg, errors: errors.array() });
     }
+
+    const { email, password } = req.body;
 
     logger.info(`Login attempt for email: ${email}`);
 
-    let user = await User.findOne({ email });
+    const emailRegex = new RegExp('^' + email.trim() + '$', 'i');
+    let user = await User.findOne({ email: emailRegex });
 
     // If user does not exist, register them as a student on the fly
     if (!user) {
+      let student = await Student.findOne({ email: emailRegex });
+      if (!student) {
+        student = new Student({
+          name: 'Student User',
+          email: email,
+          phone: '',
+          joiningDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          admissionDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          feeStatus: 'PENDING',
+          attendanceRate: 100,
+          avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+          isProfileComplete: false,
+          enrolledCourses: [],
+          attendanceRecords: [],
+          assignments: [],
+          leaveRequests: []
+        });
+        await student.save();
+      }
+
       user = await User.create({
         email,
         password,
-        role: 'student'
+        role: 'student',
+        profileId: student._id,
+        isProfileComplete: false
       });
     }
 
     if (user && (await user.matchPassword(password))) {
       let name = '';
+      let isProfileComplete = user.isProfileComplete || false;
+
       if (user.role === 'teacher' && user.profileId) {
         const teacher = await Teacher.findById(user.profileId);
         if (teacher) name = teacher.name;
-      } else if (user.role === 'student' && user.profileId) {
-        const student = await Student.findById(user.profileId);
-        if (student) name = student.name;
+        isProfileComplete = true;
+      } else if (user.role === 'student') {
+        let student = null;
+        if (user.profileId) {
+          student = await Student.findById(user.profileId);
+        }
+        if (!student) {
+          student = await Student.findOne({ email: emailRegex });
+          if (student) {
+            user.profileId = student._id;
+            await user.save();
+          }
+        }
+        if (student) {
+          name = student.name;
+          isProfileComplete = student.isProfileComplete === true;
+        } else {
+          name = 'Student User';
+          isProfileComplete = false;
+        }
       } else {
         name = user.role === 'admin' ? 'Admin User' : 'Unknown';
+        isProfileComplete = true;
       }
 
       logger.info(`Login successful for user: ${user._id} (${email})`);
@@ -122,6 +186,7 @@ router.post('/login', async (req, res) => {
         role: user.role,
         profileId: user.profileId,
         name: name,
+        isProfileComplete: isProfileComplete,
         token: generateToken(user._id, user.role),
       });
     } else {
@@ -148,12 +213,13 @@ router.post('/google', async (req, res) => {
     
     const { email, name, picture } = googleRes.data;
 
-    let user = await User.findOne({ email: new RegExp('^' + email.trim() + '$', 'i') });
+    const emailRegex = new RegExp('^' + email.trim() + '$', 'i');
+    let user = await User.findOne({ email: emailRegex });
 
     // If user does not exist, register them as a student on the fly
     if (!user) {
       // Find or Create Student record
-      let student = await Student.findOne({ email: new RegExp('^' + email.trim() + '$', 'i') });
+      let student = await Student.findOne({ email: emailRegex });
       if (!student) {
         student = new Student({
           name: name || 'Student User',
@@ -164,6 +230,7 @@ router.post('/google', async (req, res) => {
           feeStatus: 'PENDING',
           attendanceRate: 100,
           avatar: picture || 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+          isProfileComplete: false,
           enrolledCourses: [],
           attendanceRecords: [],
           assignments: [],
@@ -176,19 +243,37 @@ router.post('/google', async (req, res) => {
         email,
         password: Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8), // secure random dummy password
         role: 'student',
-        profileId: student._id
+        profileId: student._id,
+        isProfileComplete: student.isProfileComplete || false
       });
     }
 
     let userName = name;
+    let isProfileComplete = user.isProfileComplete || false;
+
     if (user.role === 'teacher' && user.profileId) {
       const teacher = await Teacher.findById(user.profileId);
       if (teacher) userName = teacher.name;
-    } else if (user.role === 'student' && user.profileId) {
-      const student = await Student.findById(user.profileId);
-      if (student) userName = student.name;
+      isProfileComplete = true;
+    } else if (user.role === 'student') {
+      let student = null;
+      if (user.profileId) {
+        student = await Student.findById(user.profileId);
+      }
+      if (!student) {
+        student = await Student.findOne({ email: emailRegex });
+        if (student) {
+          user.profileId = student._id;
+          await user.save();
+        }
+      }
+      if (student) {
+        userName = student.name;
+        isProfileComplete = student.isProfileComplete === true;
+      }
     } else {
       userName = user.role === 'admin' ? 'Admin User' : (name || 'Unknown');
+      isProfileComplete = true;
     }
 
     logger.info(`Google Login successful for user: ${user._id} (${email})`);
@@ -198,6 +283,7 @@ router.post('/google', async (req, res) => {
       role: user.role,
       profileId: user.profileId,
       name: userName,
+      isProfileComplete: isProfileComplete,
       token: generateToken(user._id, user.role),
     });
   } catch (error) {

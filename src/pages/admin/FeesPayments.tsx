@@ -21,60 +21,19 @@ export const FeesPayments: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [payments, setPayments] = useState<PaymentRow[]>([]);
-  const [initialPayments] = useState<PaymentRow[]>([
-    {
-      invoiceNo: '#INV-9021',
-      studentName: 'Ethan Thompson',
-      avatar: 'https://i.pravatar.cc/150?img=33',
-      course: 'Oil Painting 101',
-      amount: '₹120.00',
-      mode: 'UPI',
-      status: 'Successful'
-    },
-    {
-      invoiceNo: '#INV-9020',
-      studentName: 'Lily Rodrigùez',
-      avatar: 'https://i.pravatar.cc/150?img=45',
-      course: 'Digital Illustration',
-      amount: '₹250.00',
-      mode: 'Cash',
-      status: 'Pending'
-    },
-    {
-      invoiceNo: '#INV-9019',
-      studentName: 'Marcùs Cêen',
-      avatar: 'https://i.pravatar.cc/150?img=12',
-      course: 'Sculpting Basics',
-      amount: '₹180.00',
-      mode: 'UPI',
-      status: 'Failed'
-    },
-    {
-      invoiceNo: '#INV-9018',
-      studentName: 'Sopêla Wrigêt',
-      avatar: 'https://i.pravatar.cc/150?img=10',
-      course: 'Watercolor Mastery',
-      amount: '₹120.00',
-      mode: 'UPI',
-      status: 'Successful'
-    }
-  ]);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/payments`)
       .then(res => res.json())
       .then(data => {
-        if (data.length > 0) {
+        if (Array.isArray(data)) {
           setPayments(data);
-        } else {
-          setPayments(initialPayments);
         }
       })
       .catch(err => {
         console.error("Failed to load payments from API", err);
-        setPayments(initialPayments);
       });
-  }, [initialPayments]);
+  }, []);
 
   const filteredPayments = payments.filter(payment => {
     // Filter by tab

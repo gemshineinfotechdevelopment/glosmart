@@ -26,48 +26,15 @@ const StudentFees: React.FC = () => {
   const [pendingBatch, setPendingBatch] = useState<any>(location.state?.pendingBatch || null);
   const [paying, setPaying] = useState(false);
 
-  const [studentName, setStudentName] = useState('Student User');
-  const [studentGrade, setStudentGrade] = useState('5th Grade');
+  const [studentName, setStudentName] = useState(user?.name || '');
+  const [studentGrade, setStudentGrade] = useState('');
   const [studentAvatar, setStudentAvatar] = useState('https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
   const [receipts, setReceipts] = useState<ReceiptRow[]>([]);
 
-  const defaultReceipts: ReceiptRow[] = [
-    {
-      invoiceNo: '#INV-9883',
-      item: 'Advanced Oil Painting - Semester 2 Fee',
-      amount: '₹5,000',
-      date: 'Oct 10, 2023',
-      method: 'UPI',
-      status: 'Successful'
-    },
-    {
-      invoiceNo: '#INV-9612',
-      item: 'Sculpting Material Kit',
-      amount: '₹1,500',
-      date: 'Sep 15, 2023',
-      method: 'UPI',
-      status: 'Successful'
-    },
-    {
-      invoiceNo: '#INV-9521',
-      item: 'Anatomy Sketchbook & Charcoal Supplies',
-      amount: '₹800',
-      date: 'Sep 01, 2023',
-      method: 'UPI',
-      status: 'Successful'
-    },
-    {
-      invoiceNo: '#INV-9411',
-      item: 'Digital Media Lab Access Fee',
-      amount: '₹5,500',
-      date: 'Aug 20, 2023',
-      method: 'Bank Transfer',
-      status: 'Successful'
-    }
-  ];
-
   useEffect(() => {
-    const profileId = user?.profileId || 'first';
+    const profileId = user?.profileId;
+    if (!profileId) return;
+
     // 1. Fetch student
     fetch(`${API_BASE_URL}/api/students/${profileId}`)
       .then(res => res.json())
@@ -75,50 +42,33 @@ const StudentFees: React.FC = () => {
         if (studentData) {
           setStudentId(studentData._id);
           setEnrolledCourses(studentData.enrolledCourses || []);
-          const name = studentData.name || 'Student User';
+          const name = studentData.name || user?.name || 'Student User';
           setStudentName(name);
-          setStudentGrade(studentData.grade || '5th Grade');
+          setStudentGrade(studentData.grade || 'Grade Not Set');
           setStudentAvatar(studentData.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80');
 
           // 2. Fetch payments
           fetch(`${API_BASE_URL}/api/payments`)
             .then(res => res.json())
-            .then(async (paymentsData) => {
-              const filtered = paymentsData.filter((p: any) => p.studentName === name);
-              
-              if (filtered.length > 0) {
-                setReceipts(filtered.map((p: any) => ({
-                  invoiceNo: p.invoiceNo,
-                  item: p.course || 'Semester Fee',
-                  amount: p.amount,
-                  date: new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                  method: p.mode || 'UPI',
-                  status: p.status as any
-                })));
-              } else if (name === 'Sarah Jenkins') {
-                setReceipts(defaultReceipts);
-                // Seed database payments for this student
-                for (const receipt of defaultReceipts) {
-                  try {
-                    await fetch(`${API_BASE_URL}/api/payments`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        invoiceNo: receipt.invoiceNo,
-                        studentName: name,
-                        avatar: studentData.avatar,
-                        course: receipt.item,
-                        amount: receipt.amount,
-                        mode: receipt.method,
-                        status: receipt.status
-                      })
-                    });
-                  } catch (e) {
-                    console.error('Error seeding payment record:', e);
-                  }
+            .then((paymentsData) => {
+              if (Array.isArray(paymentsData)) {
+                const filtered = paymentsData.filter((p: any) => 
+                  (p.studentName && p.studentName.toLowerCase().trim() === name.toLowerCase().trim()) ||
+                  (p.email && user?.email && p.email.toLowerCase().trim() === user.email.toLowerCase().trim())
+                );
+                
+                if (filtered.length > 0) {
+                  setReceipts(filtered.map((p: any) => ({
+                    invoiceNo: p.invoiceNo,
+                    item: p.course || 'Course Enrollment Fee',
+                    amount: p.amount,
+                    date: new Date(p.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    method: p.mode || 'UPI',
+                    status: p.status as any
+                  })));
+                } else {
+                  setReceipts([]);
                 }
-              } else {
-                setReceipts([]);
               }
             })
             .catch(err => console.error('Error fetching payments:', err));

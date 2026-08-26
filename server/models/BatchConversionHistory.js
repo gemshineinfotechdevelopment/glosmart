@@ -11,15 +11,22 @@ const batchConversionHistorySchema = new mongoose.Schema({
     ref: 'Course',
     required: true
   },
+  oldCourseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+    required: true
+  },
   oldBatchId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Batch',
-    required: true
+    required: true,
+    index: true
   },
   newBatchId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Batch',
-    required: true
+    required: true,
+    index: true
   },
   effectiveDate: {
     type: Date,

@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['admin', 'teacher', 'student'], required: true },
-  profileId: { type: mongoose.Schema.Types.ObjectId } // Optional link to Student/Teacher model
+  profileId: { type: mongoose.Schema.Types.ObjectId, index: true }, // Optional link to Student/Teacher model
+  isProfileComplete: { type: Boolean, default: false }
 }, {
   timestamps: true
 });

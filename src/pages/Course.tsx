@@ -58,25 +58,25 @@ export default function Course() {
         <div className={`absolute top-4 left-4 z-10 px-3 py-1 rounded-full text-xs font-bold ${badgeColorClass}`}>
           {course.courseCode}
         </div>
-        <img 
-          src={course.thumbnailImage || course4} 
-          alt={course.courseName} 
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+        <img
+          src={course.thumbnailImage || course4}
+          alt={course.courseName}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
         />
       </div>
-      
+
       <div className="p-6 flex flex-col flex-grow">
         <h3 className="text-xl font-bold text-gray-900 mb-2">{course.courseName}</h3>
         <p className="text-gray-500 text-sm mb-6 flex-grow leading-relaxed line-clamp-3">{course.description}</p>
-        
+
         <div className="flex items-center gap-2 mb-4">
           <div className="bg-purple-100 p-2 rounded-lg">
             <Star className="w-4 h-4 text-purple-600 fill-purple-600" />
           </div>
           <span className="font-bold text-purple-700">View Details</span>
         </div>
-        
-        <button 
+
+        <button
           onClick={() => handleViewBatches(course)}
           className={`w-full py-3 border-2 ${buttonColorClass} font-bold rounded-xl transition-colors duration-300 mt-auto`}
         >
@@ -87,12 +87,12 @@ export default function Course() {
   );
 
   return (
-    <div 
+    <div
       className="min-h-screen font-['Outfit',sans-serif] overflow-hidden"
-      style={{ 
-        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.85)), url(${courseBg})`, 
-        backgroundSize: '100% auto', 
-        backgroundPosition: 'top center', 
+      style={{
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.85)), url(${courseBg})`,
+        backgroundSize: '100% auto',
+        backgroundPosition: 'top center',
         backgroundRepeat: 'repeat-y'
       }}
     >
@@ -101,16 +101,16 @@ export default function Course() {
         <div className="absolute top-16 right-3 sm:top-20 sm:right-6 md:top-10 md:right-10 w-24 sm:w-36 md:w-72 lg:w-96 animate-bounce-slow opacity-80 pointer-events-none z-0">
           <img src={crayon} alt="Decorative Brush" className="w-full h-auto drop-shadow-2xl -rotate-12" />
         </div>
-        
+
         <div className="relative z-10 bg-yellow-300 text-yellow-900 px-4 py-2 rounded-full font-semibold flex items-center gap-2 mb-6 shadow-sm">
           <Star className="w-4 h-4 fill-yellow-900" />
           Discovery Awaits
         </div>
-        
+
         <h1 className="relative z-10 text-5xl md:text-6xl lg:text-7xl font-extrabold text-[#00668A] mb-6 max-w-3xl leading-tight">
           Explore the Curriculum
         </h1>
-        
+
         <p className="relative z-10 text-gray-700 max-w-2xl text-lg md:text-xl font-medium leading-relaxed">
           Find the perfect creative path for every age and skill level. From tactile sensory play to advanced digital masterclasses.
         </p>
@@ -118,7 +118,7 @@ export default function Course() {
 
       {/* Main Content Container */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-24 relative z-20">
-        
+
         {loading ? (
           <div className="text-center py-20 text-xl font-bold text-gray-500">Loading courses...</div>
         ) : (
@@ -133,17 +133,17 @@ export default function Course() {
                   <div>
                     <h2 className="text-3xl font-bold text-[#00668A]">Pre-Junior (Beginner)</h2>
                     <p className="text-gray-500 font-medium text-sm md:text-base mt-1">
-                      Ages 4-8 • Tactile learning & play based curriculum
+                      Ages 4-6 • Tactile learning & play based curriculum
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
                   {beginnerCourses.map((course) => (
-                    <CourseCard 
-                      key={course._id} 
-                      course={course} 
-                      colorClass="text-[#00668A]" 
+                    <CourseCard
+                      key={course._id}
+                      course={course}
+                      colorClass="text-[#00668A]"
                       badgeColorClass="bg-yellow-300 text-yellow-900"
                       buttonColorClass="border-[#00668A] text-[#00668A] hover:bg-[#00668A] hover:text-white"
                     />
@@ -155,7 +155,7 @@ export default function Course() {
                     <p className="text-blue-100 mb-8 text-sm md:text-base leading-relaxed">
                       Our Pre-Junior track is designed to build confidence and joy before technique.
                     </p>
-                    
+
                     <ul className="space-y-4">
                       <li className="flex items-center gap-3">
                         <div className="bg-green-400 p-1 rounded-full">
@@ -185,17 +185,17 @@ export default function Course() {
                   <div>
                     <h2 className="text-3xl font-bold text-[#cc2b5e]">Junior (Intermediate)</h2>
                     <p className="text-gray-500 font-medium text-sm md:text-base mt-1">
-                      Ages 9-14 • Drawing, perspective, and color theories
+                      Ages 7-9 • Drawing, perspective, and color theories
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
                   {intermediateCourses.map((course) => (
-                    <CourseCard 
-                      key={course._id} 
-                      course={course} 
-                      colorClass="text-[#cc2b5e]" 
+                    <CourseCard
+                      key={course._id}
+                      course={course}
+                      colorClass="text-[#cc2b5e]"
                       badgeColorClass="bg-red-100 text-red-600"
                       buttonColorClass="border-[#cc2b5e] text-[#cc2b5e] hover:bg-[#cc2b5e] hover:text-white"
                     />
@@ -214,17 +214,17 @@ export default function Course() {
                   <div>
                     <h2 className="text-3xl font-bold text-[#5a653e]">Senior (Advanced)</h2>
                     <p className="text-gray-500 font-medium text-sm md:text-base mt-1">
-                      Ages 15+ & Adults • Advanced portfolio & industry standard techniques
+                      Ages 10+ & Adults • Advanced portfolio & industry standard techniques
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
                   {advancedCourses.map((course) => (
-                    <CourseCard 
-                      key={course._id} 
-                      course={course} 
-                      colorClass="text-[#5a653e]" 
+                    <CourseCard
+                      key={course._id}
+                      course={course}
+                      colorClass="text-[#5a653e]"
                       badgeColorClass="bg-lime-100 text-lime-700"
                       buttonColorClass="border-[#5a653e] text-[#5a653e] hover:bg-[#5a653e] hover:text-white"
                     />
@@ -240,8 +240,8 @@ export default function Course() {
       {selectedCourse && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative animate-in fade-in zoom-in-95 duration-300">
-            
-            <button 
+
+            <button
               onClick={() => setSelectedCourse(null)}
               className="absolute top-6 right-6 p-2 bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-full transition-colors z-10"
             >
@@ -251,7 +251,7 @@ export default function Course() {
             <div className="p-8 md:p-10">
               <h2 className="text-3xl font-bold text-slate-800 mb-2">{selectedCourse.courseName}</h2>
               <p className="text-slate-500 mb-8 max-w-2xl">{selectedCourse.description}</p>
-              
+
               <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                 Available Batches
                 <span className="bg-indigo-100 text-indigo-700 text-sm py-1 px-3 rounded-full">{batches.length}</span>
@@ -267,12 +267,11 @@ export default function Course() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {batches.map(batch => (
                     <div key={batch._id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col">
-                      <div className={`absolute top-0 right-0 px-3 py-1 rounded-bl-xl text-xs font-bold ${
-                        batch.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
-                        batch.status === 'UPCOMING' ? 'bg-blue-100 text-blue-700' :
-                        batch.status === 'COMPLETED' ? 'bg-slate-100 text-slate-700' :
-                        'bg-orange-100 text-orange-700'
-                      }`}>
+                      <div className={`absolute top-0 right-0 px-3 py-1 rounded-bl-xl text-xs font-bold ${batch.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
+                          batch.status === 'UPCOMING' ? 'bg-blue-100 text-blue-700' :
+                            batch.status === 'COMPLETED' ? 'bg-slate-100 text-slate-700' :
+                              'bg-orange-100 text-orange-700'
+                        }`}>
                         {batch.status}
                       </div>
 
@@ -309,16 +308,16 @@ export default function Course() {
                         </div>
                       </div>
 
-                      <button 
+                      <button
                         onClick={() => {
                           if (user && user.role === 'student') {
                             navigate('/student/courses', { state: { pendingEnrollment: selectedCourse } });
                           } else {
-                            navigate('/login', { 
-                              state: { 
-                                redirectTo: '/student/courses', 
-                                pendingEnrollment: selectedCourse 
-                              } 
+                            navigate('/login', {
+                              state: {
+                                redirectTo: '/student/courses',
+                                pendingEnrollment: selectedCourse
+                              }
                             });
                           }
                         }}

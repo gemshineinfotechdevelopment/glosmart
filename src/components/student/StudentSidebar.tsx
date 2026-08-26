@@ -16,7 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 const StudentSidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const currentPath = location.pathname;
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -151,9 +151,24 @@ const StudentSidebar: React.FC = () => {
           })}
         </nav>
 
-        <div className="px-6 py-6 border-t border-slate-200 mt-auto flex flex-col gap-4">
-          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2 text-slate-500 font-semibold hover:text-slate-800 transition-all bg-transparent border-none cursor-pointer text-[15px]">
-            <FiLogOut size={20} /> Logout
+        <div className="px-4 py-4 border-t border-slate-200 mt-auto flex flex-col gap-2">
+          <Link
+            to="/student/profile"
+            className={`flex items-center gap-3 p-3 rounded-2xl transition-colors no-underline ${
+              currentPath === '/student/profile' ? 'bg-[#f0e8ff] text-[#4700b3]' : 'hover:bg-slate-50 text-slate-700'
+            }`}
+          >
+            <div className="w-9 h-9 rounded-full bg-[#4700b3] text-white flex items-center justify-center font-bold text-sm shrink-0">
+              {(user?.name || 'S').charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-slate-800 truncate">{user?.name || 'Student User'}</p>
+              <p className="text-[11px] text-slate-400 truncate">My Profile</p>
+            </div>
+          </Link>
+
+          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 text-slate-500 font-semibold hover:text-slate-800 transition-all bg-transparent border-none cursor-pointer text-[14px]">
+            <FiLogOut size={18} /> Logout
           </button>
         </div>
       </aside>

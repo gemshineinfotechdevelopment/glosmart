@@ -8,6 +8,7 @@ interface User {
   profileId?: string;
   token: string;
   name?: string;
+  isProfileComplete?: boolean;
 }
 
 interface AuthContextType {
@@ -16,6 +17,7 @@ interface AuthContextType {
   login: (userData: User) => void;
   logout: () => void;
   refreshEnrollment: () => Promise<void>;
+  updateUserData: (updated: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -78,6 +80,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUserData = (updated: Partial<User>) => {
+    setUser(prev => {
+      if (!prev) return null;
+      const newUser = { ...prev, ...updated };
+      localStorage.setItem('glosmart_user', JSON.stringify(newUser));
+      return newUser;
+    });
+  };
+
   const logout = () => {
     setUser(null);
     setEnrolledCount(0);
@@ -89,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   return (
-    <AuthContext.Provider value={{ user, enrolledCount, login, logout, refreshEnrollment }}>
+    <AuthContext.Provider value={{ user, enrolledCount, login, logout, refreshEnrollment, updateUserData }}>
       {children}
     </AuthContext.Provider>
   );

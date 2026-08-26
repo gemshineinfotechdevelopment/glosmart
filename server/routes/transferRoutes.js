@@ -7,6 +7,7 @@ import TemporaryBatchTransfer from '../models/TemporaryBatchTransfer.js';
 import BatchConversionHistory from '../models/BatchConversionHistory.js';
 import AuditLog from '../models/AuditLog.js';
 import Notification from '../models/Notification.js';
+import { sendTransferNotifications } from '../services/notificationService.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -105,6 +106,7 @@ router.post('/', protect, admin, async (req, res) => {
     }
 
     const originalBatchId = student.batchId;
+    const originalCourseId = student.courseId;
     if (!originalBatchId) {
       return res.status(400).json({ message: 'Student is not enrolled in any batch' });
     }
@@ -158,6 +160,7 @@ router.post('/', protect, admin, async (req, res) => {
     const transfer = new TemporaryBatchTransfer({
       studentId,
       courseId: targetBatch.courseId,
+      originalCourseId,
       originalBatchId,
       temporaryBatchId,
       startDate: start,
@@ -190,27 +193,30 @@ router.post('/', protect, admin, async (req, res) => {
     });
     await auditLog.save({ session });
 
-    // Store notification details
-    const msg = `You have been temporarily shifted to ${targetBatch.batchName} from ${start.toLocaleDateString()} to ${end.toLocaleDateString()}.`;
-    const notification = new Notification({
-      name: student.name,
-      email: student.email,
-      phone: student.phone || '',
-      message: msg,
-      notificationType: 'batch_transfer',
-      courseName: course.courseName
-    });
-    await notification.save({ session });
+    const io = req.app.get('socketio');
+    
+    // 3. Send Notifications
+    await sendTransferNotifications(io, {
+      studentId,
+      studentName: student.name,
+      phoneNumber: student.phone || '',
+      oldCourseId: originalCourseId,
+      oldBatchId: originalBatchId,
+      oldBatchName: student.batch,
+      newCourseId: targetBatch.courseId,
+      newBatchId: temporaryBatchId,
+      newBatchName: targetBatch.batchName,
+      transferType: 'Temporary',
+      adminName: req.user.name || adminName
+    }, session);
+
+    // Also trigger student-specific legacy real-time event
+    if (io) {
+      io.emit('transfer_updated', { studentId, transfer });
+    }
 
     await session.commitTransaction();
     session.endSession();
-
-    // Trigger Socket.io real-time event
-    const io = req.app.get('socketio');
-    if (io) {
-      io.emit('notification', notification);
-      io.emit('transfer_updated', { studentId, transfer });
-    }
 
     res.status(201).json(transfer);
   } catch (error) {
@@ -541,6 +547,7 @@ router.post('/batch-conversions', protect, admin, async (req, res) => {
     }
 
     const oldBatchId = student.batchId;
+    const oldCourseId = student.courseId;
     if (oldBatchId && oldBatchId.toString() === newBatchId) {
       return res.status(400).json({ message: 'New batch cannot be the same as current batch' });
     }
@@ -554,10 +561,11 @@ router.post('/batch-conversions', protect, admin, async (req, res) => {
 
     const effDate = effectiveDate ? new Date(effectiveDate) : new Date();
 
-    // Record history (log new batch's courseId)
+    // Record history
     const conversion = new BatchConversionHistory({
       studentId,
       courseId: newBatch.courseId,
+      oldCourseId,
       oldBatchId,
       newBatchId,
       effectiveDate: effDate,
@@ -667,25 +675,29 @@ router.post('/batch-conversions', protect, admin, async (req, res) => {
     });
     await auditLog.save({ session });
 
-    // Store notification
-    const notification = new Notification({
-      name: student.name,
-      email: student.email,
-      phone: student.phone || '',
-      message: `Your batch enrollment has been permanently changed to ${newBatch.batchName} starting from ${effDate.toLocaleDateString()}.`,
-      notificationType: 'batch_conversion'
-    });
-    await notification.save({ session });
+    const io = req.app.get('socketio');
+    // Send Notifications
+    await sendTransferNotifications(io, {
+      studentId,
+      studentName: student.name,
+      phoneNumber: student.phone || '',
+      oldCourseId,
+      oldBatchId,
+      oldBatchName,
+      newCourseId: newBatch.courseId,
+      newBatchId,
+      newBatchName: newBatch.batchName,
+      transferType: 'Permanent',
+      adminName: req.user.name || adminName
+    }, session);
+
+    // Legacy event
+    if (io) {
+      io.emit('transfer_updated', { studentId });
+    }
 
     await session.commitTransaction();
     session.endSession();
-
-    // Trigger socket event
-    const io = req.app.get('socketio');
-    if (io) {
-      io.emit('notification', notification);
-      io.emit('student_converted', { studentId, oldBatchId, newBatchId });
-    }
 
     res.status(201).json({ message: 'Batch permanently converted successfully', conversion });
   } catch (error) {
@@ -698,7 +710,211 @@ router.post('/batch-conversions', protect, admin, async (req, res) => {
 
 
 
-// @route   POST /api/transfers/run-cron
+// @route   POST /api/transfers/redo/:id
+// @desc    Redo a temporary transfer (forces return to original course/batch early)
+// @access  Private/Admin
+router.post('/redo/:id', protect, admin, async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const transfer = await TemporaryBatchTransfer.findById(req.params.id).session(session);
+    if (!transfer) return res.status(404).json({ message: 'Transfer record not found' });
+    if (transfer.status !== 'active') return res.status(400).json({ message: 'Only active transfers can be redone' });
+
+    const student = await Student.findById(transfer.studentId).session(session);
+    const origBatch = await Batch.findById(transfer.originalBatchId).session(session);
+
+    // Complete the transfer early
+    transfer.status = 'completed';
+    transfer.active = false;
+    transfer.completed = true;
+    transfer.endDate = new Date(); // End it now
+    await transfer.save({ session });
+
+    // Audit Log for manual redo
+    const adminName = req.user.email.split('@')[0];
+    const auditLog = new AuditLog({
+      adminName: req.user.name || adminName,
+      adminId: req.user._id,
+      studentId: transfer.studentId,
+      studentName: student ? student.name : 'Unknown Student',
+      oldCourseId: transfer.courseId,
+      newCourseId: transfer.originalCourseId,
+      oldBatchId: transfer.temporaryBatchId,
+      newBatchId: transfer.originalBatchId,
+      newBatchName: origBatch ? origBatch.batchName : 'Original Batch',
+      action: 'Redo Transfer',
+      ipAddress: req.ip || ''
+    });
+    await auditLog.save({ session });
+
+    const io = req.app.get('socketio');
+    
+    // Notifications
+    await sendTransferNotifications(io, {
+      studentId: transfer.studentId,
+      studentName: student ? student.name : 'Student',
+      phoneNumber: student ? student.phone : '',
+      oldCourseId: transfer.courseId,
+      oldBatchId: transfer.temporaryBatchId,
+      oldBatchName: 'Temporary Batch',
+      newCourseId: transfer.originalCourseId,
+      newBatchId: transfer.originalBatchId,
+      newBatchName: origBatch ? origBatch.batchName : 'Original Batch',
+      transferType: 'Redo',
+      adminName: req.user.name || adminName
+    }, session);
+
+    if (io && student) {
+      io.emit('transfer_updated', { studentId: student._id, transfer });
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+    res.json({ message: 'Transfer redone successfully', transfer });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @route   POST /api/batch-conversions/redo/:id
+// @desc    Redo a permanent batch conversion (return to old course and batch)
+// @access  Private/Admin
+router.post('/batch-conversions/redo/:id', protect, admin, async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const history = await BatchConversionHistory.findById(req.params.id).session(session);
+    if (!history) return res.status(404).json({ message: 'Conversion history not found' });
+
+    const student = await Student.findById(history.studentId).session(session);
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    const newBatchId = history.oldBatchId; // We are reverting to oldBatchId
+    const newCourseId = history.oldCourseId;
+    const oldBatchId = student.batchId;
+    const oldBatchName = student.batch;
+    const oldCourseId = student.courseId;
+
+    if (oldBatchId && oldBatchId.toString() === newBatchId.toString()) {
+      return res.status(400).json({ message: 'Student is already in the original batch' });
+    }
+
+    const newBatch = await Batch.findById(newBatchId).session(session);
+    if (!newBatch || newBatch.status === 'COMPLETED' || newBatch.status === 'INACTIVE') {
+      return res.status(400).json({ message: 'Original batch is not available' });
+    }
+
+    // Capacity Check
+    const maxCapacity = newBatch.maxCapacity || 30;
+    const currentSize = await getBatchEffectiveStudentCount(newBatchId, new Date());
+    if (currentSize >= maxCapacity) {
+      return res.status(400).json({ message: 'Original batch capacity reached.' });
+    }
+
+    // Record new history (the redo)
+    const conversion = new BatchConversionHistory({
+      studentId: history.studentId,
+      courseId: newCourseId,
+      oldCourseId,
+      oldBatchId,
+      newBatchId,
+      effectiveDate: new Date(),
+      reason: 'Redo permanent transfer',
+      convertedBy: req.user._id
+    });
+    await conversion.save({ session });
+
+    // Update Student model
+    student.batchId = newBatchId;
+    student.batch = newBatch.batchName;
+    student.schedule = newBatch.batchName;
+    student.teacher = newBatch.instructor || 'TBD';
+
+    if (newCourseId.toString() !== oldCourseId?.toString()) {
+      const newCourse = await Course.findById(newCourseId).session(session);
+      if (newCourse) {
+        student.courseId = newCourseId;
+        student.course = newCourse.courseName;
+
+        const courseIndex = student.enrolledCourses.findIndex(c => 
+          c.courseId === oldCourseId?.toString() || (c.courseId && c.courseId.toString() === oldCourseId?.toString())
+        );
+        if (courseIndex !== -1) {
+          student.enrolledCourses[courseIndex].batchId = newBatchId;
+          student.enrolledCourses[courseIndex].batchName = newBatch.batchName;
+          student.enrolledCourses[courseIndex].instructor = newBatch.instructor || 'TBD';
+        } else if (student.enrolledCourses.length > 0) {
+          student.enrolledCourses[0].courseId = newCourseId.toString();
+          student.enrolledCourses[0].courseName = newCourse.courseName;
+          student.enrolledCourses[0].batchId = newBatchId;
+          student.enrolledCourses[0].batchName = newBatch.batchName;
+          student.enrolledCourses[0].instructor = newBatch.instructor || 'TBD';
+        }
+      }
+    } else {
+      const enrolledCourseIndex = student.enrolledCourses.findIndex(c => 
+        c.courseId === newCourseId.toString() || (c.courseId && c.courseId.toString() === newCourseId.toString())
+      );
+      if (enrolledCourseIndex !== -1) {
+        student.enrolledCourses[enrolledCourseIndex].batchId = newBatchId;
+        student.enrolledCourses[enrolledCourseIndex].batchName = newBatch.batchName;
+        student.enrolledCourses[enrolledCourseIndex].instructor = newBatch.instructor || 'TBD';
+      }
+    }
+    await student.save({ session });
+
+    // Audit Log for redo conversion
+    const adminName = req.user.email.split('@')[0];
+    const auditLog = new AuditLog({
+      adminName: req.user.name || adminName,
+      adminId: req.user._id,
+      studentId: student._id,
+      studentName: student.name,
+      oldCourseId,
+      newCourseId,
+      oldBatchId,
+      oldBatchName,
+      newBatchId,
+      newBatchName: newBatch.batchName,
+      action: 'Redo Permanent Transfer',
+      ipAddress: req.ip || ''
+    });
+    await auditLog.save({ session });
+
+    const io = req.app.get('socketio');
+    
+    // Notifications
+    await sendTransferNotifications(io, {
+      studentId: student._id,
+      studentName: student.name,
+      phoneNumber: student.phone || '',
+      oldCourseId,
+      oldBatchId,
+      oldBatchName,
+      newCourseId,
+      newBatchId,
+      newBatchName: newBatch.batchName,
+      transferType: 'Redo',
+      adminName: req.user.name || adminName
+    }, session);
+
+    if (io) {
+      io.emit('transfer_updated', { studentId: student._id });
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+    res.status(201).json({ message: 'Batch redone successfully', conversion, student });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error('Error redoing batch conversion:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
 // @desc    Manually trigger transfer activation and reversion logic
 // @access  Private/Admin
 router.post('/run-cron', protect, admin, async (req, res) => {

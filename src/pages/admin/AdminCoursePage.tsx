@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiEdit2 } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiCheckCircle } from 'react-icons/fi';
 import { MdOutlineDashboard } from 'react-icons/md';
 
 import { useAuth } from '../../context/AuthContext';
@@ -11,6 +11,8 @@ export default function AdminCoursePage() {
   const { user } = useAuth();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCourses();
@@ -18,8 +20,6 @@ export default function AdminCoursePage() {
 
   const fetchCourses = async () => {
     try {
-      // Both admin and teacher see all courses.
-      // Batch-level filtering (instructor === user.name) handles what teachers see inside each course.
       const response = await fetch(`${API_BASE_URL}/api/courses`);
       const data = await response.json();
       setCourses(data.courses || []);
@@ -30,36 +30,81 @@ export default function AdminCoursePage() {
     }
   };
 
+  const handleDeleteCourse = async (courseId: string, courseName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!window.confirm(`Are you sure you want to delete "${courseName}"? This will permanently remove the course and its batches.`)) {
+      return;
+    }
+
+    setDeletingId(courseId);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/courses/${courseId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setCourses(prev => prev.filter(c => c._id !== courseId));
+        setToastMessage(`Course "${courseName}" was successfully deleted.`);
+        setTimeout(() => setToastMessage(null), 4000);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        alert(`Failed to delete course: ${errorData.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      alert('Network error while deleting course.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const filteredCourses = courses;
 
   return (
     <div className="p-4 sm:p-6 md:p-10">
       <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">Course Management</h1>
-              <p className="text-slate-500">Streamline academy operations: track active batches, monitor tutor performance, and manage student enrollment schedules.</p>
+        
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div className="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl z-50 flex items-center gap-3 border border-slate-700/50 animate-bounce">
+            <div className="p-1 bg-emerald-500 text-white rounded-full">
+              <FiCheckCircle size={18} />
             </div>
-            {user?.role === 'admin' && (
-              <button 
-                onClick={() => navigate('/admin/courses/new')}
-                className="flex items-center gap-2 px-6 py-3 bg-[#4f39f6] text-white rounded-full hover:bg-indigo-700 transition-colors font-semibold shadow-md shadow-indigo-200 shrink-0"
-              >
-                <FiPlus size={20} /> Create New Course
-              </button>
-            )}
+            <span className="font-semibold text-sm">{toastMessage}</span>
           </div>
+        )}
 
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">Course Management</h1>
+            <p className="text-slate-500">Streamline academy operations: track active batches, monitor tutor performance, and manage student enrollment schedules.</p>
+          </div>
+          {user?.role === 'admin' && (
+            <button 
+              onClick={() => navigate('/admin/courses/new')}
+              className="flex items-center gap-2 px-6 py-3 bg-[#4f39f6] text-white rounded-full hover:bg-indigo-700 transition-colors font-semibold shadow-md shadow-indigo-200 shrink-0 border-none cursor-pointer"
+            >
+              <FiPlus size={20} /> Create New Course
+            </button>
+          )}
+        </div>
 
-          {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4f39f6]"></div>
-            </div>
-          ) : (
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4f39f6]"></div>
+          </div>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredCourses.map(course => (
-              <div key={course._id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col hover:shadow-md transition-shadow">
-                <div className="relative h-48 bg-slate-100 shrink-0 cursor-pointer" onClick={() => navigate(`/admin/courses/${course._id}/batches`)}>
+              <div 
+                key={course._id} 
+                className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col hover:shadow-md transition-shadow relative group"
+              >
+                <div 
+                  className="relative h-48 bg-slate-100 shrink-0 cursor-pointer" 
+                  onClick={() => navigate(`/admin/courses/${course._id}/batches`)}
+                >
                   {course.thumbnailImage ? (
                     <img src={course.thumbnailImage} alt={course.courseName} className="w-full h-full object-cover" />
                   ) : (
@@ -67,6 +112,8 @@ export default function AdminCoursePage() {
                       <MdOutlineDashboard size={48} />
                     </div>
                   )}
+
+                  {/* Status and Code Badges */}
                   <div className="absolute top-4 left-4 flex gap-2">
                     <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md text-white uppercase tracking-wider ${
                       course.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-500'
@@ -77,10 +124,26 @@ export default function AdminCoursePage() {
                       {course.courseCode}
                     </span>
                   </div>
+
+                  {/* Admin Actions (Edit & Delete Buttons) */}
                   {user?.role === 'admin' && (
-                    <button className="absolute top-4 right-4 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-600 hover:text-indigo-600 shadow-sm" onClick={(e) => { e.stopPropagation(); navigate(`/admin/courses/edit/${course._id}`); }}>
-                      <FiEdit2 size={14} />
-                    </button>
+                    <div className="absolute top-4 right-4 flex items-center gap-2">
+                      <button 
+                        className="w-8 h-8 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-600 hover:text-indigo-600 shadow-sm border-none cursor-pointer transition-colors" 
+                        onClick={(e) => { e.stopPropagation(); navigate(`/admin/courses/edit/${course._id}`); }}
+                        title="Edit Course"
+                      >
+                        <FiEdit2 size={14} />
+                      </button>
+                      <button 
+                        disabled={deletingId === course._id}
+                        className="w-8 h-8 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center text-red-500 hover:bg-red-50 hover:text-red-700 shadow-sm border-none cursor-pointer transition-colors disabled:opacity-50" 
+                        onClick={(e) => handleDeleteCourse(course._id, course.courseName, e)}
+                        title="Delete Course (Admin Only)"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -97,12 +160,22 @@ export default function AdminCoursePage() {
                     </div>
                   </div>
 
-
-
-                  <div className="mt-auto pt-5 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 rounded-lg text-sm font-bold text-indigo-600 border border-indigo-100">
+                  {/* Footer with Batch Count & Delete CTA for Admin */}
+                  <div className="mt-auto pt-5 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 rounded-lg text-xs font-bold text-indigo-600 border border-indigo-100">
                       Batches: {course.batches?.length || 0}
                     </div>
+
+                    {user?.role === 'admin' && (
+                      <button
+                        disabled={deletingId === course._id}
+                        onClick={(e) => handleDeleteCourse(course._id, course.courseName, e)}
+                        className="flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border-none cursor-pointer transition-colors disabled:opacity-50"
+                        title="Delete Course"
+                      >
+                        <FiTrash2 size={13} /> Delete
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -112,7 +185,7 @@ export default function AdminCoursePage() {
             {user?.role === 'admin' && (
               <div 
                 onClick={() => navigate('/admin/courses/new')}
-                className="bg-white rounded-2xl shadow-sm border border-dashed border-slate-300 flex flex-col items-center justify-center p-8 text-center cursor-pointer hover:border-[#4f39f6] hover:bg-slate-50 transition-colors min-h-[440px] group"
+                className="bg-white rounded-2xl shadow-sm border border-dashed border-slate-300 flex flex-col items-center justify-center p-8 text-center cursor-pointer hover:border-[#4f39f6] hover:bg-slate-50 transition-colors min-h-[360px] group"
               >
                 <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-6 group-hover:bg-[#4f39f6] group-hover:text-white group-hover:border-transparent transition-colors shadow-sm">
                   <FiPlus size={28} />
@@ -122,7 +195,7 @@ export default function AdminCoursePage() {
               </div>
             )}
           </div>
-          )}
+        )}
 
       </div>
     </div>

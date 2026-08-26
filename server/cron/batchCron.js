@@ -18,6 +18,9 @@ export const runTransferCronJob = async (io) => {
     });
 
     for (const transfer of toActivate) {
+      if (!transfer.originalCourseId) {
+        transfer.originalCourseId = transfer.courseId;
+      }
       transfer.status = 'active';
       transfer.scheduled = false;
       transfer.active = true;
@@ -55,6 +58,9 @@ export const runTransferCronJob = async (io) => {
     });
 
     for (const transfer of toComplete) {
+      if (!transfer.originalCourseId) {
+        transfer.originalCourseId = transfer.courseId;
+      }
       transfer.status = 'completed';
       transfer.active = false;
       transfer.completed = true;
@@ -68,30 +74,38 @@ export const runTransferCronJob = async (io) => {
       // Audit Log for automatic revert
       const auditLog = new AuditLog({
         adminName: 'System Cron',
-        adminId: transfer.createdBy,
+        adminId: transfer.createdBy, // The admin who created it originally
         studentId: transfer.studentId,
         studentName: student ? student.name : 'Unknown Student',
+        oldCourseId: transfer.courseId,
+        newCourseId: transfer.originalCourseId,
         oldBatchId: transfer.temporaryBatchId,
         newBatchId: transfer.originalBatchId,
         newBatchName: origBatch ? origBatch.batchName : 'Original Batch',
-        action: 'Completed',
+        action: 'Completed (Auto Restore)',
         ipAddress: '127.0.0.1'
       });
       await auditLog.save();
 
       if (student && origBatch) {
-        const msg = `You have been moved back to your original batch: ${origBatch.batchName}.`;
-        const notification = new Notification({
-          name: student.name,
-          email: student.email,
-          phone: student.phone || '',
-          message: msg,
-          notificationType: 'batch_transfer_completed'
+        // Send Notifications using the service
+        const { sendTransferNotifications } = await import('../services/notificationService.js');
+        
+        await sendTransferNotifications(io, {
+          studentId: student._id,
+          studentName: student.name,
+          phoneNumber: student.phone || '',
+          oldCourseId: transfer.courseId,
+          oldBatchId: transfer.temporaryBatchId,
+          oldBatchName: 'Temporary Batch',
+          newCourseId: transfer.originalCourseId,
+          newBatchId: transfer.originalBatchId,
+          newBatchName: origBatch.batchName,
+          transferType: 'Auto Restore',
+          adminName: 'System Cron'
         });
-        await notification.save();
 
         if (io) {
-          io.emit('notification', notification);
           io.emit('transfer_updated', { studentId: student._id, transfer });
         }
       }

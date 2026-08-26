@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { FiBell, FiX } from 'react-icons/fi';
@@ -14,30 +14,30 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Course from './pages/Course';
 import Faqs from './pages/Faqs';
-import AdminDashboard from './pages/admin/Dashboard';
-import AdminCoursePage from './pages/admin/AdminCoursePage.tsx';
-import AdminCreateCoursePage from './pages/admin/AdminCreateCoursePage';
-import AdminCourseBatchesPage from './pages/admin/AdminCourseBatchesPage.tsx';
-import Teachers from './pages/admin/Teachers';
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
+const AdminCoursePage = lazy(() => import('./pages/admin/AdminCoursePage.tsx'));
+const AdminCreateCoursePage = lazy(() => import('./pages/admin/AdminCreateCoursePage'));
+const AdminCourseBatchesPage = lazy(() => import('./pages/admin/AdminCourseBatchesPage.tsx'));
+const Teachers = lazy(() => import('./pages/admin/Teachers'));
 
-import FeesPayments from './pages/admin/FeesPayments';
-import Students from './pages/admin/Students';
-import BatchDetails from './pages/admin/BatchDetails';
-import AdminGalleryPage from './pages/admin/AdminGalleryPage';
-import AdminSettingsPage from './pages/admin/AdminSettingsPage';
-import AdminNotificationsPage from './pages/admin/AdminNotificationsPage';
-import AdminAttendancePage from './pages/admin/AdminAttendancePage';
-import TutorReports from './pages/admin/TutorReports';
-import BatchTransferManagement from './pages/admin/BatchTransferManagement';
+const FeesPayments = lazy(() => import('./pages/admin/FeesPayments'));
+const Students = lazy(() => import('./pages/admin/Students'));
+const BatchDetails = lazy(() => import('./pages/admin/BatchDetails'));
+const AdminGalleryPage = lazy(() => import('./pages/admin/AdminGalleryPage'));
+const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
+const AdminNotificationsPage = lazy(() => import('./pages/admin/AdminNotificationsPage'));
+const AdminAttendancePage = lazy(() => import('./pages/admin/AdminAttendancePage'));
+const TutorReports = lazy(() => import('./pages/admin/TutorReports'));
+const BatchTransferManagement = lazy(() => import('./pages/admin/BatchTransferManagement'));
 import AdminLayout from './layouts/AdminLayout';
 
 // Student Pages
-import StudentProfile from './pages/student/StudentProfile';
-import StudentAttendance from './pages/student/StudentAttendance';
-import StudentCourses from './pages/student/StudentCourses';
-import StudentAssignments from './pages/student/StudentAssignments';
-import StudentFees from './pages/student/StudentFees';
-import StudentDashboard from './pages/student/StudentDashboard';
+const StudentProfile = lazy(() => import('./pages/student/StudentProfile'));
+const StudentAttendance = lazy(() => import('./pages/student/StudentAttendance'));
+const StudentCourses = lazy(() => import('./pages/student/StudentCourses'));
+const StudentAssignments = lazy(() => import('./pages/student/StudentAssignments'));
+const StudentFees = lazy(() => import('./pages/student/StudentFees'));
+const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
 import StudentLayout from './layouts/StudentLayout';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -98,49 +98,51 @@ function AppContent(): React.JSX.Element {
 
       {/* Main Content Area */}
       <div className={(isAdminPage || isStudentPage) ? "" : "flex-grow"}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/courses" element={<Course />} />
-          <Route path="/faqs" element={<Faqs />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          
-          {/* Admin Routes — nested under AdminLayout so sidebar persists */}
-          <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminLayout /></ProtectedRoute>}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="courses" element={<AdminCoursePage />} />
-            <Route path="courses/new" element={<AdminCreateCoursePage />} />
-            <Route path="courses/edit/:id" element={<AdminCreateCoursePage />} />
-            <Route path="courses/:id/batches" element={<AdminCourseBatchesPage />} />
-            <Route path="teachers" element={<ProtectedRoute allowedRoles={['admin']}><Teachers /></ProtectedRoute>} />
-            <Route path="fees" element={<ProtectedRoute allowedRoles={['admin']}><FeesPayments /></ProtectedRoute>} />
-            <Route path="students" element={<Students />} />
-            <Route path="students/:batchId" element={<BatchDetails />} />
-            <Route path="transfers" element={<ProtectedRoute allowedRoles={['admin']}><BatchTransferManagement /></ProtectedRoute>} />
-            <Route path="gallery" element={<AdminGalleryPage />} />
-            <Route path="settings" element={<AdminSettingsPage />} />
-            <Route path="notifications" element={<AdminNotificationsPage />} />
-            <Route path="attendance" element={<AdminAttendancePage />} />
-            <Route path="tutor-reports" element={<TutorReports />} />
-          </Route>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6247df]"></div></div>}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/courses" element={<Course />} />
+            <Route path="/faqs" element={<Faqs />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            
+            {/* Admin Routes — nested under AdminLayout so sidebar persists */}
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdminLayout /></ProtectedRoute>}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="courses" element={<AdminCoursePage />} />
+              <Route path="courses/new" element={<AdminCreateCoursePage />} />
+              <Route path="courses/edit/:id" element={<AdminCreateCoursePage />} />
+              <Route path="courses/:id/batches" element={<AdminCourseBatchesPage />} />
+              <Route path="teachers" element={<ProtectedRoute allowedRoles={['admin']}><Teachers /></ProtectedRoute>} />
+              <Route path="fees" element={<ProtectedRoute allowedRoles={['admin']}><FeesPayments /></ProtectedRoute>} />
+              <Route path="students" element={<Students />} />
+              <Route path="students/:batchId" element={<BatchDetails />} />
+              <Route path="transfers" element={<ProtectedRoute allowedRoles={['admin']}><BatchTransferManagement /></ProtectedRoute>} />
+              <Route path="gallery" element={<AdminGalleryPage />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
+              <Route path="notifications" element={<AdminNotificationsPage />} />
+              <Route path="attendance" element={<AdminAttendancePage />} />
+              <Route path="tutor-reports" element={<TutorReports />} />
+            </Route>
 
-          {/* Student Routes — nested under StudentLayout */}
-          <Route path="/student" element={<ProtectedRoute allowedRoles={['student']}><StudentLayout /></ProtectedRoute>}>
-            <Route index element={<Navigate to="/student/dashboard" replace />} />
-            <Route path="dashboard" element={<StudentDashboard />} />
-            <Route path="profile" element={<StudentProfile />} />
-            <Route path="attendance" element={<StudentAttendance />} />
-            <Route path="courses" element={<StudentCourses />} />
-            <Route path="assignments" element={<StudentAssignments />} />
-            <Route path="fees" element={<StudentFees />} />
-          </Route>
+            {/* Student Routes — nested under StudentLayout */}
+            <Route path="/student" element={<ProtectedRoute allowedRoles={['student']}><StudentLayout /></ProtectedRoute>}>
+              <Route index element={<Navigate to="/student/dashboard" replace />} />
+              <Route path="dashboard" element={<StudentDashboard />} />
+              <Route path="profile" element={<StudentProfile />} />
+              <Route path="attendance" element={<StudentAttendance />} />
+              <Route path="courses" element={<StudentCourses />} />
+              <Route path="assignments" element={<StudentAssignments />} />
+              <Route path="fees" element={<StudentFees />} />
+            </Route>
 
-          {/* Fallback route back to About page */}
-          <Route path="*" element={<About />} />
-        </Routes>
+            {/* Fallback route back to About page */}
+            <Route path="*" element={<About />} />
+          </Routes>
+        </Suspense>
       </div>
 
       {/* Footer */}
