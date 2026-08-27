@@ -1,7 +1,8 @@
 import express from 'express';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import pkg from 'multer-storage-cloudinary';
+const CloudinaryStorage = pkg.CloudinaryStorage || pkg;
 import Teacher from '../models/Teacher.js';
 import User from '../models/User.js';
 import dotenv from 'dotenv';
