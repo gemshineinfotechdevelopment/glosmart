@@ -22,6 +22,14 @@ process.on('unhandledRejection', (reason, promise) => {
   logger.error('Unhandled Rejection', { reason, promise });
 });
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables from server/.env as well as root .env
+dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
+dotenv.config();
+
 import batchRoutes from './routes/batchRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
@@ -38,11 +46,6 @@ import attendanceRoutes from './routes/attendanceRoutes.js';
 import tutorReportRoutes from './routes/tutorReportRoutes.js';
 import transferRoutes from './routes/transferRoutes.js';
 import { runTransferCronJob } from './cron/batchCron.js';
-
-dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -103,9 +106,10 @@ app.use(morgan(morganFormat, {
 // Serve uploaded files as static assets with CORS headers
 app.use('/uploads', cors(corsOptions), express.static(path.join(__dirname, 'uploads')));
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, { family: 4 })
-  .then(() => logger.info('Connected to MongoDB'))
+// Connect to MongoDB with fallback
+const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/glosmart';
+mongoose.connect(mongoUri, { family: 4 })
+  .then(() => logger.info(`Connected to MongoDB at ${mongoUri.replace(/:([^:@]+)@/, ':****@')}`))
   .catch((err) => logger.error('MongoDB connection error:', { error: err.message }));
 
 // Routes
@@ -123,36 +127,37 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/tutor-reports', tutorReportRoutes);
-app.use('/api/transfers', transferRoutes);
+app.use('/api/batch-transfers', transferRoutes);
 
-app.get('/', (req, res) => {
-  res.send('API is running...');
+// Run every night at midnight: 0 0 * * *
+cron.schedule('0 0 * * *', async () => {
+  try {
+    logger.info('[Cron] Executing scheduled batch transfer check...');
+    await runTransferCronJob();
+  } catch (error) {
+    logger.error('Error executing transfer cron job:', { error: error.message });
+  }
 });
 
-// Error handling middleware
+// Run once on startup after 5 seconds to catch any missed updates
+setTimeout(async () => {
+  try {
+    logger.info('[Startup] Running initial batch transfer check...');
+    await runTransferCronJob();
+  } catch (error) {
+    logger.error('Error executing transfer cron job:', { error: error.message });
+  }
+}, 5000);
+
+// Root Health Check Route
+app.get('/', (req, res) => {
+  res.json({ message: 'Glosmart API is running successfully' });
+});
+
+// Custom Error Handling Middleware
 app.use(notFound);
 app.use(errorHandler);
-
-io.on('connection', (socket) => {
-  console.log(`Socket client connected: ${socket.id}`);
-  socket.on('disconnect', () => {
-    console.log(`Socket client disconnected: ${socket.id}`);
-  });
-});
-
-cron.schedule('0 * * * *', () => {
-  console.log('[Cron] Running batch transfer activation/reversion...');
-  runTransferCronJob(io);
-});
-
-// Run initial check after 5 seconds on startup
-setTimeout(() => {
-  console.log('[Startup] Running initial batch transfer check...');
-  runTransferCronJob(io);
-}, 5000);
 
 httpServer.listen(PORT, () => {
   logger.info(`Server is running on port ${PORT}`);
 });
-
-// Trigger restart
